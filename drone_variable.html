@@ -4652,6 +4652,7 @@ return $.__chunk_javascript;
     #missionText .nameChip { padding: 0 6px; }
 
     /* プログラムエリア：ブロックのすぐ上に出す「扉の暗号」の説明 */
+    .progRule .prRules { font-size: .8em; line-height: 1.3; }
     .progRule {
       position: absolute; left: 8px; right: 8px; box-sizing: border-box; overflow: hidden;
       padding: 2px 10px; border-left: 3px solid #f59e0b; border-radius: 6px;
@@ -8382,10 +8383,10 @@ return $.__chunk_javascript;
            <p>4機のドローンには、それぞれ数を1つしまっておける「箱」がついている。名前のついたこの箱が <b>変数</b> だ。名前を呼べば、中の数を取り出したり、新しい数を入れたりできる。</p>
            <p>扉の横のパネルには、こう表示されていた。<b>「各機の箱の数を、暗号どおりにそろえよ」</b>。外に出るには、<b>${roomName(1)}</b> と <b>${roomName(2)}</b> の扉を開けなければならない。この端末から、4機を脱出させよう！</p>
            <div class="riddle"><h3>🔐 脱出のルール</h3><ul class="escRules">
-             <li>扉の暗号は、4機の変数で決まる。暗号の手がかりは、部屋のどこかにある。ドラッグで部屋を見回して、気になる物をクリックして調べよう</li>
+             <li>扉の暗号は、4機の変数で決まる。<b>部屋1（倉庫）</b>では、扉の暗号は最初から表示されている。<b>部屋2（管制室）</b>では、暗号の手がかりが部屋のどこかにある。ドラッグで部屋を見回して、気になる物をクリックして調べよう</li>
              <li>手がかりは、そのままでは読めない。これまでに学んだことを使って解読しよう</li>
              <li>解読した数は、扉の暗号パネルに入力する。4機の変数を暗号と同じにすると、扉が開く（上書きに注意）</li>
-             ${ESC.timer ? `<li>⏱ 制限時間：部屋1 ${ESC.limit[1] / 60}分・部屋2 ${ESC.limit[2] / 60}分（時間がすぎても、脱出はできる）</li>` : ''}
+             ${ESC.timer ? `<li>⏱ 制限時間：部屋2 ${ESC.limit[2] / 60}分（時間がすぎても、脱出はできる）</li>` : ''}
              ${ESC.keys ? `<li>🗝 ヒントの鍵：各部屋 ${ESC.keys}本（使った本数は、脱出ランクに入る）</li>` : ''}
            </ul></div>
            <p>どの順番で箱に数を入れれば、暗号がそろうだろう？ まずは <b>② 例示（練習の部屋）</b> で、箱の使い方を確かめよう。</p>` };
@@ -8811,8 +8812,8 @@ return $.__chunk_javascript;
       } else if (s === 3) {
         mt.innerHTML = u === 'var' ? varStageTabs() : `<span class="mLabel">問題</span>${puzzleText(u)}`;
         tools.innerHTML = u === 'var'
-          ? escTimerHtml() + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>` + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
-            `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>` +
+          ? (varStage() === 1 ? '' : escTimerHtml()) + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + (varStage() !== 2 ? '' : `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>`) + (varStage() === 1 ? '' : `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
+            `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>`) +
             `<button class="escBtn" onclick="showHint()">🗝<span class="escLong"> ヒント</span>${ESC.keys ? ` のこり${Math.max(0, ESC.keys - escHints(varStage()))}` : ''}</button>`
           : (BLOCK_LIMIT[u] ? '<span class="blockCount" id="blockCountBox"></span>' : '') + '<button onclick="showHint()">ヒント</button>';
         if (u === 'var') renderEscTimer();
@@ -8855,7 +8856,7 @@ return $.__chunk_javascript;
       const top = ys[0] + lineH / 2 + 4, bottom = zoneTop - 6 - lineH * 3.0 - 4;
       if (bottom - top < fontPx * 2.2) return '';
       return `<div class="progMission" id="progMission" style="top:${top.toFixed(1)}px;height:${(bottom - top).toFixed(1)}px">${varPanelHtml()}</div>` +
-        `<div class="progRule" style="top:${(bottom + 4).toFixed(1)}px;height:${(lineH * 3.0).toFixed(1)}px"><div class="prIn">🔒 <span class="prStage">${VAR_STAGE_NAME[varStage()]} ${varStage() === 1 ? '並べ替え・＋－だけ' : '×÷あり'}・${ptMax(varStage() === 1 ? 'var' : 'var2')}pt</span><br>${escDecodedCount(varStage()) < 4 ? `部屋を調べて、扉の暗号を解読しよう（${escDecodedCount(varStage())} / 4）` : '扉の暗号になるようにブロックをつなげよう'}<br>ブロックはすべて使うこと</div></div>`;
+        `<div class="progRule" style="top:${(bottom + 4).toFixed(1)}px;height:${(lineH * 3.0).toFixed(1)}px"><div class="prIn">${varStage() === 1 ? `<span class="prRules">🔒 扉の暗号：${varRules(N, false).map(([k, t]) => `${N(k)}←${t}`).join('／')}</span><br>ブロックはすべて使うこと（式はどれも最初の数で）` : `🔒 <span class="prStage">${VAR_STAGE_NAME[varStage()]} ${varStage() === 1 ? '並べ替え・＋－だけ' : '×÷あり'}・${ptMax(varStage() === 1 ? 'var' : 'var2')}pt</span><br>${varStage() === 1 ? `<span class="prRules">扉の暗号：${varRules(N, false).map(([k, t]) => `${N(k)}←${t}`).join('／')}</span>` : escDecodedCount(varStage()) < 4 ? `部屋を調べて、扉の暗号を解読しよう（${escDecodedCount(varStage())} / 4）` : '扉の暗号になるようにブロックをつなげよう'}<br>ブロックはすべて使うこと`}</div></div>`;
     }
     // 変数の問題では、プログラムエリアの上に「扉の暗号」の説明を入れるので、ブロックを置く場所をその分下げる
     function extraHeadRows() { return currentUnit === 'var' && curStep() >= 3 ? 2 : 0; }
@@ -8979,13 +8980,17 @@ return $.__chunk_javascript;
     function escLayout(st) {
       const key = `${team.group}|${team.round || 0}|${st}`;
       if (layoutCache[key]) return layoutCache[key];
+      if (st === 1) return (layoutCache[key] = { objs: [] });   // 部屋1：手がかりも道具も置かない（扉の暗号は最初から見えている）
       const r = seededRand(`${team.group}|layout|${st}|${team.round || 0}|${PROBLEM_SET}`);
       const shuf = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
       const pool = ROOM_POOL[st], used = new Set(['safe']);
       const choose = (pred) => { const k = shuf(pool.filter((x) => !used.has(x) && pred(OBJ_INFO[x]))).shift(); used.add(k); return k; };
       const A = shuf(['key', 'driver', 'coin', 'card'])[0];                                   // 1つ目の物から出てくる道具
       const B = shuf(['uv', 'cable'].filter((b) => pool.some((x) => OBJ_INFO[x][b])))[0];   // 2つ目の物から出てくる道具
-      const k1 = choose((o) => o.lock && o.ctrls.includes(CTRL_FOR[A])), k2 = choose((o) => o[B]), k0 = choose((o) => o.ctrls.includes('buttons'));   // 1つ目はボタンで開く物
+      const noTools = st === 1;   // 部屋1には道具を置かない（2つ目の物は電子ロックかクイズ端末、3つ目の物は道具なしで開く）
+      const k1 = noTools ? choose((o) => o.lock && (o.ctrls.includes('logic') || o.ctrls.includes('quiz'))) : choose((o) => o.lock && o.ctrls.includes(CTRL_FOR[A]));
+      const k2 = noTools ? choose((o) => !o.lock && !o.seat && !o.open) : choose((o) => o[B]);
+      const k0 = choose((o) => o.ctrls.includes('buttons'));   // 1つ目はボタンで開く物
       const roles = [{ kind: k0, give: A }, { kind: k1, need: A, give: B }, { kind: k2, need: B }, { kind: 'safe', need: 'code' }];
       shuf([0, 1, 2, 3]).forEach((m, i) => { roles[i].memo = m; roles[i].role = i; });   // どの手がかりがどこから出るかも班ごと
       // いすがあれば、座面のうらに1つ目の道具がテープではってあることも（そのときは、1つ目の物からは紙だけ）
@@ -8994,6 +8999,11 @@ return $.__chunk_javascript;
       const lockRoll = r();
       let logicLock = lockRoll < 0.35, quizLock = lockRoll >= 0.35 && lockRoll < 0.65;
       if (!OBJ_INFO[k1].ctrls.includes(logicLock ? 'logic' : 'quiz')) logicLock = quizLock = false;   // ガチャなどは、道具のロックだけ
+      if (noTools) {   // 部屋1：電子ロックかクイズ端末のどちらか（その物でできる方）
+        const canL = OBJ_INFO[k1].ctrls.includes('logic'), canQ = OBJ_INFO[k1].ctrls.includes('quiz');
+        logicLock = canL && (!canQ || lockRoll < 0.5); quizLock = !logicLock;
+        delete roles[1].give; delete roles[2].need;
+      }
       if (logicLock) { roles[1].need = 'logic'; delete roles[0].give; }
       if (quizLock) { roles[1].need = 'quiz'; delete roles[0].give; }
       // いすやテーブルの上に、1つ目の道具がそのまま置いてあることも（ロックなし。そのときは、1つ目の物からは紙だけ）
@@ -9145,11 +9155,11 @@ return $.__chunk_javascript;
     const escBits = (st, k) => Number(escSteps()[`var:${k}${st}`]) || 0;
     const escSetBit = (st, k, i) => { escSteps()[`var:${k}${st}`] = escBits(st, k) | (1 << i); saveTeam(); };
     const escHas = (st, i) => !!(escBits(st, 'o') & (1 << i));             // 物 i を開けたか
-    const escCount = (st) => { try { return escLayout(st).objs.filter((o, i) => o.role >= 0 && o.role <= 3 && escHas(st, i)).length; } catch (e) { return 0; } };
+    const escCount = (st) => { if (st === 1) return 4; try { return escLayout(st).objs.filter((o, i) => o.role >= 0 && o.role <= 3 && escHas(st, i)).length; } catch (e) { return 0; } };
     const escHasItem = (st, it) => !!(escBits(st, 'it') & (1 << Object.keys(ITEM_INFO).indexOf(it)));
     const escItemUsed = (st, it) => !!(escBits(st, 'u') & (1 << Object.keys(ITEM_INFO).indexOf(it)));
     const escItems = (st) => Object.keys(ITEM_INFO).filter((it) => escHasItem(st, it) && !escItemUsed(st, it));   // 使った道具は消える
-    const escRuleFound = (st, k) => !!(escBits(st, 'd') & (1 << k));       // 機体 k の暗号を解読して、暗号パネルに入れたか
+    const escRuleFound = (st, k) => st === 1 || !!(escBits(st, 'd') & (1 << k));       // 機体 k の暗号を解読して、暗号パネルに入れたか
     const escDecodedCount = (st) => [0, 1, 2, 3].filter((k) => escRuleFound(st, k)).length;
     const escHints = (st) => Number(escSteps()['var:h' + st]) || 0;
     const escElapsed = (st) => Number(escSteps()['var:el' + st]) || 0;
@@ -9791,16 +9801,16 @@ return $.__chunk_javascript;
           renderInvLater();
         } catch (e) { /* 準備中 */ }
       }, 30);
-      if (!full && !first && currentUnit === 'var' && curStep() === 3 && !roomBigSeen && (roomBigSeen = true))
+      if (!full && !first && currentUnit === 'var' && curStep() === 3 && varStage() === 2 && !roomBigSeen && (roomBigSeen = true))
         setTimeout(() => showToast('🗝 4つの手がかりがそろった！<small>解読した数を扉の暗号パネルに入れて、プログラムを組もう</small>', false, 4500), 400);
     }
-    function renderInvLater() { [80, 400].forEach((ms) => setTimeout(() => { try { const on = currentUnit === 'var' && curStep() === 3; invBar.hidden = !on; if (on) { invBar.style.display = 'none'; void invBar.offsetHeight; invBar.style.display = ''; } } catch (e) { /* なし */ } }, ms)); }
+    function renderInvLater() { [80, 400].forEach((ms) => setTimeout(() => { try { const on = currentUnit === 'var' && curStep() === 3 && varStage() === 2; invBar.hidden = !on; if (on) { invBar.style.display = 'none'; void invBar.offsetHeight; invBar.style.display = ''; } } catch (e) { /* なし */ } }, ms)); }
     function renderInv() {
       try { if (currentUnit === 'var' && curStep() === 3 && typeof renderStep === 'function' && renderInv._n !== escItems(varStage()).length) { renderInv._n = escItems(varStage()).length; setTimeout(() => { try { const t = document.getElementById('missionTools'); if (t) { const b = t.querySelector('button[onclick="openInvList()"]'); if (b) b.innerHTML = '🎒<span class="escLong"> 持ち物</span> ' + renderInv._n; } } catch (e) {} }, 0); } } catch (e) { /* なし */ }
       // iPad の Safari で、部屋の表示が切りかわったあとに持ち物が見えなくなることがあるので、いつも部屋の画面のいちばん上に置き直す
       try { const box = document.getElementById('simCanvasContainer'); if (box && box.lastElementChild !== invBar) box.appendChild(invBar); } catch (e) { /* なし */ }
       updateRoomFull();
-      const on = currentUnit === 'var' && curStep() === 3;
+      const on = currentUnit === 'var' && curStep() === 3 && varStage() === 2;   // 部屋1には道具がないので、持ち物は部屋2だけ
       invBar.hidden = !on;
       if (!on) return;
       const st = varStage(), items = escItems(st);
@@ -10140,8 +10150,9 @@ return $.__chunk_javascript;
       const copies = [0, 1, 2, 3].filter((k) => r.t[k].leaf !== undefined).length;
       const free = [0, 1, 2, 3].filter((k) => !users(k).length && !selfUse(k)).length;
       return [
-        '<b class="hintSub">🔎 部屋の調べ方</b>物の表面のボタン・鍵穴・ねじ・コインの投入口・カードの差しこみ口・電子ロックに注目。道具は、それぞれ1か所でしか使わない。電子ロックは、回路の記号（AND・OR・XOR・NOT）を1つずつたどろう。ボタンのそばの印は、部屋の中の何かの「順番」を表している。中から出てきた物は、きっとどこかで役に立つ。' +
+        varStage() === 1 ? '<b class="hintSub">🔎 暗号の見方</b>扉の暗号の4つの式を見て、最初の数をそのまま引っこす箱と、計算で作る箱に分けよう。式はどれも「最初の数」で計算する。' : '<b class="hintSub">🔎 部屋の調べ方</b>物の表面のボタン・鍵穴・ねじ・コインの投入口・カードの差しこみ口・電子ロックに注目。道具は、それぞれ1か所でしか使わない。電子ロックは、回路の記号（AND・OR・XOR・NOT）を1つずつたどろう。ボタンのそばの印は、部屋の中の何かの「順番」を表している。中から出てきた物は、きっとどこかで役に立つ。' +
           '一度調べて何もないと思った物も、持ち物がふえたら、もう一度。',
+        varStage() === 1 ? '<b class="hintSub">🧮 上書きに注意</b>箱に新しい数を入れると、前の数は消える。あとで使う最初の数が、上書きされる前に使い終わっているか、4機の箱の表を紙に書いて、1行ずつたどってみよう。' :
         '<b class="hintSub">🧮 手がかりの読み方</b>光る・消えるは、2つの状態。いちばん右が「1」の重さなら、左へ行くたびに何倍？ ' +
           'A〜F がまじった数は、何こずつで位が上がる数？ こわれた記録は、「1」の数を数えると見分けられる。プログラムは、x の表を紙に書いて、1行ずつたどろう。',
         '<b class="hintSub">🔁 順番の考え方</b>暗号の4つの数のうち、最初の数をそのまま引っこしてできるものは <b>' + copies + '</b> つ。' +
