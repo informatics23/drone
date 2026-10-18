@@ -10485,5 +10485,17 @@ return $.__chunk_javascript;
     apply();
   })();
 </script>
+<script>
+  // ==== iPad：保存のときの「ダウンロードしますか？」の案内 ====
+  (function () {
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    try {
+      var saved = document.querySelector('#submitOverlay .smSaved'), note = document.querySelector('#submitOverlay .smNote');
+      if (saved) saved.innerHTML = '📱 画面に「<b>…をダウンロードしますか？</b>」と出たら、<b style="color:#fde68a">「ダウンロード」</b>を押そう（「表示」は押さない）。<br>✅ <b id="submitFile"></b> が「ファイル」アプリの「ダウンロード」に保存されます。';
+      if (note) note.innerHTML = '出ないときや、まちがえて「表示」を押したときは、下の「💾 もう一度保存する」を押そう。<br>Teams に送るときは、📎（ファイルを添付）→「ファイル」→「ダウンロード」から、この画像を選ぼう。';
+    } catch (e) { /* なし */ }
+  })();
+</script>
 </body>
 </html>
