@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
-  <title>ドローンプログラミング</title>
+  <title>忘れられた端末</title>
   <script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
 <script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
 /* =====================================================================
@@ -274,10 +274,10 @@
     @media (prefers-reduced-motion: reduce) { .alert { animation: none; } }
     .sticker { position: absolute; right: -16px; top: -16px; min-width: 46px; height: 46px; padding: 0 8px; border-radius: 8px; background: #fef3c7; color: #78350f; font: 900 24px/46px sans-serif; text-align: center; transform: rotate(10deg); box-shadow: 0 2px 8px rgba(0,0,0,.5); white-space: nowrap; }
     .sticker.team { font-size: 15px; }
-    h1 { white-space: nowrap; font-size: clamp(30px, 4.3vw, 54px); line-height: 1.15; margin: 4px 0 8px; letter-spacing: .02em; background: linear-gradient(90deg, #f8fafc, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h1 { white-space: nowrap; font-size: clamp(44px, 7vw, 92px); letter-spacing: .06em; line-height: 1.15; margin: 4px 0 8px; letter-spacing: .02em; background: linear-gradient(90deg, #f8fafc, #7dd3fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
     /* オープニング：左に題名とお話、右にアニメーション */
     .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 14px; }
-    @media (max-width: 720px) { .hero { grid-template-columns: 1fr; } h1 { font-size: clamp(30px, 11vw, 54px); } }
+    @media (max-width: 720px) { .hero { grid-template-columns: 1fr; } h1 { font-size: clamp(44px, 16vw, 92px); } }
     .heroText .story { font-size: 16px; }
     .story .lead { font-size: 17px; font-weight: 700; margin: 0 0 8px; }
     .story p { margin: 0; }
@@ -355,7 +355,7 @@
     <div class="bar"><span>📱 Tの端末</span><span class="alert" id="alert">⚠ ドローン基地　ロック中</span></div>
     <div class="hero">
       <div class="heroText">
-        <h1>ドローン<br>プログラミング</h1>
+        <h1>忘れられた<br>端末</h1>
         <div class="who" id="who"></div>
         <div id="groupPick" style="display:none;margin:0 0 12px;background:#1e293b;border:2px solid #38bdf8;border-radius:12px;padding:10px 14px;font-weight:800">
           はじめに、クラスと班を選ぼう（一度決めると変えられない）<br>
@@ -472,6 +472,17 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   function nameOf(id) { var it = H.item(id); return it ? it.title : id; }
+  // ファイルが置いてあるか、Web では自動で調べる（ないものは「準備中」のグレーにする）
+  var missing = {};
+  function checkFiles() {
+    if (!/^https?:$/.test(location.protocol) || !window.fetch) return;
+    var list = H.ITEMS.filter(function (it) { return it.file; });
+    Promise.all(list.map(function (it) {
+      return fetch(it.file, { method: 'HEAD', cache: 'no-store' })
+        .then(function (r) { missing[it.id] = !r.ok; })
+        .catch(function () { /* 調べられないときは、あることにする */ });
+    })).then(render);
+  }
 
   function card(it) {
     var done = H.isCleared(it.id), pt = H.part(it.id);
@@ -479,7 +490,7 @@
     var cls = 'app ' + it.kind, state = '', tag = 'div', href = '';
     var dsc = it.kind === 'escape' ? esc(it.sub || '') + (it.rooms ? '<br>' + esc(it.rooms) : '') : '確認クイズ';
     if (done) { cls += ' done'; state = '✓ クリア'; if (pt) dsc += '<span class="pc"' + (it.kind === 'escape' ? ' style="background:#fecaca;color:#7f1d1d"' : '') + '>' + H.TYPE_ICON[pt.type] + ' ' + esc(pt.name) + '</span>'; }
-    if (!it.file) { cls += ' soon'; state = '準備中'; icon = '⏳'; }
+    if (!it.file || missing[it.id]) { cls += ' soon'; state = '準備中'; icon = '⏳'; }
     else if (!H.isOpen(it.id)) { cls += ' locked'; state = '🔒 ロック'; icon = '🔒'; dsc = esc(it.sub || '') + '<br>' + (it.needs || []).map(nameOf).join('・') + 'をクリアすると開く'; }
     else { tag = 'a'; href = ' href="' + esc(it.file) + '"'; if (!done) state = it.kind === 'note' ? '' : '▶ プレイ'; }
     if (!it.file && it.title === '？？？') { icon = '❓'; dsc = 'これから増える'; }
@@ -513,6 +524,7 @@
   window.addEventListener('storage', render);
   window.addEventListener('pageshow', render);
   render();
+  checkFiles();
 })();
 </script>
 </body>
