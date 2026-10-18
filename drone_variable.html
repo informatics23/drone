@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link rel="icon" href="data:,">
-  <meta name="viewport" content="width=1440">
+  <meta name="viewport" content="width=1440, user-scalable=no">
   <title>ドローンプログラミング 変数（問題5）脱出ゲーム</title>
   <!-- Google Blockly CDN -->
   <script>
@@ -4929,7 +4929,7 @@ return $.__chunk_javascript;
     .lsw { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 64px; padding: 6px 0; border-radius: 10px; background: #334155; color: #e2e8f0; border: 2px solid #475569; }
     .lsw b { font-size: 16px; } .lsw span { font: 900 24px 'SFMono-Regular', Consolas, monospace; color: #94a3b8; }
     .lsw.on { background: #713f12; border-color: #facc15; } .lsw.on span { color: #fde047; }
-    #invBar { position: absolute; top: 8px; left: 8px; z-index: 30; display: flex; align-items: center; gap: 8px;
+    #invBar { position: absolute; top: 8px; left: 8px; z-index: 65; transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform; pointer-events: auto; display: flex; align-items: center; gap: 8px;
       background: rgba(15,23,42,.88); border: 1px solid #475569; border-radius: 14px; padding: 6px 10px; }
     #invBar[hidden] { display: none; }
     .invLbl { color: #fde68a; font-weight: 900; font-size: 13px; white-space: nowrap; line-height: 1.2; }
@@ -5227,6 +5227,24 @@ return $.__chunk_javascript;
 })();
 
 /* ==== HUB END ==== */</script>
+<style>
+  /* iPad：ダブルタップやピンチで画面全体が拡大されて、上のボタンや持ち物が画面の外に出てしまうのを防ぐ */
+  html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+  #simCanvasContainer canvas { touch-action: none; }
+</style>
+<script>
+  (function () {
+    var stop = function (e) { e.preventDefault(); };
+    document.addEventListener('gesturestart', stop, { passive: false });   // ピンチで画面全体が拡大しない（部屋の中のピンチは視点の操作になる）
+    document.addEventListener('gesturechange', stop, { passive: false });
+    var last = 0;
+    document.addEventListener('touchend', function (e) {                   // ダブルタップで拡大しない
+      var now = Date.now();
+      if (now - last < 350 && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) e.preventDefault();
+      last = now;
+    }, { passive: false });
+  })();
+</script>
 </head>
 <body>
   <!-- プログラム（JavaScript）が動かない画面で開いたときだけ見える注意（動けばすぐ消す） -->
@@ -8793,7 +8811,7 @@ return $.__chunk_javascript;
       } else if (s === 3) {
         mt.innerHTML = u === 'var' ? varStageTabs() : `<span class="mLabel">問題</span>${puzzleText(u)}`;
         tools.innerHTML = u === 'var'
-          ? escTimerHtml() + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
+          ? escTimerHtml() + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>` + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="showHint()">🗝<span class="escLong"> ヒント</span>${ESC.keys ? ` のこり${Math.max(0, ESC.keys - escHints(varStage()))}` : ''}</button>`
           : (BLOCK_LIMIT[u] ? '<span class="blockCount" id="blockCountBox"></span>' : '') + '<button onclick="showHint()">ヒント</button>';
@@ -9642,12 +9660,12 @@ return $.__chunk_javascript;
     controls.minPolarAngle = 0.15; controls.maxPolarAngle = Math.PI / 2 - 0.02;   // 真横（水平）まで下げられる
     controls.minAzimuthAngle = -Math.PI / 2; controls.maxAzimuthAngle = Math.PI / 2;
     controls.minDistance = 4; controls.maxDistance = 22;
-    let escCamKey = null;
+    let escCamKey = null, escCamAspect = 0;
     const escBaseFit = fitCamera;
     fitCamera = function (force) {
       const key = currentUnit + ':' + roomStage();
-      if (!force && key === escCamKey && unitMode() === 'var') return;
-      escCamKey = key;
+      if (!force && key === escCamKey && unitMode() === 'var' && Math.abs((cameraFitAspect || 1) - (escCamAspect || 0)) < 0.05) return;
+      escCamKey = key; escCamAspect = cameraFitAspect || 1;
       escBaseFit();
     };
     function resetView() { fitCamera(true); }
@@ -9736,10 +9754,23 @@ return $.__chunk_javascript;
       return escItems(st).length ? '<br><span class="invMsg">（上の持ち物をクリックして選んでから、もう一度調べよう）</span>' : '';
     }
     // 謎解き（4つの手がかりを全部開ける）が終わるまでは、部屋を画面いっぱいに。終わったら、部屋・プログラム・Python の3分割にもどす
+
+    // ---- 部屋の大きさ：「⛶ 部屋を大きく」で部屋だけの表示 ⇔ 部屋・プログラム・Python の3つの表示を切りかえる ----
+    let roomBig = false;
+    function toggleRoomBig() {
+      roomBig = !roomBig;
+      if (typeof updateRoomFull === 'function') { roomFullNow = null; updateRoomFull(); }
+      else document.body.classList.toggle('roomFull', roomBig);
+      setTimeout(() => { try { resizeRenderer(); fitCamera(true); window.dispatchEvent(new Event('resize')); scheduleFit(); } catch (e) { /* なし */ } }, 40);
+      try { renderStep(); } catch (e) { /* なし */ }
+    }
+    function roomBigBtn() { return `<button class="escBtn" onclick="toggleRoomBig()" title="部屋の表示の大きさを切りかえる">${roomBig ? '🧩<span class="escLong"> プログラムにもどる</span>' : '⛶<span class="escLong"> 部屋を大きく</span>'}</button>`; }
+    let roomBigSeen = false;
+    function roomBigAllowed() { try { return escCount(varStage()) >= 4; } catch (e) { return false; } }
     let roomFullNow = null;
     function updateRoomFull() {
       let full = false;
-      try { full = currentUnit === 'var' && curStep() === 3 && escCount(varStage()) < 4; } catch (e) { full = false; }
+      try { full = currentUnit === 'var' && curStep() === 3 && (escCount(varStage()) < 4 || roomBig); } catch (e) { full = false; }
       if (full === roomFullNow) return;
       const first = roomFullNow === null;
       roomFullNow = full;
@@ -9757,12 +9788,17 @@ return $.__chunk_javascript;
             }
           }
           scheduleFit();
+          renderInvLater();
         } catch (e) { /* 準備中 */ }
       }, 30);
-      if (!full && !first && currentUnit === 'var' && curStep() === 3)
+      if (!full && !first && currentUnit === 'var' && curStep() === 3 && !roomBigSeen && (roomBigSeen = true))
         setTimeout(() => showToast('🗝 4つの手がかりがそろった！<small>解読した数を扉の暗号パネルに入れて、プログラムを組もう</small>', false, 4500), 400);
     }
+    function renderInvLater() { [80, 400].forEach((ms) => setTimeout(() => { try { const on = currentUnit === 'var' && curStep() === 3; invBar.hidden = !on; if (on) { invBar.style.display = 'none'; void invBar.offsetHeight; invBar.style.display = ''; } } catch (e) { /* なし */ } }, ms)); }
     function renderInv() {
+      try { if (currentUnit === 'var' && curStep() === 3 && typeof renderStep === 'function' && renderInv._n !== escItems(varStage()).length) { renderInv._n = escItems(varStage()).length; setTimeout(() => { try { const t = document.getElementById('missionTools'); if (t) { const b = t.querySelector('button[onclick="openInvList()"]'); if (b) b.innerHTML = '🎒<span class="escLong"> 持ち物</span> ' + renderInv._n; } } catch (e) {} }, 0); } } catch (e) { /* なし */ }
+      // iPad の Safari で、部屋の表示が切りかわったあとに持ち物が見えなくなることがあるので、いつも部屋の画面のいちばん上に置き直す
+      try { const box = document.getElementById('simCanvasContainer'); if (box && box.lastElementChild !== invBar) box.appendChild(invBar); } catch (e) { /* なし */ }
       updateRoomFull();
       const on = currentUnit === 'var' && curStep() === 3;
       invBar.hidden = !on;
@@ -9776,6 +9812,13 @@ return $.__chunk_javascript;
     function itemGetHtml(it) {
       const [ic, ...nm] = ITEM_INFO[it].split(' ');
       return `<div class="itemGet big"><span class="igIc">${ic}</span><span>${nm.join(' ')}を手に入れた！<small>画面の上の「持ち物」に入った。使うときは、持ち物をクリックしてから物をクリック</small></span></div>`;
+    }
+    // 上のボタンからも持ち物を見られるようにする（部屋の左上の欄が見えないときのため）
+    function openInvList() {
+      const st = varStage(), items = escItems(st);
+      const body = items.length ? items.map((it) => { const [ic, ...nm] = ITEM_INFO[it].split(' ');
+        return `<button class="invItem${invSel === it ? ' sel' : ''}" style="width:auto;padding:6px 12px;margin:4px" onclick="selectItem('${it}'); closeEscModal();"><span class="invIc">${ic}</span><span class="invNm">${nm.join(' ')}${invSel === it ? '（使う）' : ''}</span></button>`; }).join('') : '<div class="escSub">まだ、何も持っていない。</div>';
+      showEscModal(`<div class="escTitle">🎒 持ち物</div><div class="escSub">使う物をえらんでから、部屋の物をクリックしよう</div><div style="display:flex;flex-wrap:wrap;justify-content:center">${body}</div>` + ESC_OK);
     }
     function selectItem(it) { invSel = invSel === it ? null : it; renderInv(); }
     function escRefresh() {
