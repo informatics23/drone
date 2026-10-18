@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
   <title>ドローンプログラミング</title>
-  <script src="hub_config.js"></script>
+  <script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
 <script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
 /* =====================================================================
    Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
@@ -24,7 +24,7 @@
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
-    // ---- Tのおもちゃ（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
@@ -204,7 +204,7 @@
     opt = opt || {};
     var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
     return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
-      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 おもちゃクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
       '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
       '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
@@ -365,7 +365,7 @@
         </div>
         <div class="story">
           <p class="lead">放課後のPC教室に、置き忘れられた1台の端末。背面のシールには「<b>T</b>」の文字。<br>画面には「<b>ドローン基地　ロック中</b>」……。</p>
-          <p>端末には、<b>Tのえほん</b> と <b>Tのおもちゃ</b> が入っている。えほん をクリアすると 班PCの <b>ぶひん</b>、おもちゃ をクリアすると 班PCの <b>ケーブル</b> が手に入る。そろえて、班PCを使えるようにしよう。</p>
+          <p>端末には、<b>Tのえほん</b> と <b>Tのスキル</b> が入っている。えほん をクリアすると 班PCの <b>ぶひん</b>、スキル をクリアすると 班PCの <b>ケーブル</b> が手に入る。そろえて、班PCを使えるようにしよう。</p>
         </div>
       </div>
       <div class="scene" aria-label="放課後のPC教室に置き忘れられたノートパソコン。背面に「T」のシール。画面には「ドローン基地　ロック中」の表示" role="img">
@@ -453,7 +453,7 @@
     <h2>📖 Tの<span style="color:#60a5fa">えほん</span> <small>確認クイズで全問正解すると、<b style="color:var(--gold)">ぶひん</b>が1つ 増える</small></h2>
     <div class="grid" id="notes"></div>
 
-    <h2>🧸 Tの<span style="color:#f87171">おもちゃ</span> <small>部屋2まで脱出すると、<b style="color:#f87171">ケーブル</b>が1本 増える。前のステージをクリアすると次のステージが開く</small></h2>
+    <h2>🧸 Tの<span style="color:#f87171">スキル</span> <small>部屋2まで脱出すると、<b style="color:#f87171">ケーブル</b>が1本 増える。前のステージをクリアすると次のステージが開く</small></h2>
     <div class="grid" id="escapes"></div>
   </div>
 
@@ -481,7 +481,7 @@
     if (done) { cls += ' done'; state = '✓ クリア'; if (pt) dsc += '<span class="pc"' + (it.kind === 'escape' ? ' style="background:#fecaca;color:#7f1d1d"' : '') + '>' + H.TYPE_ICON[pt.type] + ' ' + esc(pt.name) + '</span>'; }
     if (!it.file) { cls += ' soon'; state = '準備中'; icon = '⏳'; }
     else if (!H.isOpen(it.id)) { cls += ' locked'; state = '🔒 ロック'; icon = '🔒'; dsc = esc(it.sub || '') + '<br>' + (it.needs || []).map(nameOf).join('・') + 'をクリアすると開く'; }
-    else { tag = 'a'; href = ' href="' + esc(it.file) + '"'; if (!done) state = it.kind === 'note' ? '' : '▶ あそぶ'; }
+    else { tag = 'a'; href = ' href="' + esc(it.file) + '"'; if (!done) state = it.kind === 'note' ? '' : '▶ プレイ'; }
     if (!it.file && it.title === '？？？') { icon = '❓'; dsc = 'これから増える'; }
     return '<' + tag + ' class="' + cls + '"' + href + (tag === 'div' ? ' aria-disabled="true"' : '') + '>' +
       '<span class="ico">' + icon + '</span><span><div class="ttl">' + esc(it.title) + '</div><div class="dsc">' + dsc + '</div></span>' +
@@ -501,7 +501,7 @@
     $('buildCount').textContent = ps.length ? 'ぶひん ' + np + ' こ・ケーブル ' + nc + ' 本' : 'まだ ぶひん がない';
     $('canList').innerHTML = ps.length
       ? ps.slice().reverse().map(function (x) { return '<li>' + H.TYPE_ICON[x.part.type] + ' <b' + (x.part.type === 'cable' ? ' style="color:#fca5a5"' : '') + '>' + esc(x.part.name) + '</b>' + esc(x.part.can) + '</li>'; }).join('')
-      : '<li class="empty"><b style="color:#60a5fa;margin:0">えほん</b> や <b style="color:#f87171;margin:0">おもちゃ</b> をクリアすると、<br>ぶひん や ケーブル が手に入って、できることが増えていく。</li>';
+      : '<li class="empty"><b style="color:#60a5fa;margin:0">えほん</b> や <b style="color:#f87171;margin:0">スキル</b> をクリアすると、<br>ぶひん や ケーブル が手に入って、できることが増えていく。</li>';
   }
   $('gpGo').addEventListener('click', function () {
     var c = $('gpC').value, h = $('gpH').value;

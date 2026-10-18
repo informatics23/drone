@@ -4953,7 +4953,7 @@ return $.__chunk_javascript;
     .vvBox.tmpBox.empty { color: #9d174d; }
     .vvBox.iBox { border-color: #38bdf8; color: #7dd3fc; background: #082f49; }
   </style>
-  <script src="hub_config.js"></script>
+  <script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
 <script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
 /* =====================================================================
    Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
@@ -4972,7 +4972,7 @@ return $.__chunk_javascript;
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
-    // ---- Tのおもちゃ（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
@@ -5152,7 +5152,7 @@ return $.__chunk_javascript;
     opt = opt || {};
     var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
     return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
-      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 おもちゃクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
       '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
       '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
@@ -8912,7 +8912,7 @@ return $.__chunk_javascript;
       } else if (s === 3) {
         mt.innerHTML = u === 'array' ? varStageTabs() : `<span class="mLabel">問題</span>${puzzleText(u)}`;
         tools.innerHTML = u === 'array'
-          ? escTimerHtml() + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>` + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
+          ? escTimerHtml() + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + (varStage() !== 2 ? '' : `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>`) + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="showHint()">🗝<span class="escLong"> 鍵</span> のこり${Math.max(0, keysOf() - escHints(varStage()))}</button>`
           : (BLOCK_LIMIT[u] ? '<span class="blockCount" id="blockCountBox"></span>' : '') + '<button onclick="showHint()">ヒント</button>';
@@ -9091,16 +9091,18 @@ return $.__chunk_javascript;
       const choose = (pred) => { const k = shuf(pool.filter((x) => !used.has(x) && !OBJ_INFO[x].open && pred(OBJ_INFO[x]))).shift(); used.add(k); return k; };
       const A = shuf(['key', 'card', 'coin'])[0];                                   // 1つ目の物から出てくる道具
       const B = shuf(['uv', 'cable'].filter((b) => pool.some((x) => OBJ_INFO[x][b] && !OBJ_INFO[x].open)))[0];   // 2つ目の物から出てくる道具
-      const k1 = choose((o) => o.lock), k2 = choose((o) => o[B]), k0 = choose((o) => o.ctrls.includes('buttons'));   // 1つ目はボタンで開く物
+      const noTools = st === 1;   // 部屋1には道具を置かない（2つ目の物は電子ロックかクイズ、3つ目の物は道具なしで開く）
+      const k1 = choose((o) => o.lock), k2 = noTools ? choose((o) => !o.lock && !o.seat) : choose((o) => o[B]), k0 = choose((o) => o.ctrls.includes('buttons'));   // 1つ目はボタンで開く物
       const roles = [{ kind: k0, give: A }, { kind: k1, need: A, give: B }, { kind: k2, need: B }, { kind: 'safe', need: 'code' }];
       shuf([0, 1, 2, 3]).forEach((m, i) => { roles[i].memo = m; roles[i].role = i; });   // どの手がかりがどこから出るかも班ごと
       // 2つ目の物（表面は鍵穴・カード・コインの差しこみ口）を開けると、中にもう1つしかけがあることも：
       //   電子ロック（論理回路）の引き出し ／ クイズ端末の引き出し。表面に問題ははらない（問題は中に）
       const lockRoll = r();
       if (lockRoll < 0.35) roles[1].inner = 'logic'; else if (lockRoll < 0.65) roles[1].inner = 'quiz';
+      if (noTools) { roles[1].inner = lockRoll < 0.5 ? 'logic' : 'quiz'; delete roles[0].give; delete roles[1].need; delete roles[1].give; delete roles[2].need; }
       // バケツ・いす・テーブルに、1つ目の道具がそのまま置いてあることも（そのときは、1つ目の物からは紙だけ）
       const seats = pool.filter((x) => OBJ_INFO[x].seat && !used.has(x));
-      if (seats.length && r() < 0.6) {
+      if (!noTools && seats.length && r() < 0.6) {
         const sk = shuf(seats)[0];
         used.add(sk);
         delete roles[0].give;
@@ -9128,7 +9130,7 @@ return $.__chunk_javascript;
       // 表面の操作できるもの：ボタン（機体の色）・鍵穴・カード／コインの差しこみ口（壁の機械は電源の差しこみ口）。ダミーにもつける（見た目では区別できない）
       objs.forEach((o) => {
         if (o.role === 0) o.ctrl = 'buttons';
-        else if (o.role === 1) o.ctrl = ITEM_SLOT[o.need];
+        else if (o.role === 1) o.ctrl = o.need ? ITEM_SLOT[o.need] : 'none';
         else if (o.role === 2) o.ctrl = o.need === 'cable' ? 'socket' : 'none';
         else if (o.role === 3) o.ctrl = 'dial';
         else if (o.role === 4) o.ctrl = 'none';
@@ -9849,7 +9851,7 @@ return $.__chunk_javascript;
       try { if (currentUnit === 'array' && curStep() === 3 && renderInv._n !== escItems(varStage()).length) { renderInv._n = escItems(varStage()).length; setTimeout(() => { try { const b = document.querySelector('#missionTools button[onclick="openInvList()"]'); if (b) b.innerHTML = '🎒<span class="escLong"> 持ち物</span> ' + renderInv._n; } catch (e) {} }, 0); } } catch (e) { /* なし */ }
       // iPad の Safari で、部屋の表示が切りかわったあとに持ち物が見えなくなることがあるので、いつも部屋の画面のいちばん上に置き直す
       try { const box = document.getElementById('simCanvasContainer'); if (box && box.lastElementChild !== invBar) box.appendChild(invBar); } catch (e) { /* なし */ }
-      const on = currentUnit === 'array' && curStep() === 3;
+      const on = currentUnit === 'array' && curStep() === 3 && varStage() === 2;   // 部屋1には道具がないので、持ち物は部屋2だけ
       invBar.hidden = !on;
       if (!on) return;
       const st = varStage(), items = escItems(st);
@@ -9946,7 +9948,7 @@ return $.__chunk_javascript;
       const body = qs.map((q, n) => `<div class="qzItem"><div class="qzQ">Q${n + 1}. ${escapeHtml(q.q)}</div><div class="qzOpts">` +
         q.o.map((t, j) => `<button class="qzOpt${quizSel[n] === j ? ' sel' : ''}" onclick="pickQuiz(${i},${n},${j})"${cool ? ' disabled' : ''}>${escapeHtml(t)}</button>`).join('') + '</div></div>').join('');
       const ready = Object.keys(quizSel).length === 3 && !cool;
-      showEscModal(`<div class="escTitle">🧾 ${info.name}の中の引き出し</div><div class="escSub">${first ? OPEN_TXT[o.need] + '中に、クイズ端末のついた引き出しがあった。' : ''}画面に3つの問題が出ている。3問とも正解すると、引き出しのロックが外れる。</div>` +
+      showEscModal(`<div class="escTitle">🧾 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、クイズ端末のついた引き出しがあった。' : ''}画面に3つの問題が出ている。3問とも正解すると、引き出しのロックが外れる。</div>` +
         `<div class="cpanel qzPanel${bad ? ' shake' : ''}">${body}<div class="safeMsg">${note || ''}</div>` +
         `<button class="qzGo" onclick="answerQuiz(${i})"${ready ? '' : ' disabled'}>答える</button></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
@@ -10010,7 +10012,7 @@ return $.__chunk_javascript;
     }
     function openLogic(st, i, note, first, lit, bad) {
       const o = escLayout(st).objs[i], info = OBJ_INFO[o.kind];
-      showEscModal(`<div class="escTitle">🔌 ${info.name}の中の引き出し</div><div class="escSub">${first ? OPEN_TXT[o.need] + '中に、電子ロックのついた引き出しがあった。' : ''}` +
+      showEscModal(`<div class="escTitle">🔌 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、電子ロックのついた引き出しがあった。' : ''}` +
         'オレンジの丸をクリックして、0 か 1 を入れよう。回路の先のランプがつくように、入力 A・B・C と、とちゅうの値をすべて正しく入れると開く。</div>' +
         `<div class="cpanel${bad ? ' shake' : ''}">${circuitSvg(o.circ, logicSel, lit, i)}<div class="safeMsg${lit ? ' good' : ''}">${note || ''}</div></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
@@ -10188,7 +10190,7 @@ return $.__chunk_javascript;
     function escHintTexts() {
       const st = varStage();
       return [
-        '<b class="hintSub">🔎 部屋の調べ方</b>物の表面のボタン・鍵穴・カードやコインの差しこみ口に注目。開けた物の中に、もう1つしかけがあることもある。電子ロックは、入力から回路の記号（AND・OR・XOR・NOT）を1つずつたどって、とちゅうの値を書きこもう。ボタンのそばの印は、部屋の中の何かの「順番」を表している。中から出てきた物は、きっとどこかで役に立つ。' +
+        st === 1 ? '<b class="hintSub">🔎 部屋の調べ方</b>この部屋に道具はない。物の表面のボタンと、電子ロック・クイズ端末に注目。電子ロックは、回路の記号（AND・OR・XOR・NOT）を1つずつたどろう。ボタンのそばの印は、部屋の中の何かの「順番」を表している。かくし扉のある物もあるので、気になる物は全部調べよう。' : '<b class="hintSub">🔎 部屋の調べ方</b>物の表面のボタン・鍵穴・カードやコインの差しこみ口に注目。開けた物の中に、もう1つしかけがあることもある。電子ロックは、入力から回路の記号（AND・OR・XOR・NOT）を1つずつたどって、とちゅうの値を書きこもう。ボタンのそばの印は、部屋の中の何かの「順番」を表している。中から出てきた物は、きっとどこかで役に立つ。' +
           '一度調べて何もないと思った物も、持ち物がふえたら、もう一度。',
         '<b class="hintSub">🧮 手がかりの読み方</b>光る・消えるは、2つの状態。いちばん右が「1」の重さなら、左へ行くたびに何倍？ ' +
           'A〜F がまじった数は、何こずつで位が上がる数？ こわれた記録は、「1」の数を数えると見分けられる。プログラムは、x の表を紙に書いて、1行ずつたどろう。',

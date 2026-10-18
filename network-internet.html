@@ -1197,7 +1197,7 @@ document.addEventListener('keydown',function(e){
 show((location.hash||'').slice(1));
 })();
 </script>
-<script src="hub_config.js"></script>
+<script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
 <script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
 /* =====================================================================
    Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
@@ -1216,7 +1216,7 @@ show((location.hash||'').slice(1));
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
-    // ---- Tのおもちゃ（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
@@ -1396,7 +1396,7 @@ show((location.hash||'').slice(1));
     opt = opt || {};
     var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
     return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
-      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 おもちゃクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
       '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
       '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
