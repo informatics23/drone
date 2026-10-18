@@ -28,7 +28,8 @@ window.HUB_CONFIG = {
   { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
   { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
   { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
-  { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+  { id: 'cs',     kind: 'note', title: 'クライアント・サーバとDNS',  file: 'client-server-dns.html', gives: 'mail' },
+    // file が '' のあいだは「準備中」
   { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
   { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
   // ---- Tのおもちゃ（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
