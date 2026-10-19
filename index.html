@@ -348,6 +348,7 @@
 </head>
 <body>
 <main>
+  <div id="zipWarn" style="display:none;background:#7f1d1d;border:2px solid #fca5a5;border-radius:12px;padding:10px 14px;margin-bottom:16px;font-weight:700;line-height:1.7">⚠ zip ファイルの中から開いています。このままだと、ほかのページ（えほん・スキル）が開けません。<br>zip を右クリック →「<b>すべて展開</b>」してから、展開してできたフォルダの <b>index.html</b> を開き直そう。</div>
   <div id="embed">⚠ Teams などのアプリの中で開いています。このままだと、記録を保存できません。「…」から <b>「ブラウザーで開く」</b> を選ぶか、このアドレスを Safari・Chrome・Edge で開き直そう。</div>
 
   <div class="device">
@@ -466,6 +467,7 @@
 
 <script>
 (function () {
+  try { if (location.protocol === 'file:' && /\.zip[\/\\]|\\Temp\d*_|\/Temp\d*_/i.test(decodeURIComponent(location.pathname))) document.getElementById('zipWarn').style.display = 'block'; } catch (e) { /* なし */ }
   try { if (window.top !== window.self) document.getElementById('embed').style.display = 'block'; } catch (e) { document.getElementById('embed').style.display = 'block'; }
   var H = window.DroneHub;
   if (!H) { document.getElementById('who').textContent = '記録のしくみが読み込めませんでした。zip を展開（すべて展開）してから、index.html を開いてください。'; return; }
@@ -479,7 +481,7 @@
     var list = H.ITEMS.filter(function (it) { return it.file; });
     Promise.all(list.map(function (it) {
       return fetch(it.file, { method: 'HEAD', cache: 'no-store' })
-        .then(function (r) { missing[it.id] = !r.ok; })
+        .then(function (r) { missing[it.id] = r.status === 404; })   // 「ない」とはっきりわかったとき（404）だけグレーにする。学校のネットワークなどで調べられないときは、あることにする
         .catch(function () { /* 調べられないときは、あることにする */ });
     })).then(render);
   }
