@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>インターネットのしくみ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F6FB; --surface:#FFFFFF; --ink:#141C33; --muted:#56617D; --line:#D6DDEB; --line2:#AEB9D1;
+  --kou:#D9442E; --hw:#0B8A87; --sw:#5644D6; --ok:#0B8A87; --ng:#D9442E; --amber:#D4841F;
+  --st:#D9442E; --cn:#0B8A87; --lan:#D4841F; --lanT:#9A5A0C; --wan:#5644D6; --net:#D9442E; --dv:#2C6FD6;
+  --shadow:0 1px 2px rgba(20,28,51,.06),0 8px 24px rgba(20,28,51,.06);
+  --disp:"Zen Maru Gothic","Noto Sans JP",system-ui,sans-serif;
+  --body:"Noto Sans JP",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+    --kou:#FF7B63; --hw:#31C7C2; --sw:#9A8DFF; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542;
+    --st:#FF7B63; --cn:#31C7C2; --lan:#F0A542; --lanT:#F0A542; --wan:#9A8DFF; --net:#FF7B63; --dv:#7AAEFF;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+  --kou:#FF7B63; --hw:#31C7C2; --sw:#9A8DFF; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542;
+  --st:#FF7B63; --cn:#31C7C2; --lan:#F0A542; --lanT:#F0A542; --wan:#9A8DFF; --net:#FF7B63; --dv:#7AAEFF;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 16px/1.8 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0;line-height:1.35}
+p{margin:0 0 1em;max-width:42em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sw);outline-offset:2px;border-radius:4px}
+
+/* nav */
+.pnav{position:fixed;left:0;right:0;top:0;padding-top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:2px solid var(--line);padding-inline:16px}
+.pnav .wrap{display:flex;gap:6px;align-items:center;padding-block:8px}
+.pnav a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-weight:900;font-size:.92rem;padding:6px 10px;border-radius:9px;white-space:nowrap;font-family:var(--disp);border:1.5px solid var(--line2)}
+.pnav a:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,var(--bg))}
+.pnav a[aria-current="page"]{background:var(--accent,var(--ink));color:var(--bg);border-color:var(--accent,var(--ink))}
+@media(max-width:480px){.pnav{padding-inline:10px}.pnav .wrap{gap:4px}.pnav a{font-size:.7rem;padding:6px 3px;border-width:1px}}
+.kou{--accent:var(--kou)} .hw{--accent:var(--hw)} .sw{--accent:var(--sw)}
+.pages{height:100vh;height:100dvh}
+.pg{height:100vh;height:100dvh;padding:84px max(16px,calc((100% - 1080px)/2)) 10px;overflow-y:auto;display:none;flex-direction:column;position:relative}
+.pg.on{display:flex}
+.pg>.cols{margin-block:0 auto;width:100%}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px 36px;align-items:start}
+@media(min-width:1000px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.cols.wide-col{display:block;max-width:1080px;margin-inline:auto}
+@media(max-width:999px),(max-height:640px){
+  body{overflow:auto}
+  .pages{height:auto;overflow:visible}
+  .pg{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;padding-block:88px 32px}
+}
+
+/* 大見出し */
+.bighd{display:flex;align-items:center;gap:14px;margin-top:10px}
+.bsvg svg{display:block;width:72px;height:auto}
+.bw{font-family:var(--disp);font-weight:900;font-size:clamp(44px,5.2vw,60px);line-height:1.1;color:var(--accent);letter-spacing:.02em}
+.oneline{margin:6px 0 0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:none}
+.sec-h h2{font-size:clamp(20px,2.4vw,26px);font-weight:900;margin-top:12px}
+.sec-h .lead{margin-top:10px;font-size:15px;line-height:1.75}
+.term{background:#FFE066;color:#28251A;border-radius:4px;padding:1px 5px;font-weight:600}
+h3.sub{font-size:18px;margin:0 0 4px}
+.callout{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:14px;box-shadow:var(--shadow)}
+.callout p{margin:0;font-size:14.5px;line-height:1.7}
+
+/* figure */
+figure{margin:0;padding:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);position:relative}
+.panel+.panel{margin-top:14px}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.7}
+.scroll{overflow-x:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.btn{background:var(--accent);color:#fff;border:1.5px solid var(--accent);border-radius:999px;padding:6px 18px;font-weight:700;font-size:14px;min-height:40px}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+:root[data-theme="dark"] .btn:not(.ghost){color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost){color:#0D1324}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{background:var(--surface);border:1.5px solid var(--line2);border-radius:999px;padding:4px 14px;font-size:14px;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{color:#0D1324}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.chip{border-radius:999px;padding:3px 12px;font-size:13.5px;border:1.5px solid var(--line2);background:var(--surface)}
+.kd{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
+.kd h4{margin:0 0 8px;font-size:14px;font-family:var(--disp)}
+.kd .a .chip{border-color:var(--sw);background:color-mix(in srgb,var(--sw) 12%,var(--surface))}
+.kd .b .chip{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--surface))}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-top:14px}
+summary{cursor:pointer;font-weight:700;font-size:15px;line-height:1.6}
+details p{margin:8px 0 2px;font-size:14.5px;line-height:1.75}
+.verdict{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14.5px;line-height:1.7}
+.badge{flex:none;border-radius:6px;padding:1px 10px;font-size:13px;font-weight:700;color:#fff;margin-top:3px;background:var(--ok)}
+:root[data-theme="dark"] .badge{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge{color:#0D1324}}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:12px}
+.tip{border-top:3px solid var(--accent);padding-top:6px;font-size:13.5px;line-height:1.6}
+.tip b{font-family:var(--disp);display:block;font-size:16px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+table.dt{border-collapse:collapse;font-size:13.5px;width:100%;line-height:1.5}
+table.dt th,table.dt td{border-bottom:1px solid var(--line);padding:3px 8px;text-align:center}
+table.dt th{font-family:var(--disp);border-bottom:1.5px solid var(--line2)}
+table.dt td:first-child{text-align:left;font-weight:700}
+
+/* 複数ページの項目：次へボタン */
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:10px}
+.pager .pdots{display:flex;gap:6px}
+.pager .pdots i{width:9px;height:9px;border-radius:50%;background:var(--line2)}
+.pager .pdots i.on{background:var(--accent)}
+.pager .pnum{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* 構成：たとえ */
+.amap{display:grid;gap:6px;margin-top:8px}
+.arow{display:grid;grid-template-columns:8.2em 1.2em minmax(0,1fr);align-items:center;gap:6px;font-size:14px;line-height:1.5}
+.arow .k{border-radius:8px;padding:3px 8px;font-weight:700;font-family:var(--disp);text-align:center;font-size:13.5px}
+.arow .k.h{background:color-mix(in srgb,var(--amber) 16%,var(--surface));border:1.5px solid var(--amber)}
+.arow .k.s{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1.5px solid var(--accent)}
+.arow .k small{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:1.2}
+.arow .eq{text-align:center;color:var(--muted);font-weight:700}
+.arow .v b{font-family:var(--disp);font-size:16px}
+.arow .v span{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.amap.swap .arow{animation:fade .35s ease-out both}
+.amap.swap .arow:nth-child(2){animation-delay:.08s}.amap.swap .arow:nth-child(3){animation-delay:.16s}
+.apoint{margin-top:8px!important;font-size:13.5px!important;line-height:1.6!important;border-top:1px dashed var(--line2);padding-top:6px}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.explain{border-left:3px solid var(--accent);padding-left:12px;font-size:14px;line-height:1.7;min-height:5em}
+.explain h4{margin:0 0 2px;font-family:var(--disp);font-size:16px;color:var(--accent)}
+
+/* 仕分け */
+.sorter{display:grid;gap:10px}
+.sorter .chip{cursor:pointer;font-size:14px;padding:3px 13px}
+.sorter .chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.sorter .chip.done{opacity:.4;text-decoration:line-through;cursor:default}
+.bins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bin{border:2px dashed var(--line2);border-radius:12px;padding:6px 10px;min-height:70px;display:grid;align-content:start;gap:4px;background:transparent;text-align:left}
+.bin.ready{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.bin .bt{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--accent)}
+.bin .bl{display:flex;flex-wrap:wrap;gap:4px}
+.bin .bl span{font-size:12.5px;background:color-mix(in srgb,var(--ok) 12%,var(--surface));border:1px solid var(--ok);border-radius:999px;padding:0 8px}
+.feedback{min-height:1.7em;font-weight:700;font-size:14px;line-height:1.6}
+.feedback.ok{color:var(--ok)} .feedback.ng{color:var(--ng)}
+.sorter .row{display:flex;justify-content:flex-end}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.steptext{background:color-mix(in srgb,var(--accent) 7%,var(--surface));border:1px solid var(--line);border-radius:10px;padding:8px 12px;height:6.3em;overflow:hidden;font-size:14px;line-height:1.65}
+#stepNext{min-width:10em}
+.steptext b{display:block;font-family:var(--disp);color:var(--accent);font-size:14px}
+.log{font-size:13.5px;background:color-mix(in srgb,var(--accent) 6%,var(--surface));border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:184px;display:grid;align-content:start;gap:3px;line-height:1.5}
+.log div{animation:fade .4s ease-out both}
+
+/* まとめ */
+.flow{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+.step{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:6px 14px;position:relative;font-size:13.5px;line-height:1.55;animation:hl 10s infinite;display:flex;gap:10px;align-items:baseline}
+.step b{flex:none;min-width:6.4em;font-family:var(--disp);font-size:15px;color:var(--accent,var(--ink))}
+.step:not(:last-child)::after{content:"\2193";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);font-size:13px;color:var(--muted);z-index:1;background:var(--bg);border-radius:50%;width:16px;text-align:center;line-height:16px}
+.step:nth-child(2){animation-delay:2s}.step:nth-child(3){animation-delay:4s}.step:nth-child(4){animation-delay:6s}.step:nth-child(5){animation-delay:8s}
+@keyframes hl{0%,16%{border-color:var(--accent,var(--ink));box-shadow:0 0 0 4px color-mix(in srgb,var(--accent,var(--ink)) 20%,transparent)}22%,100%{border-color:var(--line);box-shadow:none}}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;line-height:1.7}
+.ex p{margin:0 0 .6em;max-width:none}
+.ex p:last-child{margin:0}
+
+/* クイズ */
+.qz{display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1000px){.qz{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 14px 10px;margin:0;min-width:0}
+.q .qq{font-weight:700;margin:0;font-size:14px;line-height:1.6;max-width:none}
+.qcat{font-weight:700;font-size:12.5px;white-space:nowrap}
+.maru{width:1.7em;height:auto;vertical-align:-.4em;margin-right:3px}
+.q .opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.q .opts button{text-align:left;background:var(--bg);border:1.5px solid var(--line2);border-radius:10px;padding:3px 12px;font-size:14px;line-height:1.5;min-height:34px}
+.q .opts button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--surface))}
+.q .opts button.bad{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 14%,var(--surface))}
+.q .opts button:disabled{cursor:default}
+.q .exp{font-size:13px;margin:6px 0 0;color:var(--muted);max-width:none;line-height:1.6}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#score{font-family:var(--disp);font-weight:900;font-size:18px}
+
+/* ページをクリックしたとき、枠線やカーソルが出ないようにする */
+html,body,.pages,.pg,.cols{caret-color:transparent}
+.pages:focus,.pg:focus,section:focus,main:focus,figure:focus,svg:focus{outline:none!important}
+.pages,.pg,svg{-webkit-tap-highlight-color:transparent}
+body{-webkit-user-select:none;user-select:none}
+button,summary{cursor:pointer}
+button{-webkit-tap-highlight-color:transparent}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* 見出しアイコンのアニメーション */
+.m-type{transform-box:fill-box;transform-origin:0 50%;animation:mtype 4s ease-in-out infinite}
+@keyframes mtype{0%,8%{transform:scaleX(0)}35%,85%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+.m-pulse{animation:mpulse 1.6s ease-in-out infinite}
+@keyframes mpulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+.st{--accent:var(--st)} .cn{--accent:var(--cn)}
+:focus-visible{outline-color:var(--wan)}
+
+/* たとえ：用語ラベル */
+.arow .k.lan{background:color-mix(in srgb,var(--lan) 16%,var(--surface));border:1.5px solid var(--lan)}
+.arow .k.wan{background:color-mix(in srgb,var(--wan) 12%,var(--surface));border:1.5px solid var(--wan)}
+.arow .k.net{background:color-mix(in srgb,var(--net) 10%,var(--surface));border:1.5px solid var(--net)}
+.arow .k.cn{background:color-mix(in srgb,var(--cn) 12%,var(--surface));border:1.5px solid var(--cn)}
+
+/* ネットワーク図 共通 */
+.netd svg{width:100%;height:auto;display:block;min-width:520px}
+.netd text{font-family:var(--body)}
+.ic .w{fill:var(--surface);stroke:var(--ink);stroke-width:1.5}
+.ic .f{fill:color-mix(in srgb,var(--ink) 9%,var(--surface));stroke:var(--ink);stroke-width:1.5}
+.ic .p{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ic .k{fill:var(--ink)}
+.lbl{font-size:11.5px;text-anchor:middle;fill:var(--muted)}
+.zl{font-family:var(--disp);font-weight:900;font-size:14px}
+.zl.lanT{fill:var(--lanT)} .zl.netT{fill:var(--net)}
+.lanbox{fill:color-mix(in srgb,var(--lan) 7%,var(--surface));stroke:var(--lan);stroke-width:2;transition:stroke-width .25s,fill .25s}
+.cloud{fill:color-mix(in srgb,var(--wan) 13%,var(--surface));stroke:var(--wan);stroke-width:2;transition:stroke-width .25s,fill .25s}
+.cloud-t{font-size:12px;font-weight:700;text-anchor:middle;fill:var(--wan)}
+.inet{fill:color-mix(in srgb,var(--net) 3%,transparent);stroke:var(--net);stroke-width:2.5;stroke-dasharray:8 6;transition:stroke-width .25s,fill .25s}
+.wire{fill:none;stroke:var(--line2);stroke-width:2.5;stroke-linecap:round}
+.wire.air{stroke-dasharray:2 5}
+.wire.go{stroke:var(--net);stroke-width:4;stroke-dasharray:10 8;animation:flow .6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+.zone{transition:opacity .3s}
+
+/* 図1：LAN・WAN・インターネット */
+#d1 .zone{cursor:pointer}
+#d1[data-hl="lan"] .z-wan,#d1[data-hl="lan"] .z-net{opacity:.16}
+#d1[data-hl="lan"] .lanbox{stroke-width:4;fill:color-mix(in srgb,var(--lan) 20%,var(--surface))}
+#d1[data-hl="wan"] .z-lan{opacity:.22}
+#d1[data-hl="wan"] .z-net{opacity:.35}
+#d1[data-hl="wan"] .cloud{stroke-width:3.5;fill:color-mix(in srgb,var(--wan) 30%,var(--surface))}
+#d1[data-hl="net"] .z-lan{opacity:.22}
+#d1[data-hl="net"] .inet{stroke-width:4.5;fill:color-mix(in srgb,var(--net) 11%,transparent)}
+.hlseg button[data-h="lan"][aria-pressed="true"]{background:var(--lan);border-color:var(--lan);color:#28251A}
+.hlseg button[data-h="wan"][aria-pressed="true"]{background:var(--wan);border-color:var(--wan)}
+.hlseg button[data-h="net"][aria-pressed="true"]{background:var(--net);border-color:var(--net)}
+.explain.lan{border-color:var(--lan)} .explain.lan h4{color:var(--lanT)}
+.explain.wan{border-color:var(--wan)} .explain.wan h4{color:var(--wan)}
+.explain.net{border-color:var(--net)} .explain.net h4{color:var(--net)}
+
+/* 図2：ステップ */
+.stp{transition:opacity .45s}
+.stp.off{opacity:.06}
+.stp.new .lanbox{stroke-width:4}
+.stp.new .cloud{stroke-width:3.5}
+.stp.new .inet{stroke-width:4}
+
+/* 図3：通信の道すじ */
+.nd .ic .w,.nd .ic .f{transition:stroke .2s,stroke-width .2s}
+.nd.on .ic .w,.nd.on .ic .f{stroke:var(--net);stroke-width:2.6}
+.nd.on .lbl{fill:var(--net);font-weight:700}
+.nd.on .cloud{stroke:var(--net);stroke-width:4}
+.grp{transition:opacity .3s}
+.grp.dim{opacity:.22}
+.log{font-size:13.5px;background:color-mix(in srgb,var(--accent) 6%,var(--surface));border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:12.6em;display:grid;align-content:start;gap:3px;line-height:1.5;margin-top:10px}
+.log div{animation:fade .4s ease-out both}
+
+/* 並べかえ */
+.order{display:grid;gap:10px}
+.slots{display:flex;flex-wrap:wrap;gap:8px 24px;list-style:none;margin:0;padding:0}
+.slot{position:relative;border:2px dashed var(--line2);border-radius:10px;padding:4px 12px;min-width:4.5em;text-align:center;font-weight:700;font-size:14px;color:var(--muted);line-height:1.5}
+.slot.fill{border-style:solid;border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 10%,var(--surface));animation:fade .35s ease-out both}
+.slot.next{border-color:var(--accent)}
+.slot:not(:last-child)::after{content:"\2192";position:absolute;right:-19px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700}
+.order .chip{cursor:pointer;font-size:14px;padding:3px 13px}
+.order .chip.done{opacity:.4;text-decoration:line-through;cursor:default}
+.order .row{display:flex;justify-content:flex-end}
+
+/* 部屋の図 */
+.room svg{width:100%;height:auto;display:block}
+.room .wall{fill:color-mix(in srgb,var(--lan) 6%,var(--surface))}
+.room .floor{fill:color-mix(in srgb,var(--ink) 8%,var(--surface))}
+.room .furn{fill:color-mix(in srgb,var(--lan) 22%,var(--surface));stroke:var(--ink);stroke-width:1.5}
+.room .cable{fill:none;stroke:var(--muted);stroke-width:2.5;stroke-linecap:round}
+.room .find{cursor:pointer}
+.room .find .ring{fill:transparent;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:5 4;opacity:0;transition:opacity .2s}
+.room .find:hover .ring,.room .find:focus .ring{opacity:.6}
+.room .find.got .ring{opacity:1;stroke-dasharray:none}
+.room .find.sel .ring{opacity:1;stroke:var(--net);stroke-width:3.5}
+.room .tag{font-size:12px;font-weight:700;text-anchor:middle;fill:var(--accent);opacity:0;transition:opacity .3s}
+.room .find.got .tag{opacity:1}
+.room .find:focus{outline:none}
+#foundN{font-family:var(--disp);font-weight:900;font-size:15px}
+
+/* 見出しアイコン */
+.m-pulse{animation:mpulse 1.6s ease-in-out infinite}
+@keyframes mpulse{0%,100%{opacity:.35}50%{opacity:1}}
+.m-wave{animation:mwave 1.8s ease-in-out infinite}
+@keyframes mwave{0%,100%{opacity:.15}40%,60%{opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== 機器ページ ===== */
+.dv{--accent:var(--dv)}
+.dgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.dcard{display:grid;grid-template-columns:54px minmax(0,1fr);grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);min-height:64px}
+.dcard svg{grid-row:1/3;width:54px;height:40px}
+.dcard b{font-family:var(--disp);font-size:15px;line-height:1.3}
+.dcard span{font-size:12.5px;color:var(--muted);line-height:1.4}
+.dcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.dcard[aria-pressed="true"] b{color:var(--accent)}
+.devhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:6px}
+.devhead h3{font-size:20px;color:var(--accent)}
+.one{background:var(--accent);color:#fff;border-radius:999px;padding:1px 12px;font-size:13.5px;font-weight:700}
+:root[data-theme="dark"] .one{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .one{color:#0D1324}}
+.stage{background:color-mix(in srgb,var(--accent) 4%,var(--surface));border:1px solid var(--line);border-radius:12px}
+.stage svg{min-width:340px}
+@media(max-width:480px){.dcard{grid-template-columns:36px minmax(0,1fr);padding:8px}.dcard svg{width:36px}.dcard b{font-size:14px}}
+.devinfo{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:12px 0 0;font-size:14px;line-height:1.65}
+.devinfo dt{font-weight:700;font-family:var(--disp);color:var(--accent);white-space:nowrap}
+.devinfo dd{margin:0}
+.fiber{fill:none;stroke:color-mix(in srgb,var(--amber) 55%,var(--surface));stroke-width:7;stroke-linecap:round}
+.fiber.go{stroke-dasharray:12 8;animation:flow .6s linear infinite}
+.ph{fill:#FFD23F;stroke:var(--amber);stroke-width:2}
+.bit{font-family:var(--mono);font-weight:600;font-size:17px;fill:var(--dv);text-anchor:middle}
+.pk rect{fill:var(--net);stroke:none}
+.pk text{fill:#fff;font-size:11px;font-weight:700;text-anchor:middle;font-family:var(--body)}
+:root[data-theme="dark"] .pk text{fill:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pk text{fill:#0D1324}}
+.wire.blk{stroke:var(--ng);stroke-dasharray:4 6;opacity:.8}
+.xmark{font-size:18px;font-weight:900;fill:var(--ng);text-anchor:middle;pointer-events:none}
+.hit{fill:none;stroke:transparent;stroke-width:20;cursor:pointer}
+.hit:focus{outline:none}.hit:focus-visible{stroke:color-mix(in srgb,var(--wan) 30%,transparent)}
+.pk.up rect{fill:var(--dv)}
+#d4 .wire.act{stroke:color-mix(in srgb,var(--dv) 55%,var(--line2));stroke-width:3.5}
+#d4 .fiber.act{stroke:color-mix(in srgb,var(--amber) 70%,var(--surface))}
+.dOut{fill:var(--net);stroke:var(--surface);stroke-width:1.5}
+.dIn{fill:var(--dv);stroke:var(--surface);stroke-width:1.5}
+.wv{fill:var(--dv);opacity:.85}
+.wave{fill:none;stroke:var(--dv);stroke-width:2.5;stroke-linecap:round}
+.cap{font-size:13px;font-weight:700;text-anchor:middle;fill:var(--ink)}
+.capT{font-size:13px;font-weight:700;text-anchor:middle}
+.big .lbl{font-size:13px;font-weight:700;fill:var(--ink)}
+/* 1台で何役も */
+.combo{display:flex;justify-content:center;margin-top:4px}
+.cbox{border:2px dashed var(--accent);border-radius:12px;padding:6px 10px 10px;text-align:center}
+.cname{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--accent)}
+.cparts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
+.cparts span{border:1.5px solid var(--line2);background:var(--surface);border-radius:8px;padding:2px 10px;font-size:13.5px;font-weight:700}
+/* 組み立て */
+#buildChips .chip{cursor:pointer;font-size:14px;padding:3px 13px}
+#buildChips .chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+#buildChips .chip.done{opacity:.4;text-decoration:line-through;cursor:default}
+.slotg{cursor:pointer}
+.slotg .sb{fill:var(--surface);stroke:var(--line2);stroke-width:2;stroke-dasharray:6 4}
+.slotg .sn{font-family:var(--disp);font-weight:900;font-size:18px;fill:var(--muted);text-anchor:middle}
+.slotg.ready .sb{stroke:var(--accent);fill:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.slotg.fill .sb{stroke:var(--accent);stroke-dasharray:none;stroke-width:2.5}
+.slotg.fill{cursor:default}
+.slotg:focus{outline:none}
+.slotg:focus-visible .sb{stroke:var(--wan);stroke-width:3}
+.slotg .sl{font-size:12px;font-weight:700;fill:var(--accent);text-anchor:middle}
+</style>
+</head>
+
+<body>
+<nav class="pnav" id="pnav" aria-label="ページ切り替え"><div class="wrap">
+  <a href="#st1" class="st" data-g="st">構造</a><a href="#cn1" class="cn" data-g="cn">つながる</a><a href="#dv1" class="dv" data-g="dv">機器</a><a href="#sum" data-g="sum">まとめ</a><a href="#check" data-g="check">確認クイズ</a>
+</div></nav>
+
+<main class="pages" id="pages">
+
+<!-- ============ 構造 1/2 ============ -->
+<section id="st1" class="pg sec st" data-g="st">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="点線の輪の中で、つながった点が順に光るアニメーション">
+        <ellipse cx="60" cy="45" rx="54" ry="38" style="fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:6 5"/>
+        <path d="M30 36L58 20L90 34L78 66L40 64Z M30 36L78 66 M58 20L40 64" style="fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round"/>
+        <circle class="m-pulse" cx="30" cy="36" r="7" style="fill:var(--accent)"/>
+        <circle class="m-pulse" cx="58" cy="20" r="7" style="fill:var(--accent);animation-delay:.3s"/>
+        <circle class="m-pulse" cx="90" cy="34" r="7" style="fill:var(--accent);animation-delay:.6s"/>
+        <circle class="m-pulse" cx="78" cy="66" r="7" style="fill:var(--accent);animation-delay:.9s"/>
+        <circle class="m-pulse" cx="40" cy="64" r="7" style="fill:var(--accent);animation-delay:1.2s"/>
+      </svg></span><span class="bw">構造</span></div>
+    <p class="oneline">ネットワークは、つなぐ範囲の広さによってLANとWANに分けられる。</p>
+    <h2>LANは「建物の中」、WANは「離れた場所どうし」</h2>
+    <p class="lead">学校や家など、限定された範囲でコンピュータを結んだネットワークを<span class="term">LAN</span>(ローカルエリアネットワーク)といいます。また、都市や国など、広い範囲のコンピュータを結ぶものを<span class="term">WAN</span>(ワイドエリアネットワーク)といいます。</p>
+  </header>
+  <figure class="callout">
+    <div class="ctl" style="justify-content:space-between;margin:0">
+      <h3 class="sub" style="margin:0">たとえると…</h3>
+      <div class="seg" id="analTabs" role="group" aria-label="たとえの例">
+        <button type="button" data-k="road" aria-pressed="true">道路</button>
+        <button type="button" data-k="rail" aria-pressed="false">鉄道</button>
+      </div>
+    </div>
+    <div class="amap" id="analMap"></div>
+    <p class="apoint" id="analPoint"></p>
+  </figure>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl" style="justify-content:space-between">
+      <h3 class="sub" style="margin:0">どこが、どのネットワーク？</h3>
+      <div class="seg hlseg" id="hlSeg" role="group" aria-label="強調するネットワーク">
+        <button type="button" data-h="lan" aria-pressed="false">LAN</button>
+        <button type="button" data-h="wan" aria-pressed="false">WAN</button>
+        <button type="button" data-h="net" aria-pressed="false">インターネット</button>
+      </div>
+    </div>
+    <div class="scroll netd"><div id="d1" data-hl=""></div></div>
+    <div class="explain" id="d1Explain" style="margin-top:8px"></div>
+  </figure><figure class="panel">
+    <h3 class="sub">LAN？ WAN？</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 8px">ネットワークを選んでから、入れる箱をタップしよう。</p>
+    <div class="sorter" id="sortLW"></div>
+  </figure></div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i></span><span class="pnum">1 / 2</span><button class="btn" type="button" data-go="st2">次へ →</button></div>
+</section>
+
+<!-- ============ 構造 2/2 ============ -->
+<section id="st2" class="pg sec st" data-g="st">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="点線の輪の中で、つながった点が順に光るアニメーション">
+        <ellipse cx="60" cy="45" rx="54" ry="38" style="fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:6 5"/>
+        <path d="M30 36L58 20L90 34L78 66L40 64Z M30 36L78 66 M58 20L40 64" style="fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round"/>
+        <circle class="m-pulse" cx="30" cy="36" r="7" style="fill:var(--accent)"/>
+        <circle class="m-pulse" cx="58" cy="20" r="7" style="fill:var(--accent);animation-delay:.3s"/>
+        <circle class="m-pulse" cx="90" cy="34" r="7" style="fill:var(--accent);animation-delay:.6s"/>
+        <circle class="m-pulse" cx="78" cy="66" r="7" style="fill:var(--accent);animation-delay:.9s"/>
+        <circle class="m-pulse" cx="40" cy="64" r="7" style="fill:var(--accent);animation-delay:1.2s"/>
+      </svg></span><span class="bw">構造</span></div>
+    <p class="oneline">インターネットは、たくさんのWANがつながってできた「ネットワークのネットワーク」。</p>
+    <h2>WANどうしがつながって、世界規模に</h2>
+    <p class="lead"><span class="term">インターネット</span>は、たくさんのWANをつないでつくられた、世界規模の情報通信ネットワークです。インターネットは世界中のだれでも利用できますが、LANやWANの多くは、特定の組織の人だけが使うネットワークです。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">比べてみよう</h3>
+    <div class="scroll"><table class="dt">
+      <tr><th>ネットワーク</th><th>つなぐ範囲</th><th>例</th><th>使える人</th></tr>
+      <tr><td style="color:var(--lanT)">LAN</td><td>建物の中など</td><td>家庭、学校</td><td>その場所の人</td></tr>
+      <tr><td style="color:var(--wan)">WAN</td><td>都市や国など</td><td style="white-space:nowrap">本社と支社</td><td>契約者など</td></tr>
+      <tr><td style="color:var(--net);white-space:nowrap">インターネット</td><td>世界中</td><td style="white-space:nowrap">Webサイト</td><td>だれでも</td></tr>
+    </table></div>
+  </figure>
+  <details>
+    <summary>考えてみよう：<br>インターネット全体を持っている会社はある？</summary>
+    <p>ありません。ISPや企業、大学など、<b>たくさんの組織がそれぞれ運営するネットワーク</b>がつながりあって、インターネット全体ができています。どこか1か所が止まっても、別の道すじで通信を続けられることが多いのも、そのためです。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <h3 class="sub">ネットワークがつながっていく</h3>
+    <div class="steptext" id="stepText" aria-live="polite"></div>
+    <div class="ctl" style="margin:10px 0">
+      <button class="btn" id="stepNext" type="button">スタート</button>
+      <button class="btn ghost" id="stepPrev" type="button">戻る</button>
+    </div>
+    <div class="scroll netd"><div id="d2"></div></div>
+    <figcaption>赤い点線は、家から海外の会社までデータが届く道すじの一例です。</figcaption>
+  </figure></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="st1">← 前へ</button><span class="pdots"><i></i><i class="on"></i></span><span class="pnum">2 / 2</span></div>
+</section>
+
+<!-- ============ つながる 1/2 ============ -->
+<section id="cn1" class="pg sec cn" data-g="cn">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="ルータから電波が出ているアニメーション">
+        <path d="M38 54L32 30M82 54L88 30" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <rect x="22" y="52" width="76" height="24" rx="6" style="fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <circle class="m-pulse" cx="38" cy="64" r="3.5" style="fill:var(--accent)"/>
+        <circle class="m-pulse" cx="50" cy="64" r="3.5" style="fill:var(--accent);animation-delay:.3s"/>
+        <circle class="m-pulse" cx="62" cy="64" r="3.5" style="fill:var(--accent);animation-delay:.6s"/>
+        <path class="m-wave" d="M50 26a14 14 0 0 1 20 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <path class="m-wave" d="M43 18a24 24 0 0 1 34 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;animation-delay:.3s"/>
+        <path class="m-wave" d="M36 10a34 34 0 0 1 48 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;animation-delay:.6s"/>
+      </svg></span><span class="bw">つながる</span></div>
+    <p class="oneline">LANとWANの境目にはルータがあり、WANへはISPのサービスを使って出ていく。</p>
+    <h2>LANとWANの境目に、ルータを置く</h2>
+    <p class="lead">インターネットにコンピュータを接続するときは、LANを経由することが多いです。LANとWANの間には<span class="term">ルータ</span>という装置を置きます。ルータは、LANとWANの間の通信を中継し、適切な宛先に送っています。WANを利用するためには、<span class="term">ISP</span>(インターネットサービスプロバイダ)とよばれる業者のサービスを用いることが多いです。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub" style="margin:0">たとえると…手紙を出す</h3>
+    <div class="amap">
+      <div class="arow"><span class="k lan">LAN</span><span class="eq">＝</span><span class="v"><b>町内</b><span>近所どうしなら、町の中で届く</span></span></div>
+      <div class="arow"><span class="k cn">ルータ</span><span class="eq">＝</span><span class="v"><b>町の仕分け係</b><span>宛先を見て、町内か町の外かを判断する</span></span></div>
+      <div class="arow"><span class="k wan">ISP</span><span class="eq">＝</span><span class="v"><b>運送会社</b><span>契約すると、町の外へ運んでくれる</span></span></div>
+    </div>
+    <p class="apoint">町の外あての手紙だけが、運送会社のルートに乗って遠くへ運ばれる。データも、宛先が LAN の外のときだけ、ルータから WAN へ出ていく。</p>
+  </figure>
+  <details>
+    <summary>考えてみよう：<br>家でインターネットを使うのに、ISPとの契約が必要なのはなぜ？</summary>
+    <p>家のLANだけでは、家の外とはつながっていないからです。ISPは、自分たちの<b>WAN</b>を通して、世界中のネットワークへの通り道を用意しています。契約することで、家のLANからその通り道を使えるようになります。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <h3 class="sub">データの道すじをたどろう</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 8px">宛先を選ぶと、データが通る機器が順に光ります。</p>
+    <div class="ctl seg" id="routeBtns" role="group" aria-label="データの宛先">
+      <button type="button" data-d="pr" aria-pressed="false">家のプリンタで印刷</button>
+      <button type="button" data-d="school" aria-pressed="false">学校のWebサイトを見る</button>
+      <button type="button" data-d="abroad" aria-pressed="false">海外の動画サイトを見る</button>
+    </div>
+    <div class="scroll netd"><div id="d3"></div></div>
+    <div class="log" id="routeLog" aria-live="polite"><span style="color:var(--muted)">上のボタンを押すと、データの道すじがここに表示されます。</span></div>
+    <figcaption>図は簡略化しています。実際には、途中でもっと多くのルータやWANを経由することがあります。</figcaption>
+  </figure></div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i></span><span class="pnum">1 / 2</span><button class="btn" type="button" data-go="cn2">次へ →</button></div>
+</section>
+
+<!-- ============ つながる 2/2 ============ -->
+<section id="cn2" class="pg sec cn" data-g="cn">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="ルータから電波が出ているアニメーション">
+        <path d="M38 54L32 30M82 54L88 30" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <rect x="22" y="52" width="76" height="24" rx="6" style="fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <circle class="m-pulse" cx="38" cy="64" r="3.5" style="fill:var(--accent)"/>
+        <circle class="m-pulse" cx="50" cy="64" r="3.5" style="fill:var(--accent);animation-delay:.3s"/>
+        <circle class="m-pulse" cx="62" cy="64" r="3.5" style="fill:var(--accent);animation-delay:.6s"/>
+        <path class="m-wave" d="M50 26a14 14 0 0 1 20 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <path class="m-wave" d="M43 18a24 24 0 0 1 34 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;animation-delay:.3s"/>
+        <path class="m-wave" d="M36 10a34 34 0 0 1 48 0" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;animation-delay:.6s"/>
+      </svg></span><span class="bw">つながる</span></div>
+    <p class="oneline">家では光回線と回線終端装置、外出中のスマホは基地局を通ってインターネットへ。</p>
+    <h2>家は光回線、外のスマホは基地局から</h2>
+    <p class="lead">家庭では、光ファイバー回線などから送られてくる光の信号を、<span class="term">回線終端装置</span>がコンピュータ通信のデジタル信号に変換しています。スマートフォンなどのモバイルネットワークは、<span class="term">基地局</span>とよばれる装置と無線通信をおこなっています。基地局からは、携帯電話回線事業者のWANを経由して、インターネットにつながっています。</p>
+  </header>
+  <div class="tips">
+    <div class="tip"><b>ルータ</b>LANとWANの間の通信を中継し、適切な宛先に送る。</div>
+    <div class="tip"><b>回線終端装置</b>回線の光の信号と、デジタル信号を変換する。</div>
+    <div class="tip"><b>ISP</b>インターネットへの接続サービスを提供する事業者。</div>
+    <div class="tip"><b>基地局</b>スマートフォンなどと無線で通信する装置。</div>
+  </div>
+  <details>
+    <summary>考えてみよう：<br>家でスマホを家のネットワークにつないでいるときは、どの道を通る？</summary>
+    <p>スマホが<b>家のLAN</b>に入るので、家のパソコンと同じく、ルータ → 回線終端装置 → ISPのWAN の道を通ります。このときは基地局を使いません。同じスマホでも、いる場所とつなぎ方で道すじが変わります。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <h3 class="sub">インターネットまで、通る順に並べよう</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 8px">つなぎ方を選んで、通る順に言葉をタップしよう。関係ないものも1つまざっています。</p>
+    <div class="order" id="order"></div>
+  </figure></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="cn1">← 前へ</button><span class="pdots"><i></i><i class="on"></i></span><span class="pnum">2 / 2</span></div>
+</section>
+
+<!-- ============ 機器 1/2 ============ -->
+<section id="dv1" class="pg sec dv" data-g="dv">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="ハブの差込口のランプが順に光るアニメーション">
+        <path d="M60 20V34M20 66V58H100V66" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <rect x="12" y="34" width="96" height="26" rx="6" style="fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <rect class="m-pulse" x="22" y="42" width="10" height="10" rx="2" style="fill:var(--accent)"/>
+        <rect class="m-pulse" x="40" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.25s"/>
+        <rect class="m-pulse" x="58" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.5s"/>
+        <rect class="m-pulse" x="76" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.75s"/>
+        <rect class="m-pulse" x="94" y="42" width="6" height="10" rx="2" style="fill:var(--accent);animation-delay:1s"/>
+        <path d="M30 66v14M60 66v14M90 66v14" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <circle cx="60" cy="14" r="6" style="fill:var(--accent)"/>
+      </svg></span><span class="bw">機器</span></div>
+    <p class="oneline">ネットワークの機器は、それぞれ「何と何をつなぐか」がちがう。</p>
+    <h2>4つの機器、それぞれの仕事</h2>
+    <p class="lead">家のネットワークでは、外から順に<span class="term">回線終端装置</span> → <span class="term">ルータ</span> → <span class="term">ハブ</span>・<span class="term">アクセスポイント</span>とつながり、役割を分担しています。機器をタップすると、右でその働きが動きます。</p>
+  </header>
+  <div class="dgrid" id="devCards" role="group" aria-label="機器を選ぶ"></div>
+  </div><div class="cr"><figure class="panel" id="devPanel">
+    <div class="devhead"><h3 class="sub" id="devName" style="margin:0"></h3><span class="one" id="devOne"></span></div>
+    <div class="seg" id="devModes" role="group" aria-label="見る働き" hidden style="margin-bottom:8px"></div>
+    <div class="scroll netd stage" id="devStage" aria-live="polite"></div>
+    <dl class="devinfo" id="devInfo"></dl>
+  </figure></div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i></span><span class="pnum">1 / 2</span><button class="btn" type="button" data-go="dv2">次へ →</button></div>
+</section>
+
+<!-- ============ 機器 2/2 ============ -->
+<section id="dv2" class="pg sec dv" data-g="dv">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="ハブの差込口のランプが順に光るアニメーション">
+        <path d="M60 20V34M20 66V58H100V66" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <rect x="12" y="34" width="96" height="26" rx="6" style="fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <rect class="m-pulse" x="22" y="42" width="10" height="10" rx="2" style="fill:var(--accent)"/>
+        <rect class="m-pulse" x="40" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.25s"/>
+        <rect class="m-pulse" x="58" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.5s"/>
+        <rect class="m-pulse" x="76" y="42" width="10" height="10" rx="2" style="fill:var(--accent);animation-delay:.75s"/>
+        <rect class="m-pulse" x="94" y="42" width="6" height="10" rx="2" style="fill:var(--accent);animation-delay:1s"/>
+        <path d="M30 66v14M60 66v14M90 66v14" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <circle cx="60" cy="14" r="6" style="fill:var(--accent)"/>
+      </svg></span><span class="bw">機器</span></div>
+    <p class="oneline">機器の役割がわかれば、どこに何を置けばよいかがわかる。</p>
+    <h2>家のネットワークを組み立てよう</h2>
+    <p class="lead">4つの機器は、つなぐ相手がちがいます。「何と何のあいだに入るか」に注目しましょう。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">比べてみよう</h3>
+    <div class="scroll"><table class="dt">
+      <tr><th>機器</th><th>あいだに入るもの</th><th>仕事</th></tr>
+      <tr><td>回線終端装置</td><td>光ファイバー回線 と 家の中</td><td>光とデジタルの信号を変換</td></tr>
+      <tr><td>ルータ</td><td>LAN と WAN</td><td>宛先へ中継し、ルートを選ぶ</td></tr>
+      <tr><td>ハブ</td><td>ケーブル と 何台もの機器</td><td>ケーブルで複数の機器をつなぐ</td></tr>
+      <tr><td>アクセスポイント</td><td>ケーブル と 無線の機器</td><td>ケーブルの信号と電波を変換</td></tr>
+    </table></div>
+  </figure>
+  <figure class="callout">
+    <h3 class="sub">家庭用のルータは、1台で何役も</h3>
+    <div class="combo">
+      <div class="cbox"><span class="cname">家庭用ルータ(1台)</span>
+        <div class="cparts"><span>ルータ</span><span>ハブ</span><span>アクセスポイント</span></div>
+      </div>
+    </div>
+    <p style="margin:8px 0 0;font-size:14px;line-height:1.7">家庭用のルータは、<b>ハブやアクセスポイントの機能を内蔵している</b>ことが多いです。回線終端装置と一体になった機種もあります。見た目は1台でも、中では別々の仕事をしています。</p>
+  </figure>
+  </div><div class="cr"><figure class="panel">
+    <h3 class="sub">機器を正しい場所に置こう</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 8px">機器を選んでから、図の①〜④の置き場所をタップしよう。</p>
+    <ul class="chips" id="buildChips" style="margin-bottom:8px"></ul>
+    <div class="scroll netd"><div id="d4"></div></div>
+    <div class="feedback" id="buildFb" aria-live="polite"></div>
+    <div class="ctl" style="justify-content:flex-end;margin:4px 0 0"><button class="btn ghost" type="button" id="buildReset">もう一度</button></div>
+  </figure></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="dv1">← 前へ</button><span class="pdots"><i></i><i class="on"></i></span><span class="pnum">2 / 2</span></div>
+</section>
+
+<!-- ============ まとめ ============ -->
+<section id="sum" class="pg sec" data-g="sum">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <h2>家のパソコンがインターネットにつながるまで</h2>
+    <p class="lead" style="margin-top:14px">家のパソコンから送ったデータは、次の順にインターネットへ出ていきます。光っている場所が、いま見ているステップです。</p>
+  </header><div class="flow" aria-label="家のパソコンからインターネットまでの流れ">
+    <div class="step" style="--accent:var(--lanT)"><b>LAN</b>家や学校など、限られた範囲で機器を結ぶ。</div>
+    <div class="step cn"><b>ルータ</b>LANとWANの間の通信を中継し、適切な宛先へ送る。</div>
+    <div class="step cn"><b>回線終端装置</b>デジタル信号と、光ファイバー回線の光の信号を変換する。</div>
+    <div class="step" style="--accent:var(--wan)"><b>ISPのWAN</b>契約しているISPのWANを経由する。</div>
+    <div class="step st"><b>インターネット</b>たくさんのWANがつながった、世界規模のネットワーク。</div>
+  </div><div class="ex">
+    <p><b>例：外出中に、スマホで地図を見る</b></p>
+    <p>スマートフォンは<b>基地局</b>と無線で通信し、<b>携帯電話回線事業者のWAN</b>を経由してインターネットへ出ていきます。地図のサーバからの返事も、同じように中継されて届きます。</p>
+  </div>
+  </div><div class="cr"><figure class="panel cn">
+    <h3 class="sub">やってみよう：家や教室で、ネットワーク機器を探そう</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 10px">部屋の中の機器をタップして、見分け方を確かめよう。<span id="foundN">0 / 5</span> 見つけた</p>
+    <div class="room" id="room"></div>
+    <div class="explain" id="roomExplain" style="margin-top:10px"></div>
+    <figcaption>イラストは例です。マンションや学校では、機器が別の部屋や設備スペースにまとめて置かれていることもあります。見つけても、ケーブルを抜いたり設定を変えたりしないようにしよう。</figcaption>
+  </figure></div></div>
+</section>
+
+<!-- ============ 確認クイズ ============ -->
+<section id="check" class="pg sec" data-g="check">
+  <div class="cols wide-col"><div class="cl">
+    <div class="qhead"><h2>確認クイズ</h2><div id="score" aria-live="polite"></div></div>
+    <div class="qz" id="qz"></div>
+  </div></div>
+</section>
+
+</main>
+
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function press(group,btn){$$(group+' button').forEach(function(x){x.setAttribute('aria-pressed',x===btn)})}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* ========== SVG部品 ========== */
+var ICON={
+  pc:'<rect class="w" x="-15" y="-14" width="30" height="20" rx="2"/><rect class="f" x="-12" y="-11" width="24" height="14" rx="1"/><path class="p" d="M0 6v5M-7 12h14"/>',
+  phone:'<rect class="w" x="-7" y="-13" width="14" height="26" rx="3"/><rect class="f" x="-5" y="-9" width="10" height="16" rx="1"/>',
+  router:'<path class="p" d="M-10 -2L-13 -15M10 -2L13 -15"/><rect class="w" x="-16" y="-3" width="32" height="13" rx="3"/><circle class="k" cx="-9" cy="3.5" r="1.6"/><circle class="k" cx="-4" cy="3.5" r="1.6"/><circle class="k" cx="1" cy="3.5" r="1.6"/>',
+  onu:'<rect class="w" x="-10" y="-13" width="20" height="26" rx="3"/><circle class="k" cx="0" cy="-6" r="1.6"/><circle class="k" cx="0" cy="-1" r="1.6"/><circle class="k" cx="0" cy="4" r="1.6"/>',
+  printer:'<rect class="w" x="-9" y="-13" width="18" height="9"/><rect class="f" x="-15" y="-5" width="30" height="13" rx="2"/><rect class="w" x="-9" y="4" width="18" height="8"/>',
+  game:'<rect class="f" x="-15" y="-8" width="30" height="16" rx="8"/><path class="p" d="M-10 0h6M-7 -3v6"/><circle class="k" cx="7" cy="-2" r="1.6"/><circle class="k" cx="10" cy="2" r="1.6"/>',
+  server:'<rect class="w" x="-11" y="-15" width="22" height="30" rx="2"/><path class="p" d="M-7 -8h14M-7 -2h14M-7 4h14"/><circle class="k" cx="6" cy="10" r="1.5"/>',
+  tower:'<path class="p" d="M0 -14L-10 18M0 -14L10 18M-7 8H7M-4 -3H4M-7 8L4 -3M7 8L-4 -3"/><path class="p" d="M-7 -19a10 10 0 0 1 14 0M-12 -24a17 17 0 0 1 24 0"/>'
+};
+function ic(t,x,y,s){return '<g class="ic" transform="translate('+x+','+y+')'+(s?' scale('+s+')':'')+'">'+ICON[t]+'</g>'}
+function lbl(x,y,t,id){return '<text class="lbl" x="'+x+'" y="'+y+'"'+(id?' id="'+id+'"':'')+'>'+t+'</text>'}
+function dev(t,x,y,label,id){return ic(t,x,y)+(label?lbl(x,y+30,label,id):'')}
+var CL='M-40 20C-58 20-58-2-42-4C-46-20-24-28-12-16C-6-30 22-30 26-12C42-16 54 0 42 10C50 18 44 22 36 20Z';
+function cloud(x,y,s,t){return '<path class="cloud" vector-effect="non-scaling-stroke" transform="translate('+x+','+y+') scale('+s+')" d="'+CL+'"/><text class="cloud-t" x="'+x+'" y="'+(y+4)+'">'+t+'</text>'}
+function w(pts,cls,id){return '<path class="wire'+(cls?' '+cls:'')+'"'+(id?' id="'+id+'"':'')+' d="M'+pts.join('L')+'"/>'}
+
+/* ========== 構造1: たとえ ========== */
+var ANAL={
+  road:{lan:['学校の敷地の中の通路','決まった場所の中だけを結ぶ'],wan:['都市と都市を結ぶ高速道路','離れた場所どうしを結ぶ'],net:['世界中の道路網','たくさんの道がつながり、遠くまで行ける'],
+    pt:'敷地の中の通路から高速道路に出れば、ほかの道ともつながっているので、遠くの町まで行ける。'},
+  rail:{lan:['駅の構内','ホームや通路の中だけ'],wan:['A市とB市を結ぶ路線','離れた駅どうしを結ぶ'],net:['全国・世界の路線網','乗りかえて、遠くまで行ける'],
+    pt:'1本の路線だけでは、行ける場所は限られる。たくさんの路線がつながっているから、乗りかえて遠くまで行ける。'}
+};
+function setAnal(k){
+  var a=ANAL[k],m=$('#analMap');
+  $$('#analTabs button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-k')===k)});
+  function row(cls,lab,v){return '<div class="arow"><span class="k '+cls+'">'+lab+'</span><span class="eq">＝</span><span class="v"><b>'+v[0]+'</b><span>'+v[1]+'</span></span></div>'}
+  m.innerHTML=row('lan','LAN',a.lan)+row('wan','WAN',a.wan)+row('net','インターネット',a.net);
+  m.classList.remove('swap');void m.offsetWidth;m.classList.add('swap');
+  $('#analPoint').textContent=a.pt;
+}
+$$('#analTabs button').forEach(function(b){b.addEventListener('click',function(){setAnal(b.getAttribute('data-k'))})});
+setAnal('road');
+
+/* ========== 構造1: 図 LAN・WAN・インターネット ========== */
+(function(){
+  var s='<svg viewBox="0 0 700 418" role="img" aria-label="家庭のLANと学校のLANが、ルータと回線終端装置を通してWANにつながり、たくさんのWANがつながってインターネットになっている図">';
+  s+='<g class="zone z-net" data-z="net"><ellipse class="inet" cx="400" cy="122" rx="285" ry="104"/><text class="zl netT" x="582" y="24">インターネット</text></g>';
+  s+='<g class="zone z-wan" data-z="wan">'
+    +w(['215,140','320,74'])+w(['215,140','400,170'])+w(['320,74','485,74'])+w(['400,170','485,74'])+w(['400,170','590,148'])+w(['485,74','590,148'])+w(['320,74','400,170'])
+    +w(['300,287','390,190'])+w(['635,287','600,170'])+w(['84,112','165,134'])+w(['70,186','70,152'],'air')
+    +cloud(215,140,1.05,'WAN')+cloud(320,74,1.05,'WAN')+cloud(400,170,1.05,'ISPのWAN')+cloud(485,74,1.05,'WAN')+cloud(590,148,1.05,'ISPのWAN')
+    +ic('tower',72,110)+lbl(72,144,'基地局')+dev('phone',70,200,'スマートフォン')
+    +'</g>';
+  s+='<g class="zone z-lan" data-z="lan">'
+    +'<rect class="lanbox" vector-effect="non-scaling-stroke" x="20" y="255" width="330" height="150" rx="12"/><text class="zl lanT" x="34" y="278">家庭のLAN</text>'
+    +w(['90,350','200,305'])+w(['162,354','206,308'])+w(['225,346','218,312'],'air')+w(['231,300','285,300'])
+    +dev('router',215,300,'ルータ')+dev('onu',295,300,'回線終端装置')+dev('pc',75,355,'パソコン')+dev('game',150,360,'ゲーム機')+dev('phone',228,362,'スマートフォン')
+    +'<rect class="lanbox" vector-effect="non-scaling-stroke" x="370" y="255" width="310" height="150" rx="12"/><text class="zl lanT" x="384" y="278">学校のLAN</text>'
+    +w(['431,305','529,300'])+w(['470,356','538,310'])+w(['545,356','545,312'])+w(['620,356','552,310'])+w(['561,300','625,300'])
+    +dev('server',420,310,'サーバ')+dev('router',545,300,'ルータ')+dev('onu',635,300,'回線終端装置')+dev('pc',470,370)+dev('pc',545,370)+dev('pc',620,370)
+    +'</g></svg>';
+  $('#d1').innerHTML=s;
+})();
+var D1={
+  lan:['LAN(ローカルエリアネットワーク)','家庭や学校など、限定された範囲でコンピュータを結んだネットワーク。図の「家庭のLAN」「学校のLAN」の枠の中。'],
+  wan:['WAN(ワイドエリアネットワーク)','都市や国など、広い範囲のコンピュータを結ぶネットワーク。離れた場所のLANどうしをつなぐ。図の雲の形。基地局の先にも、携帯電話回線事業者のWANがある。'],
+  net:['インターネット','たくさんのWANをつないでつくられた、世界規模の情報通信ネットワーク。図の赤い点線の内側。']
+};
+function hl(k){
+  $('#d1').setAttribute('data-hl',k);
+  $$('#hlSeg button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-h')===k)});
+  var e=$('#d1Explain');e.className='explain '+k;e.innerHTML='<h4>'+D1[k][0]+'</h4>'+D1[k][1];
+}
+$('#d1Explain').innerHTML='<h4>ボタンか図をタップ</h4>LAN・WAN・インターネットが、図のどこにあたるかが強調されます。';
+$$('#hlSeg button').forEach(function(b){b.addEventListener('click',function(){hl(b.getAttribute('data-h'))})});
+$$('#d1 .zone').forEach(function(g){g.addEventListener('click',function(){hl(g.getAttribute('data-z'))})});
+
+/* ========== 仕分け ========== */
+function makeSorter(el,items,bins,notes){
+  el.innerHTML='<ul class="chips"></ul><div class="bins"></div><div class="feedback" aria-live="polite"></div><div class="row"><button class="btn ghost" type="button">もう一度</button></div>';
+  var chips=el.querySelector('.chips'),binsEl=el.querySelector('.bins'),fb=el.querySelector('.feedback'),sel=null,done=0;
+  function build(){
+    chips.innerHTML='';binsEl.innerHTML='';fb.textContent='';fb.className='feedback';sel=null;done=0;
+    shuffle(items).forEach(function(it){
+      var li=document.createElement('li'),c=document.createElement('button');c.type='button';c.className='chip';c.textContent=it[0];c.setAttribute('data-a',it[1]);
+      c.addEventListener('click',function(){if(c.disabled)return;chips.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel')});c.classList.add('sel');sel=c;binsEl.querySelectorAll('.bin').forEach(function(b){b.classList.add('ready')})});
+      li.appendChild(c);chips.appendChild(li);
+    });
+    bins.forEach(function(bn){
+      var b=document.createElement('button');b.type='button';b.className='bin';b.innerHTML='<span class="bt">'+bn[1]+'</span><span class="bl"></span>';
+      b.addEventListener('click',function(){
+        if(!sel)return;
+        binsEl.querySelectorAll('.bin').forEach(function(x){x.classList.remove('ready')});
+        if(sel.getAttribute('data-a')===bn[0]){
+          var s=document.createElement('span');s.textContent=sel.textContent;b.querySelector('.bl').appendChild(s);
+          sel.classList.remove('sel');sel.classList.add('done');sel.disabled=true;done++;
+          fb.className='feedback ok';fb.textContent=notes[sel.textContent]||'正解！';
+          if(done===items.length)fb.textContent='全部正解！よくできました。';
+        }else{
+          fb.className='feedback ng';fb.textContent='「'+sel.textContent+'」はそこではないよ。つなぐ範囲の広さを考えてみよう。';
+          b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');sel.classList.remove('sel');
+        }
+        sel=null;
+      });
+      binsEl.appendChild(b);
+    });
+  }
+  el.querySelector('.row .btn').addEventListener('click',build);
+  build();
+}
+makeSorter($('#sortLW'),
+  [['家の中のネットワーク','l'],['学校の校内ネットワーク','l'],['会社のオフィスの中','l'],['図書館の館内ネットワーク','l'],
+   ['本社と支社を結ぶネットワーク','w'],['携帯電話回線事業者の回線網','w'],['ISPの回線網','w'],['都市と都市を結ぶ回線','w']],
+  [['l','LAN(限られた範囲)'],['w','WAN(広い範囲)']],
+  {'本社と支社を結ぶネットワーク':'正解！離れた場所にあるLANどうしを結ぶのはWAN。','会社のオフィスの中':'正解！1つの建物やフロアの中ならLAN。','携帯電話回線事業者の回線網':'正解！基地局から先は、携帯電話回線事業者のWAN。','ISPの回線網':'正解！ISPは、自分たちのWANで利用者をインターネットへつなぐ。'});
+
+/* ========== 構造2: ネットワークがつながっていく ========== */
+(function(){
+  function lanBox(x,label,devs){
+    var cx=x+100,g='<rect class="lanbox" vector-effect="non-scaling-stroke" x="'+x+'" y="268" width="200" height="108" rx="12"/><text class="zl lanT" x="'+(x+12)+'" y="368">'+label+'</text>';
+    g+=w([(cx-12)+',300',(cx-60)+',326'])+w([cx+',302',cx+',322'])+w([(cx+12)+',300',(cx+60)+',326']);
+    g+=ic('router',cx,292)+ic(devs[0],cx-60,336)+ic(devs[1],cx,336)+ic(devs[2],cx+60,336);
+    return g;
+  }
+  var s='<svg viewBox="0 52 700 332" role="img" aria-label="家・学校・海外の会社のLANが、WANにつながり、WANどうしがつながってインターネットになる様子">';
+  s+='<g class="stp" data-s="4"><ellipse class="inet" cx="350" cy="160" rx="330" ry="92"/><text class="zl netT" x="96" y="112">インターネット</text></g>';
+  s+='<g class="stp" data-s="4">'+w(['160,170','310,130'])+w(['390,130','540,170'])+w(['165,190','535,190'],'','f2')+'</g>';
+  s+='<g class="stp" data-s="3">'+w(['120,279','120,205'],'','f1')+w(['350,279','350,140'])+w(['580,279','580,205'],'','f3')
+    +cloud(120,185,1,'ISPのWAN')+cloud(350,118,1,'WAN')+cloud(580,185,1,'WAN')+'</g>';
+  s+='<g class="stp" data-s="1">'+lanBox(20,'家のLAN',['pc','printer','game'])+'</g>';
+  s+='<g class="stp" data-s="2">'+lanBox(250,'学校のLAN',['pc','pc','pc'])+lanBox(480,'海外の会社のLAN',['server','pc','pc'])+'</g>';
+  s+='</svg>';
+  $('#d2').innerHTML=s;
+})();
+var STEPS=[
+  ['LAN','家の中のパソコンやプリンタ、ゲーム機をつなぐと、家の中で通信できる。でも、まだ家の外とはつながっていない。'],
+  ['LANは、あちこちにある','学校にも、海外の会社にもLANがある。それぞれのLANは、その中だけで通信している。'],
+  ['WANにつなぐ','ルータを通して、それぞれのLANをWANにつなぐ。WANの多くは、ISPなどの事業者が運営している。'],
+  ['インターネット','たくさんのWANどうしがつながり、世界規模のネットワークになった。これがインターネット。家から海外の会社まで、データが届く。']
+];
+var step=-1,nextB=$('#stepNext'),prevB=$('#stepPrev');
+function renderStep(){
+  var k=step<0?99:step+1;
+  $$('#d2 .stp').forEach(function(g){var s=+g.getAttribute('data-s');g.classList.toggle('off',s>k);g.classList.toggle('new',step>=0&&s===k)});
+  ['f1','f2','f3'].forEach(function(id){$('#'+id).classList.toggle('go',step===3)});
+  if(step<0){$('#stepText').innerHTML='<b>準備OK</b>「スタート」を押すと、ネットワークが少しずつつながっていく様子を、1ステップずつ見られます。';nextB.textContent='スタート';prevB.disabled=true;return}
+  $('#stepText').innerHTML='<b>STEP '+(step+1)+' / '+STEPS.length+' '+STEPS[step][0]+'</b>'+STEPS[step][1];
+  prevB.disabled=false;nextB.textContent=step===STEPS.length-1?'最初から':'1ステップ進める';
+}
+nextB.addEventListener('click',function(){step=step===STEPS.length-1?-1:step+1;renderStep()});
+prevB.addEventListener('click',function(){step=Math.max(-1,step-1);renderStep()});
+renderStep();
+
+/* ========== つながる1: データの道すじ ========== */
+(function(){
+  function nd(n,inner){return '<g class="nd" data-n="'+n+'">'+inner+'</g>'}
+  var s='<svg viewBox="0 0 700 344" role="img" aria-label="家のパソコンから、ルータ、回線終端装置、ISPのWAN、ほかのWANを通って、相手のルータとサーバに届く道すじの図">';
+  s+='<g class="grp" id="gNet"><rect class="inet" x="470" y="20" width="215" height="315" rx="40"/><text class="zl netT" x="577" y="322" text-anchor="middle">インターネット</text>'
+    +w(['580,115','580,188'],'','w-isp-wan')
+    +nd('isp',cloud(580,92,1.1,'ISPのWAN'))+nd('wan',cloud(580,215,1.1,'WAN')+lbl(580,262,'いくつものWAN','wanLbl'))+'</g>';
+  s+='<g class="grp" id="gHome"><rect class="lanbox" vector-effect="non-scaling-stroke" x="20" y="20" width="430" height="185" rx="12"/><text class="zl lanT" x="34" y="44">家のLAN</text>'
+    +w(['104,104','160,155'],'','w-pc-pr')+w(['106,95','224,95'],'','w-pc-rt')+w(['256,97','370,95'],'','w-rt-onu')
+    +nd('pc',dev('pc',90,95,'パソコン'))+nd('pr',dev('printer',175,165,'プリンタ'))+nd('rt',dev('router',240,95,'ルータ'))+nd('onu',dev('onu',380,95,'回線終端装置'))+'</g>';
+  s+=w(['391,95','518,95'],'','w-onu-isp');
+  s+='<g class="grp" id="gDest"><rect class="lanbox" vector-effect="non-scaling-stroke" x="20" y="235" width="430" height="100" rx="12"/><text class="zl lanT" x="34" y="259" id="dLbl">相手のLAN</text>'
+    +w(['314,292','172,290'],'','w-drt-srv')
+    +nd('drt',dev('router',330,290,'ルータ'))+nd('srv',dev('server',160,288,'サーバ','sLbl'))+'</g>';
+  s+=w(['524,228','346,288'],'','w-wan-drt');
+  s+='</svg>';
+  $('#d3').innerHTML=s;
+  /* 線を機器の下に描くため、最後に足した2本を先頭へ */
+  var svg=$('#d3 svg');svg.insertBefore($('#w-onu-isp'),svg.firstChild);svg.insertBefore($('#w-wan-drt'),svg.firstChild);
+})();
+var ROUTE={
+  pr:{lab:null,seq:[
+    ['pc','パソコン：「印刷して」というデータを送り出す',null],
+    ['pr','プリンタ：同じLANの中なので、そのまま届いた！',['w-pc-pr']],
+    ['','→ 宛先が家の中(LAN)なので、データはWANに出ていかない。',null]]},
+  school:{lab:['学校のLAN','Webサーバ','いくつものWAN'],seq:[
+    ['pc','パソコン：学校のWebページを見たい。データを送り出す',null],
+    ['rt','ルータ：宛先は家の外だ。WAN側へ中継する',['w-pc-rt']],
+    ['onu','回線終端装置：デジタル信号を光の信号に変換して、回線へ',['w-rt-onu']],
+    ['isp','ISPのWAN：契約しているISPのWANに入る',['w-onu-isp']],
+    ['wan','WAN：いくつものWANを中継して、宛先の近くへ',['w-isp-wan']],
+    ['drt','学校のルータ：学校のLANの中の宛先へ送る',['w-wan-drt']],
+    ['srv','Webサーバ：届いた！ページのデータを送り返す',['w-drt-srv']],
+    ['pc','↩ 返事も同じように中継されて届き、ページが表示された',null]]},
+  abroad:{lab:['海外のデータセンター','動画サイトのサーバ','海底ケーブルなど'],seq:[
+    ['pc','パソコン：海外の動画サイトを見たい。データを送り出す',null],
+    ['rt','ルータ：宛先は家の外だ。WAN側へ中継する',['w-pc-rt']],
+    ['onu','回線終端装置：デジタル信号を光の信号に変換して、回線へ',['w-rt-onu']],
+    ['isp','ISPのWAN：契約しているISPのWANに入る',['w-onu-isp']],
+    ['wan','WAN：海底ケーブルなどのWANを通って、海の向こうへ',['w-isp-wan']],
+    ['drt','データセンターのルータ：中の宛先のサーバへ送る',['w-wan-drt']],
+    ['srv','動画サイトのサーバ：届いた！動画のデータを送り返す',['w-drt-srv']],
+    ['pc','↩ 海の向こうからでも、1秒もかからずに返事が届いた',null]]}
+};
+var rTimers=[];
+function litN(n){$$('#d3 .nd').forEach(function(g){g.classList.toggle('on',g.getAttribute('data-n')===n)})}
+$$('#routeBtns button').forEach(function(b){b.addEventListener('click',function(){
+  press('#routeBtns',b);rTimers.forEach(clearTimeout);rTimers=[];
+  var k=b.getAttribute('data-d'),r=ROUTE[k],log=$('#routeLog');
+  $$('#d3 .wire').forEach(function(x){x.classList.remove('go')});
+  $('#gNet').classList.toggle('dim',k==='pr');$('#gDest').classList.toggle('dim',k==='pr');
+  $('#w-onu-isp').style.opacity=$('#w-wan-drt').style.opacity=k==='pr'?.22:'';
+  if(r.lab){$('#dLbl').textContent=r.lab[0];$('#sLbl').textContent=r.lab[1];$('#wanLbl').textContent=r.lab[2]}
+  log.innerHTML='';
+  r.seq.forEach(function(s,i){rTimers.push(setTimeout(function(){
+    litN(s[0]);(s[2]||[]).forEach(function(id){$('#'+id).classList.add('go')});
+    var d=document.createElement('div');d.textContent=s[1];log.appendChild(d);
+    if(i===r.seq.length-1)rTimers.push(setTimeout(function(){litN('')},1400));
+  },RM?0:i*900))});
+})});
+
+/* ========== つながる2: 並べかえ ========== */
+var ORD={
+  pc:{name:'家のパソコン(光回線)',seq:['パソコン','ルータ','回線終端装置','ISPのWAN','インターネット'],extra:'基地局',
+    ok:{'ルータ':'正解！ルータが、LANとWANの間の通信を中継する。','回線終端装置':'正解！デジタル信号と光の信号を変換して、回線へ送り出す。','ISPのWAN':'正解！契約しているISPのWANを経由する。'},
+    ng:'基地局は、スマートフォンなどのモバイルネットワークで使う装置。家の光回線の道すじには出てこないよ。',
+    done:'完成！家のパソコンは、ルータ → 回線終端装置 → ISPのWAN を通ってインターネットへ。'},
+  mb:{name:'外出中のスマホ',seq:['スマートフォン','基地局','携帯電話回線事業者のWAN','インターネット'],extra:'回線終端装置',
+    ok:{'基地局':'正解！スマートフォンは、基地局と無線で通信する。','携帯電話回線事業者のWAN':'正解！基地局から、携帯電話回線事業者のWANを経由する。'},
+    ng:'回線終端装置は、家などの光回線で使う装置。外出中のスマートフォンの道すじには出てこないよ。',
+    done:'完成！外出中のスマホは、基地局 → 携帯電話回線事業者のWAN を通ってインターネットへ。'}
+};
+(function(){
+  var el=$('#order');
+  el.innerHTML='<div class="seg" id="ordSeg" role="group" aria-label="つなぎ方"><button type="button" data-o="pc" aria-pressed="true">'+ORD.pc.name+'</button><button type="button" data-o="mb" aria-pressed="false">'+ORD.mb.name+'</button></div><ol class="slots"></ol><ul class="chips"></ul><div class="feedback" aria-live="polite"></div><div class="row"><button class="btn ghost" type="button">もう一度</button></div>';
+  var slots=el.querySelector('.slots'),chips=el.querySelector('.chips'),fb=el.querySelector('.feedback'),key='pc',idx=1;
+  function build(){
+    var r=ORD[key];idx=1;fb.textContent='';fb.className='feedback';
+    slots.innerHTML=r.seq.map(function(t,i){return '<li class="slot'+(i===0?' fill':i===1?' next':'')+'">'+(i===0?t:'？')+'</li>'}).join('');
+    chips.innerHTML='';
+    shuffle(r.seq.slice(1).concat([r.extra])).forEach(function(t){
+      var li=document.createElement('li'),c=document.createElement('button');c.type='button';c.className='chip';c.textContent=t;
+      c.addEventListener('click',function(){
+        if(c.disabled||idx>=r.seq.length)return;
+        if(t===r.seq[idx]){
+          var ss=slots.children;ss[idx].textContent=t;ss[idx].className='slot fill';if(ss[idx+1])ss[idx+1].classList.add('next');
+          c.disabled=true;c.classList.add('done');idx++;
+          fb.className='feedback ok';fb.textContent=idx===r.seq.length?r.done:(r.ok[t]||'正解！');
+        }else{
+          fb.className='feedback ng';fb.textContent=t===r.extra?r.ng:'「'+t+'」は、もう少しあと。その前に通るものを考えよう。';
+          c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+        }
+      });
+      li.appendChild(c);chips.appendChild(li);
+    });
+  }
+  $$('#ordSeg button').forEach(function(b){b.addEventListener('click',function(){press('#ordSeg',b);key=b.getAttribute('data-o');build()})});
+  el.querySelector('.row .btn').addEventListener('click',build);
+  build();
+})();
+
+/* ========== まとめ: 部屋で機器を探そう ========== */
+(function(){
+  function fd(k,cx,cy,rx,ry,inner,tag){return '<g class="find" data-f="'+k+'" tabindex="0" role="button" aria-label="'+tag+'">'+inner+'<ellipse class="ring" cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'"/><text class="tag" x="'+cx+'" y="'+(cy-ry-6)+'">'+tag+'</text></g>'}
+  var s='<svg viewBox="0 80 560 220" role="img" aria-label="部屋のイラスト。壁の光コンセント、棚の上の回線終端装置とルータ、机の上のパソコンとスマートフォン">';
+  s+='<rect class="wall" x="0" y="0" width="560" height="232"/><rect class="floor" x="0" y="232" width="560" height="68"/>';
+  /* 家具 */
+  s+='<rect class="furn" x="90" y="206" width="190" height="40" rx="3"/><rect class="furn" x="340" y="168" width="190" height="10" rx="2"/><path class="cable" d="M352 178V262M518 178V262" style="stroke:var(--ink);stroke-width:4"/>';
+  /* ケーブル */
+  s+='<path class="cable" d="M58 186C62 214 96 220 122 200"/><path class="cable" d="M154 198H196"/><path class="cable" d="M236 200C262 270 380 276 410 168"/>';
+  /* 機器 */
+  s+=fd('hikari',50,168,24,26,'<g class="ic"><rect class="w" x="36" y="150" width="28" height="34" rx="3"/><text x="50" y="173" text-anchor="middle" style="font-size:13px;font-weight:700;fill:var(--ink)">光</text></g>','光コンセント');
+  s+=fd('onu',138,184,24,30,ic('onu',138,186,1.6),'回線終端装置');
+  s+=fd('router',216,186,34,30,ic('router',216,190,1.7),'ルータ');
+  s+=fd('pc',410,138,40,34,ic('pc',410,140,2.1),'パソコン');
+  s+=fd('phone',492,148,18,26,ic('phone',492,152,1.3),'スマートフォン');
+  s+='</svg>';
+  $('#room').innerHTML=s;
+  var FIND={
+    hikari:['光コンセント','壁にある、光ファイバー回線の差込口。「光」と書かれていることが多い。家の外から回線が来ているところ。'],
+    onu:['回線終端装置','光コンセントからのケーブルがつながっている機器。光の信号とデジタル信号を変換する。本体に「ONU」と書かれていることもある。'],
+    router:['ルータ','回線終端装置とケーブルでつながっている機器。差込口に「WAN」「LAN」と書かれていることが多い。ハブやアクセスポイントの機能を内蔵していることが多く、回線終端装置と一体になっている機種もある。'],
+    pc:['パソコン','ケーブルや無線で、家のLANにつながっている。ここから送ったデータが、ルータを通って外へ出ていく。'],
+    phone:['スマートフォン','家では、アクセスポイント(ルータに内蔵されていることが多い)と電波でやりとりして、家のLANにつながる。外出中は、基地局と無線で通信する。']
+  };
+  var got={},n=0,ex=$('#roomExplain');
+  ex.innerHTML='<h4>機器をタップ</h4>点線の丸が出るところに、機器があります。';
+  function pick(g){
+    var k=g.getAttribute('data-f');
+    $$('#room .find').forEach(function(x){x.classList.toggle('sel',x===g)});
+    if(!got[k]){got[k]=1;n++;g.classList.add('got');$('#foundN').textContent=n+' / 5'}
+    ex.innerHTML='<h4>'+FIND[k][0]+'</h4>'+FIND[k][1]+(n===5?'<br><b>全部見つけた！</b>自分の家や教室でも、どこにあるか探してみよう。':'');
+  }
+  $$('#room .find').forEach(function(g){
+    g.addEventListener('click',function(){pick(g)});
+    g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(g)}});
+  });
+})();
+
+
+/* ========== 機器1: それぞれの働き ========== */
+ICON.hub='<rect class="w" x="-28" y="-9" width="56" height="18" rx="3"/><rect class="f" x="-22" y="-3" width="6" height="6"/><rect class="f" x="-12" y="-3" width="6" height="6"/><rect class="f" x="-2" y="-3" width="6" height="6"/><rect class="f" x="8" y="-3" width="6" height="6"/><rect class="f" x="18" y="-3" width="6" height="6"/>';
+ICON.ap='<path class="p" d="M-8 -6L-11 -18M8 -6L11 -18"/><rect class="w" x="-14" y="-7" width="28" height="16" rx="4"/><circle class="k" cx="0" cy="1" r="2"/>';
+ICON.tablet='<rect class="w" x="-12" y="-15" width="24" height="30" rx="3"/><rect class="f" x="-9" y="-11" width="18" height="21" rx="1"/>';
+function pkt(t,c){var wd=t.length*11+14;return '<g class="pk'+(c?' '+c:'')+'"><rect x="'+(-wd/2)+'" y="-10" width="'+wd+'" height="20" rx="6"/><text y="4">'+t+'</text></g>'}
+function mv(inner,path,dur,begin,sx,sy){
+  if(RM)return '<g transform="translate('+sx+','+sy+')">'+inner+'</g>';
+  return '<g opacity="0">'+inner+'<animateMotion path="'+path+'" dur="'+dur+'s" begin="'+begin+'s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.08;.88;1" dur="'+dur+'s" begin="'+begin+'s" repeatCount="indefinite"/></g>';
+}
+var DEV={
+  onu:{name:'回線終端装置',one:'光 ⇄ デジタル信号 を変換',card:'光の信号を変換',
+    anal:'通訳。光の言葉で届いた話を、コンピュータの言葉(デジタル信号)に言いかえる。送るときは、その逆をする。',
+    where:'光ファイバー回線の、家の入口のすぐ内側。',look:'光コンセントからのケーブルがつながっている。「ONU」と書かれていることも。',
+    svg:function(){
+      var s='<text class="lbl" x="20" y="28" style="text-anchor:start">家の外</text><text class="lbl" x="500" y="28" style="text-anchor:end">家の中(ルータへ)</text>';
+      s+='<path class="fiber" d="M20 110H205"/><path class="wire" d="M315 110H500" style="stroke-width:5"/>';
+      s+='<text class="capT" x="110" y="78" style="fill:var(--amber)">光の信号</text><text class="capT" x="410" y="78" style="fill:var(--dv)">デジタル信号</text>';
+      s+=lbl(110,145,'光ファイバー回線')+lbl(410,145,'LANケーブル');
+      for(var i=0;i<3;i++)s+=mv('<circle class="ph" r="7"/>','M20 110H200',2.1,-i*0.7,60+i*50,110);
+      var b=['1','0','1','1'];for(i=0;i<4;i++)s+=mv('<text class="bit" y="6">'+b[i]+'</text>','M322 110H500',2.1,-i*0.525,340+i*45,110);
+      s+='<g class="big">'+ic('onu',260,108,3)+'</g><text class="zl" x="260" y="178" text-anchor="middle" style="fill:var(--dv)">回線終端装置</text>';
+      s+='<text class="cap" x="260" y="212">光の信号 ⇄ デジタル信号 を変換する</text>';
+      return s;
+    }},
+  router:{name:'ルータ',one:'中継し、道すじを選ぶ',card:'LANとWANの境目',
+    modes:[['relay','LAN と WAN の中継'],['route','ルートを選ぶ']],
+    anal:'町の仕分け係。宛先を見て、外あてのものは外へ送り出し、外から届いたものは町の中の宛先へ渡す。外へ送るときは、いくつかある道の中から、宛先まで届く道を選ぶ。',
+    where:'家のLANとWANの境目(回線終端装置のすぐ内側)。インターネットの中にも、たくさんのルータがある。',look:'差込口に「WAN」と「LAN」の文字がある。',
+    svg:function(m){
+      if(m==='route')return routeSvg();
+      var s='<rect class="lanbox" vector-effect="non-scaling-stroke" x="12" y="30" width="190" height="160" rx="12"/><text class="zl lanT" x="24" y="52">家のLAN</text>';
+      s+=w(['100,130','230,130'])+w(['290,126','372,104']);
+      s+=dev('pc',80,130,'パソコン')+'<g class="big">'+ic('router',260,128,1.8)+'</g><text class="zl" x="260" y="172" text-anchor="middle" style="fill:var(--dv)">ルータ</text>';
+      s+=cloud(430,95,1.25,'WAN')+lbl(430,140,'インターネットへ');
+      s+=mv(pkt('宛先：海外のサイト'),'M95 104H250L380 72',3.6,0,180,104);
+      s+=mv(pkt('宛先：家のパソコン'),'M385 128L270 150H95',3.6,-1.8,330,140);
+      s+='<text class="cap" x="260" y="214">宛先を見て、LAN と WAN の間で中継する</text>';
+      return s;
+    },
+    after:function(m){
+      if(m!=='route')return;
+      $$('#devStage .hit').forEach(function(h){
+        function tg(){var i=+h.getAttribute('data-e');RBLOCK[i]=!RBLOCK[i];renderStage()}
+        h.addEventListener('click',tg);
+        h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}});
+      });
+      var r=$('#rReset');if(r)r.addEventListener('click',function(){RBLOCK={};renderStage()});
+    }},
+  hub:{name:'ハブ',one:'複数の機器をつなぐ(行きも帰りも)',card:'差込口をふやす',
+    anal:'廊下の分かれ道。1本の道を何本にも分けて、それぞれの部屋(機器)へつなぐ。行くときも帰るときも同じ道を通れる。',
+    where:'パソコンやプリンタが集まっているところ。',look:'同じ形のLANの差込口が、ずらりと並んでいる。',
+    svg:function(){
+      var s=w(['76,112','190,112']),ys=[38,90,142,194],i;
+      for(i=0;i<4;i++)s+=w(['250,112','408,'+ys[i]]);
+      s+=dev('router',58,112,'ルータ')+'<g class="big">'+ic('hub',220,112,1.6)+'</g><text class="zl" x="220" y="150" text-anchor="middle" style="fill:var(--dv)">ハブ</text>';
+      for(i=0;i<4;i++)s+=ic(i===2?'printer':'pc',425,ys[i])+'<text class="lbl" x="448" y="'+(ys[i]+4)+'" style="text-anchor:start">'+(i===2?'プリンタ':'パソコン'+(i<2?i+1:3))+'</text>';
+      s+=mv(pkt('プリンタあて'),'M70 94H215L395 122',4.2,0,140,94);
+      s+=mv(pkt('パソコン1あて'),'M70 94H215L395 20',4.2,-2.8,300,60);
+      s+=mv(pkt('インターネットあて','up'),'M395 200L250 134H72',4.2,-1.4,300,170);
+      s+='<text class="cap" x="250" y="224">データは<tspan style="fill:var(--net)">行き</tspan>も<tspan style="fill:var(--dv)">帰り</tspan>も通る。何台もの機器をケーブルでつなぐ</text>';
+      return s;
+    }},
+  ap:{name:'アクセスポイント',one:'ケーブルの信号 ⇄ 電波 を変換',card:'電波でつなぐ',
+    anal:'電波の窓口。ケーブルを差せないスマホやタブレットとも、電波でやりとりして、LANに入れてあげる。',
+    where:'無線でつなぎたい機器の近く。家庭ではルータに内蔵されていることが多い。',look:'アンテナがあったり、Wi-Fiのマークがついていたりする。',
+    svg:function(){
+      var s=w(['76,118','190,118']),dv=[['phone',398,46,'スマートフォン'],['tablet',408,118,'タブレット'],['game',398,192,'ゲーム機']],i;
+      for(i=0;i<3;i++)s+=w(['245,118',(dv[i][1]-20)+','+dv[i][2]],'air');
+      s+='<path class="wave m-wave" d="M248 100a24 24 0 0 1 0 36"/><path class="wave m-wave" d="M258 90a38 38 0 0 1 0 56" style="animation-delay:.3s"/><path class="wave m-wave" d="M268 80a52 52 0 0 1 0 76" style="animation-delay:.6s"/>';
+      s+=dev('router',58,118,'ルータ')+'<g class="big">'+ic('ap',220,120,1.7)+'</g><text class="zl" x="220" y="160" text-anchor="middle" style="fill:var(--dv)">アクセスポイント</text>';
+      for(i=0;i<3;i++){s+=ic(dv[i][0],dv[i][1],dv[i][2])+'<text class="lbl" x="'+(dv[i][1]+26)+'" y="'+(dv[i][2]+4)+'" style="text-anchor:start">'+dv[i][3]+'</text>';
+        s+=mv('<circle class="wv" r="5"/>','M250 118L'+(dv[i][1]-22)+' '+dv[i][2],1.8,-i*0.6,330,(118+dv[i][2])/2);}
+      s+=mv(pkt('データ'),'M70 102H200',1.8,0,130,102);
+      s+='<text class="cap" x="260" y="226">ケーブルの信号と電波を変換して、無線の機器をLANにつなぐ</text>';
+      return s;
+    }}
+};
+var DORD=['onu','router','hub','ap'];
+$('#devCards').innerHTML=DORD.map(function(k){var d=DEV[k];
+  return '<button type="button" class="dcard" data-d="'+k+'" aria-pressed="false"><svg viewBox="-32 -22 64 44" aria-hidden="true">'+ic(k,0,k==='ap'?4:0,k==='hub'?1:1.2)+'</svg><b>'+d.name+'</b><span>'+d.card+'</span></button>'}).join('');
+/* ルータ：ルートを選ぶ */
+var RBLOCK={};
+var RN={S:[34,122,'家のパソコン'],R1:[108,122,'ルータ1'],R2:[212,62,'ルータ2'],R3:[212,180,'ルータ3'],R4:[328,62,'ルータ4'],R5:[328,180,'ルータ5'],R6:[420,122,'ルータ6'],D:[488,122,'Webサーバ']};
+var RE=[['S','R1'],['R1','R2'],['R1','R3'],['R2','R4'],['R3','R5'],['R2','R5'],['R4','R6'],['R5','R6'],['R6','D']];
+function routeFind(){
+  var prev={S:null},q=['S'];
+  while(q.length){var u=q.shift();if(u==='D')break;
+    RE.forEach(function(e,i){if(RBLOCK[i])return;var v=e[0]===u?e[1]:e[1]===u?e[0]:null;if(v&&!(v in prev)){prev[v]=u;q.push(v)}})}
+  if(!('D' in prev))return null;
+  var p=[],n='D';while(n){p.unshift(n);n=prev[n]}return p;
+}
+function routeSvg(){
+  var p=routeFind(),on={},s='',i;
+  if(p)for(i=0;i<p.length-1;i++)on[p[i]+p[i+1]]=on[p[i+1]+p[i]]=1;
+  RE.forEach(function(e,i){var a=RN[e[0]],b=RN[e[1]],fixed=e[0]==='S'||e[1]==='D';
+    s+='<path class="wire'+(RBLOCK[i]?' blk':on[e[0]+e[1]]?' go':'')+'" d="M'+a[0]+' '+a[1]+'L'+b[0]+' '+b[1]+'"/>';
+    if(RBLOCK[i])s+='<text class="xmark" x="'+(a[0]+b[0])/2+'" y="'+((a[1]+b[1])/2+6)+'">✕</text>';
+    if(!fixed)s+='<path class="hit" tabindex="0" role="button" aria-label="'+RN[e[0]][2]+'と'+RN[e[1]][2]+'の間の道を'+(RBLOCK[i]?'元に戻す':'通れなくする')+'" data-e="'+i+'" d="M'+a[0]+' '+a[1]+'L'+b[0]+' '+b[1]+'"/>';
+  });
+  Object.keys(RN).forEach(function(k){var n=RN[k],t=k==='S'?'pc':k==='D'?'server':'router';
+    s+='<g class="'+(p&&p.indexOf(k)>=0&&t==='router'?'nd on':'nd')+'">'+ic(t,n[0],n[1])+lbl(n[0],n[1]+(k==='R2'||k==='R4'?-22:30),n[2])+'</g>'});
+  if(p){var d='M'+p.map(function(k){return RN[k][0]+' '+(RN[k][1]-16)}).join('L');
+    s+=mv(pkt('データ'),d,0.75*p.length,0,RN[p[2]][0],RN[p[2]][1]-16);}
+  s+='<text class="capT" x="10" y="20" style="text-anchor:start;fill:'+(p?'var(--net)':'var(--ng)')+'">'+(p?'選んだルート：'+p.slice(1,-1).map(function(k){return k.slice(1)}).join(' → '):'宛先までの道がない！')+'</text>';
+  s+='<text class="cap" x="260" y="230">線をタップして道を通れなくすると、ルータは別のルートを選ぶ</text>';
+  return s;
+}
+var curDev='onu',curMode=null;
+function renderStage(){
+  var d=DEV[curDev];
+  $('#devStage').innerHTML='<svg viewBox="0 0 520 240" role="img" aria-label="'+d.name+'の働きを示すアニメーション">'+d.svg(curMode)+'</svg>'
+    +(curDev==='router'&&curMode==='route'?'<div class="ctl" style="justify-content:flex-end;margin:0;padding:0 10px 8px"><button class="btn ghost" type="button" id="rReset">道を元に戻す</button></div>':'');
+  if(d.after)d.after(curMode);
+}
+function showDev(k){
+  var d=DEV[k],ms=$('#devModes');curDev=k;curMode=d.modes?d.modes[0][0]:null;
+  $$('#devCards .dcard').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-d')===k)});
+  $('#devName').textContent=d.name;$('#devOne').textContent=d.one;
+  ms.hidden=!d.modes;
+  ms.innerHTML=d.modes?d.modes.map(function(m,i){return '<button type="button" data-m="'+m[0]+'" aria-pressed="'+(i===0)+'">'+m[1]+'</button>'}).join(''):'';
+  $$('#devModes button').forEach(function(b){b.addEventListener('click',function(){press('#devModes',b);curMode=b.getAttribute('data-m');renderStage()})});
+  renderStage();
+  $('#devInfo').innerHTML='<dt>たとえると</dt><dd>'+d.anal+'</dd><dt>ある場所</dt><dd>'+d.where+'</dd><dt>見分け方</dt><dd>'+d.look+'</dd>';
+}
+$$('#devCards .dcard').forEach(function(b){b.addEventListener('click',function(){showDev(b.getAttribute('data-d'))})});
+showDev('onu');
+
+/* ========== 機器2: 家のネットワークを組み立てよう ========== */
+var SLOT={
+  onu:{n:'①',x:178,y:92,hint:'①は、光ファイバー回線が家に入ってきたすぐ内側。光の信号を変換する機器が入る。'},
+  router:{n:'②',x:310,y:92,hint:'②は、家のLANと外(WAN)の境目。宛先へ中継し、道すじを選ぶ機器が入る。'},
+  hub:{n:'③',x:310,y:210,hint:'③は、何台ものパソコンやプリンタをケーブルでつなぐところ。'},
+  ap:{n:'④',x:470,y:92,hint:'④は、スマホやタブレットと電波でやりとりするところ。'}
+};
+(function(){
+  var chips=$('#buildChips'),fb=$('#buildFb'),sel=null,done=0;
+  function draw(){
+    var s='<svg viewBox="0 0 640 330" role="img" aria-label="家のネットワークの図。①〜④に機器を置く">';
+    s+='<text class="lbl" x="50" y="40">家の外</text>';
+    s+='<rect class="lanbox" vector-effect="non-scaling-stroke" x="100" y="15" width="530" height="305" rx="14"/><text class="zl lanT" x="114" y="40">家</text>';
+    s+='<path class="fiber" id="bw0" d="M10 92H140"/>'+lbl(52,122,'光ファイバー回線');
+    s+=w(['216,92','272,92'],'','bw1')+w(['310,140','310,185'],'','bw2')+w(['348,92','432,92'],'','bw3');
+    s+=w(['290,256','212,276'],'','bw4')+w(['310,256','310,276'])+w(['330,256','408,276']);
+    s+=w(['508,88','560,62'],'air','bw5')+w(['508,100','566,148'],'air');
+    s+=dev('pc',210,290)+dev('pc',310,290)+dev('printer',410,292)+ic('phone',578,58)+lbl(578,90,'スマートフォン')+ic('tablet',584,158)+lbl(584,192,'タブレット');
+    s+=lbl(310,318,'パソコン・プリンタ');
+    Object.keys(SLOT).forEach(function(k){var t=SLOT[k];
+      s+='<g class="slotg" data-k="'+k+'" tabindex="0" role="button" aria-label="置き場所'+t.n+'" transform="translate('+t.x+','+t.y+')"><rect class="sb" x="-38" y="-25" width="76" height="50" rx="10"/><text class="sn" y="7">'+t.n+'</text></g>';
+    });
+    s+='<g id="bflow"></g>';
+    s+='</svg>';
+    $('#d4').innerHTML=s;
+    $$('#d4 .slotg').forEach(function(g){
+      g.addEventListener('click',function(){place(g)});
+      g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();place(g)}});
+    });
+  }
+  function place(g){
+    if(!sel||g.classList.contains('fill'))return;
+    var k=g.getAttribute('data-k'),c=sel;
+    $$('#d4 .slotg').forEach(function(x){x.classList.remove('ready')});
+    if(c.getAttribute('data-d')===k){
+      g.classList.add('fill');
+      g.innerHTML='<rect class="sb" x="-38" y="-25" width="76" height="50" rx="10"/>'+ic(k,0,k==='ap'?4:0,k==='hub'?1.1:1.3)+'<text class="sl" y="40">'+DEV[k].name+'</text>';
+      c.classList.remove('sel');c.classList.add('done');c.disabled=true;done++;
+      fb.className='feedback ok';fb.textContent='正解！'+DEV[k].name+'：'+DEV[k].one+'。';
+      if(done===4){
+        fb.textContent='完成！データは、パソコンやスマホから ハブ・アクセスポイント → ルータ → 回線終端装置 を通って家の外へ出ていき、返事は同じ道を逆向きに通って届く。';
+        $$('#d4 .wire,#d4 .fiber').forEach(function(x){x.classList.add('act')});
+        var DV=[[212,276,'hub'],[310,276,'hub'],[408,276,'hub'],[560,62,'ap'],[566,148,'ap']],HUBP=[310,210],APP=[470,92],f='';
+        DV.forEach(function(d,i){
+          var mid=d[2]==='hub'?HUBP:APP,pts=[[d[0],d[1]],mid,[310,92],[178,92],[10,92]];
+          var out='M'+pts.map(function(q){return q.join(' ')}).join('L'),inn='M'+pts.slice().reverse().map(function(q){return q.join(' ')}).join('L');
+          f+=mv('<circle class="dOut" r="5.5"/>',out,4.5,-i*0.9,(d[0]+mid[0])/2,(d[1]+mid[1])/2);
+          f+=mv('<circle class="dIn" r="5.5"/>',inn,4.5,-i*0.9-2.2,240+i*12,92);
+        });
+        f+='<text class="lbl" x="624" y="312" style="text-anchor:end;font-weight:700"><tspan style="fill:var(--net)">● 家の外へ</tspan>　<tspan style="fill:var(--dv)">● 家の中へ</tspan></text>';
+        $('#bflow').innerHTML=f;
+      }
+    }else{
+      fb.className='feedback ng';fb.textContent='「'+c.textContent+'」はそこではないよ。'+SLOT[k].hint;
+      c.classList.remove('sel');
+    }
+    sel=null;
+  }
+  function build(){
+    sel=null;done=0;fb.textContent='';fb.className='feedback';draw();chips.innerHTML='';
+    shuffle(DORD).forEach(function(k){
+      var li=document.createElement('li'),c=document.createElement('button');c.type='button';c.className='chip';c.textContent=DEV[k].name;c.setAttribute('data-d',k);
+      c.addEventListener('click',function(){if(c.disabled)return;chips.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel')});c.classList.add('sel');sel=c;
+        $$('#d4 .slotg:not(.fill)').forEach(function(x){x.classList.add('ready')})});
+      li.appendChild(c);chips.appendChild(li);
+    });
+  }
+  $('#buildReset').addEventListener('click',build);
+  build();
+})();
+
+/* ========== 確認クイズ ========== */
+var QCAT={st:'構造',cn:'つながる',dv:'機器'};
+var Q=[
+ {q:'学校や家など、限定された範囲でコンピュータを結んだネットワークを何という？',o:['LAN','WAN','ISP'],a:0,e:'限られた範囲ならLAN(ローカルエリアネットワーク)です。',c:'st'},
+ {q:'都市や国など、広い範囲のコンピュータを結ぶネットワークを何という？',o:['LAN','WAN','ルータ'],a:1,e:'広い範囲ならWAN(ワイドエリアネットワーク)です。',c:'st'},
+ {q:'東京の本社と大阪の支社のネットワークを結ぶのは？',o:['LAN','WAN','回線終端装置'],a:1,e:'離れた場所にあるLANどうしを結ぶのはWANです。',c:'st'},
+ {q:'インターネットの説明として正しいものは？',o:['1台の大きなコンピュータ','たくさんのWANをつないでつくられた、世界規模のネットワーク','学校の中だけのネットワーク'],a:1,e:'インターネットは、たくさんのWANをつないでつくられた世界規模の情報通信ネットワークです。',c:'st'},
+ {q:'インターネットについて正しいものは？',o:['1つの会社がすべてを持っている','たくさんの組織のネットワークがつながってできている','決まった組織の人しか使えない'],a:1,e:'多くの組織のネットワークがつながってできていて、世界中のだれでも利用できます。',c:'st'},
+ {q:'LANとWANの間に置き、通信を中継して適切な宛先に送る装置は？',o:['ルータ','回線終端装置','基地局'],a:0,e:'ルータは、LANとWANの間の通信を中継し、適切な宛先に送ります。',c:'cn'},
+ {q:'ISP(インターネットサービスプロバイダ)とは？',o:['インターネットへの接続サービスを提供する業者','LANケーブルの種類','パソコンの部品'],a:0,e:'WANを利用するために、ISPのサービスを用いることが多いです。',c:'cn'},
+ {q:'光ファイバー回線の光の信号を、コンピュータ通信のデジタル信号に変換する装置は？',o:['ルータ','回線終端装置','基地局'],a:1,e:'回線終端装置です。家の光コンセントとケーブルでつながっています。',c:'cn'},
+ {q:'外出中のスマートフォンが、無線で通信する相手の装置は？',o:['基地局','回線終端装置','プリンタ'],a:0,e:'基地局から、携帯電話回線事業者のWANを経由してインターネットにつながります。',c:'cn'},
+ {q:'家のパソコンからインターネットへ。データが通る順として正しいのは？',o:['パソコン→ルータ→回線終端装置→ISPのWAN','パソコン→ISPのWAN→ルータ→回線終端装置','パソコン→回線終端装置→基地局→ルータ'],a:0,e:'LANの出口にルータ、その先に回線終端装置があり、ISPのWANへつながります。',c:'cn'},
+ {q:'ケーブルで、複数のコンピュータやプリンタをつなぐための装置は？',o:['ハブ','アクセスポイント','回線終端装置'],a:0,e:'ハブには同じ形の差込口がたくさんあり、複数の機器をケーブルでつなげます。',c:'dv'},
+ {q:'スマートフォンなどを、家のLANに無線でつなぐための装置は？',o:['ハブ','アクセスポイント','回線終端装置'],a:1,e:'アクセスポイントは、ケーブルの信号と電波を変換して、無線の機器をLANにつなぎます。家庭用のルータが兼ねていることも多いです。',c:'dv'},
+ {q:'家庭用のルータについて正しいものは？',o:['ハブやアクセスポイントの機能を内蔵していることが多い','光の信号しか扱えない','インターネットには関係ない'],a:0,e:'見た目は1台でも、ルータ・ハブ・アクセスポイントの仕事をまとめてこなす機種が多いです。',c:'dv'},
+ {q:'ルータの働きとして正しいものは？',o:['いくつかのルートの中から、宛先までの道を選んで送る','光の信号をデジタル信号に変換する','電波で機器をつなぐ'],a:0,e:'ルータは中継するだけでなく、道すじ(ルート)を選びます。道が通れないときは、別のルートを選んで送ります。',c:'dv'}
+];
+var MARU='<svg class="maru" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 6C25 6 8 24 8 46C8 66 26 82 50 82C72 82 90 68 90 48C90 30 76 16 58 14" style="fill:none;stroke:#E31E24;stroke-width:11;stroke-linecap:round;stroke-linejoin:round"/></svg>';
+var qz=$('#qz'),done=0,score=0;
+Q.forEach(function(q,qi){
+  var fs=document.createElement('div');fs.className='q';
+  fs.innerHTML='<p class="qq">Q'+(qi+1)+'. '+q.q+' <span class="qcat" hidden style="color:var(--'+q.c+')">【'+QCAT[q.c]+'】</span></p><div class="opts"></div><p class="exp" hidden></p>';
+  var box=fs.querySelector('.opts');
+  q.o.forEach(function(t,oi){var b=document.createElement('button');b.type='button';b.textContent=t;
+    b.addEventListener('click',function(){
+      var bs=box.querySelectorAll('button');bs.forEach(function(x){x.disabled=true});
+      bs[q.a].classList.add('ok');if(oi!==q.a)b.classList.add('bad');else score++;
+      var ex=fs.querySelector('.exp');ex.hidden=false;
+      if(oi===q.a){ex.innerHTML=MARU+'正解！ '+q.e}else{ex.textContent='おしい。 '+q.e}
+      fs.querySelector('.qcat').hidden=false;
+      done++;$('#score').textContent=score+' / '+Q.length+' 問正解'+(done===Q.length?(score===Q.length?'。全問正解です！':'。構造・つながる・機器のページで確かめよう。'):'');
+    });box.appendChild(b)});
+  qz.appendChild(fs);
+});
+
+/* ページ切り替え */
+var ids=['st1','st2','cn1','cn2','dv1','dv2','sum','check'],links=$$('#pnav a');
+function show(id){
+  if(ids.indexOf(id)<0)id=ids[0];
+  var g=$('#'+id).getAttribute('data-g');
+  ids.forEach(function(k){$('#'+k).classList.toggle('on',k===id)});
+  links.forEach(function(a){if(a.getAttribute('data-g')===g)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  $('#'+id).scrollTop=0;window.scrollTo(0,0);
+}
+function curPage(){for(var i=0;i<ids.length;i++)if($('#'+ids[i]).classList.contains('on'))return i;return 0}
+links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();show(a.getAttribute('href').slice(1))})});
+$$('[data-go]').forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-go'))})});
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey)return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();show(ids[Math.min(ids.length-1,curPage()+1)])}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(ids[Math.max(0,curPage()-1)])}
+});
+show((location.hash||'').slice(1));
+})();
+</script>
+<script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
+<script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
+/* =====================================================================
+   Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
+   ・項目の一覧と、クラスごとの表示は hub_config.js に書く（そちらを直す）
+   ・hub_config.js が読めないとき（zip を展開せずに開いたなど）は、下の DEF_ITEMS を使う
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var DEF_ITEMS = [
+    // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
+    { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
+    { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
+    { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
+    { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
+    { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
+    { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
+    { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
+  ];
+  var CFG = window.HUB_CONFIG || {};
+  var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
+  var SHOW = CFG.show || {};
+
+  // 班PCにつくもの。type：hard（ハード）・soft（ソフト）・cable（ケーブル）。can：できるようになること
+  var GEAR = {
+    board:   { type: 'hard',  name: 'マザーボード', can: 'ぶひんをつなぐ土台ができた' },
+    cpu:     { type: 'hard',  name: 'CPU',         can: 'プログラムの命令を実行できるようになった' },
+    mem:     { type: 'hard',  name: 'メモリ',       can: '作業中のデータを、一時的におぼえておけるようになった' },
+    psu:     { type: 'hard',  name: '電源ユニット', can: 'コンセントの電気を、班PCで使える電気に変えられるようになった' },
+    hdd:     { type: 'hard',  name: 'HDD',         can: 'データを保存できるようになった（でも読み書きは少しおそい）' },
+    ssd:     { type: 'hard',  name: 'SSD',         can: 'データを保存できるようになった（HDDより速く読み書きできる）' },
+    disp:    { type: 'hard',  name: 'ディスプレイ', can: '結果を画面に映せるようになった' },
+    kbd:     { type: 'hard',  name: 'キーボード',   can: '文字を入力できるようになった' },
+    mouse:   { type: 'hard',  name: 'マウス',       can: '画面の中を指して、操作できるようになった' },
+    router:  { type: 'hard',  name: 'ルータ',       can: '班PCのネットワークと、インターネットを中継できるようになった' },
+    spk:     { type: 'hard',  name: 'スピーカー',   can: '音を出せるようになった' },
+    cam:     { type: 'hard',  name: 'Webカメラ',    can: '映像を取りこめるようになった' },
+    os:      { type: 'soft',  name: 'OS',          can: 'ハードウェアとアプリの仲立ちをする、基本のソフトが入った' },
+    browser: { type: 'soft',  name: 'Webブラウザ', can: 'Webページを見られるようになった（HTTPで通信）' },
+    doc:     { type: 'soft',  name: '文書アプリ',   can: '文章を書いて、保存できるようになった' },
+    sheet:   { type: 'soft',  name: '表計算アプリ', can: '表やグラフを作れるようになった' },
+    tcpip:   { type: 'soft',  name: 'TCP/IP',      can: 'インターネットの通信のきまり（プロトコル）で、データをやりとりできるようになった' },
+    mail:    { type: 'soft',  name: 'メールアプリ', can: 'メールサーバとやりとりして、メールを送ったり受け取ったりできるようになった' },
+    sec:     { type: 'soft',  name: '暗号化（HTTPS）', can: '通信を暗号にして、安全にやりとりできるようになった' },
+    pwr:     { type: 'cable', name: '電源コード',   can: 'コンセントから、班PCに電気が来るようになった' },
+    hdmi:    { type: 'cable', name: 'HDMIケーブル', can: '本体とディスプレイがつながった' },
+    usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
+    lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
+  };
+  var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
+
+  // 絵（viewBox 0 0 360 250）
+  var PART_SVG = {
+    disp:  '<rect x="16" y="18" width="178" height="118" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="3"/><rect class="pcScreen" x="26" y="28" width="158" height="96" rx="3" fill="#0ea5e9"/><rect x="92" y="136" width="26" height="16" fill="#334155"/><rect x="70" y="150" width="70" height="8" rx="3" fill="#475569"/>',
+    cam:   '<rect x="95" y="8" width="20" height="10" rx="4" fill="#334155"/><circle cx="105" cy="13" r="3" fill="#38bdf8"/>',
+    spk:   '<rect x="200" y="96" width="22" height="58" rx="5" fill="#475569"/><circle cx="211" cy="112" r="6" fill="#1e293b"/><circle cx="211" cy="137" r="8" fill="#1e293b"/>',
+    router:'<rect x="198" y="44" width="34" height="16" rx="3" fill="#334155"/><g fill="#4ade80"><circle cx="205" cy="52" r="1.6"/><circle cx="211" cy="52" r="1.6"/><circle cx="217" cy="52" r="1.6"/></g><line x1="204" y1="44" x2="201" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/><line x1="226" y1="44" x2="229" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
+    kbd:   '<rect x="22" y="172" width="160" height="30" rx="5" fill="#cbd5e1"/><g fill="#94a3b8"><rect x="30" y="178" width="144" height="5" rx="1"/><rect x="30" y="186" width="144" height="5" rx="1"/><rect x="60" y="194" width="84" height="4" rx="1"/></g>',
+    mouse: '<ellipse cx="204" cy="188" rx="10" ry="15" fill="#cbd5e1"/><line x1="204" y1="174" x2="204" y2="184" stroke="#94a3b8" stroke-width="2"/>',
+    board: '<rect x="244" y="34" width="90" height="120" rx="3" fill="#15803d"/><g stroke="#4ade80" stroke-width="1.2" opacity=".7"><path d="M250 44 h30 v20 M326 44 v40 h-20 M252 140 h40 v-12 M320 146 h-16"/></g>',
+    cpu:   '<rect x="266" y="54" width="30" height="30" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/><rect x="273" y="61" width="16" height="16" rx="2" fill="#334155"/>',
+    mem:   '<rect x="306" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><rect x="317" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><g fill="#facc15"><rect x="307" y="96" width="5" height="6"/><rect x="318" y="96" width="5" height="6"/></g>',
+    ssd:   '<rect x="248" y="162" width="34" height="14" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/><rect x="253" y="166" width="14" height="6" fill="#38bdf8"/>',
+    hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
+    psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
+    // ソフト（左下の棚。ディスクの形）
+    os:      '<circle cx="34" cy="232" r="11" fill="#e2e8f0"/><circle cx="34" cy="232" r="3" fill="#94a3b8"/><text x="50" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="84" cy="232" r="11" fill="#38bdf8"/><circle cx="84" cy="232" r="3" fill="#0369a1"/><text x="100" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="140" cy="232" r="11" fill="#60a5fa"/><circle cx="140" cy="232" r="3" fill="#1d4ed8"/><text x="156" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="194" cy="232" r="11" fill="#4ade80"/><circle cx="194" cy="232" r="3" fill="#15803d"/><text x="210" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    // ケーブル
+    pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
+    hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
+    usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
+    lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
+  };
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'pwr', 'hdmi', 'usb', 'lan'];
+  var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
+  var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
+
+  var KEY = 'droneHub_v1';
+  var TEAM_KEY = 'droneLessonTeam_set5';   // 脱出ゲームの記録（班・名前・ポイント）
+
+  function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function rec() { var r = read(KEY); if (!r || typeof r !== 'object') r = {}; if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = []; return r; }
+  function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できない環境 */ } }
+  function item(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
+
+  // 脱出ゲームの「自分」の記録（部屋2のクリア）
+  function ledgerCleared(key) {
+    var t = read(TEAM_KEY);
+    if (!t || t.me === null || t.me === undefined || !t.ledger) return false;
+    var l = t.ledger[t.me] || {};
+    return !!l[key];
+  }
+  function rawCleared(r, it) { return !!(r.cleared[it.id] || (it.ledger && ledgerCleared(it.ledger))); }
+  // クリアした順（ぶひんの順）を記録にそろえる
+  function sync() {
+    var r = rec(), changed = false;
+    ITEMS.forEach(function (it) { if (rawCleared(r, it) && r.order.indexOf(it.id) < 0) { r.order.push(it.id); changed = true; } });
+    if (changed) save(r);
+    return r;
+  }
+  function isCleared(id) { var it = item(id); return !!it && rawCleared(rec(), it); }
+  function clear(id) {
+    var r = rec();
+    if (!r.cleared[id]) r.cleared[id] = Date.now();
+    if (r.order.indexOf(id) < 0) r.order.push(id);
+    save(r);
+  }
+  function isOpen(id) {
+    var it = item(id); if (!it || !it.file) return false;
+    return (it.needs || []).every(isCleared);
+  }
+  function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
+  // 手に入ったもの（手に入れた順）
+  function parts() {
+    return sync().order.map(item).filter(function (it) { return it && GEAR[it.gives]; }).map(function (it) {
+      var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
+    });
+  }
+  // その項目で手に入ったもの（まだなら null）
+  function part(id) { var x = parts().filter(function (p) { return p.item === id; })[0]; return x ? x.part : null; }
+  // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
+  var LOCK = 'droneGroupLock';
+  function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
+  function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
+  function team() {
+    var t = read(TEAM_KEY) || {};
+    var g = lockedGroup() || t.group || '';
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (t.names[t.me] || '') : '' };
+  }
+  // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
+  function visible(id) {
+    var c = team().cls, list = (c && SHOW[c]) || SHOW['default'];
+    if (!list || list === 'all') return true;
+    return list.indexOf(id) >= 0;
+  }
+
+  // 班PCの絵：手に入れたものは色つき、まだのものは点線。hi のものは光らせる
+  // 実際のパソコンと同じように、そろったもので動き方が決まる
+  //   電源（電源ユニット＋電源コード）→ マザーボード・CPU・メモリ で動き出す → SSD（OS）で起動
+  //   → ディスプレイ＋HDMIケーブル で画面に映る → キーボード・マウス＋USBケーブル で操作できる
+  function owned() { var own = {}; parts().forEach(function (p) { own[p.id] = 1; }); return own; }
+  function pcState(own) {
+    own = own || owned();
+    var store = own.ssd || own.hdd;
+    var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
+    var shown = boot && own.disp && own.hdmi, usable = shown && own.kbd && own.mouse && own.usb;
+    var net = usable && own.lan && own.router && own.tcpip;
+    var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
+    var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
+    if (!Object.keys(own).length) return m(0, 'まだ ぶひん がない');
+    if (!own.psu) return m(1, '電源が入らない（電源ユニットがない）');
+    if (!own.pwr) return m(1, 'コンセントにつながっていないので、電気が来ない（電源コードがない）');
+    if (!own.board) return m(1, 'ぶひんをつなぐ土台がないので、動かない（マザーボードがない）');
+    if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので起動できない（メモリがない）');
+    if (!store) return m(2, '動き出したが、データをしまう場所がない（SSD か HDD がない）');
+    if (!own.os) return m(2, '動き出したが、OS が入っていないので起動できない（OS がない）');
+    var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
+    if (!own.disp) return m(3, '起動したが、画面がないので何も見えない（ディスプレイがない）' + slow);
+    if (!own.hdmi) return m(3, '起動したが、ディスプレイにつながっていないので映らない（HDMIケーブルがない）');
+    if (!own.kbd || !own.mouse) return m(4, '画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
+    if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
+    return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
+  }
+  function pcSvg(hi, cls) {
+    var own = owned(), st = pcState(own);
+    var order = DRAW_ORDER;
+    var g = order.map(function (k) {
+      var has = !!own[k];
+      return '<g class="' + (has ? 'pcHas' : 'pcGhost') + (k === hi ? ' pcHi' : '') + '">' + PART_SVG[k] + '</g>';
+    }).join('');
+    return '<svg class="' + (cls || 'pcSvg') + '" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班PCの完成状況">' +
+      '<style>.pcGhost *{fill:none!important;stroke:#64748b!important;stroke-width:1.3!important;stroke-dasharray:4 3}.pcGhost{opacity:.55}.pcGhost text{fill:#64748b!important;stroke:none!important}' +
+      '.pcHi{animation:pcHi 1.2s ease-in-out infinite}.pcHi path{stroke-width:5!important}@keyframes pcHi{0%,100%{filter:drop-shadow(0 0 0 #facc15)}50%{filter:drop-shadow(0 0 6px #facc15)}}' +
+      (st.shown ? '' : '.pcHas .pcScreen{fill:#020617!important}') + '@media (prefers-reduced-motion:reduce){.pcHi{animation:none;filter:drop-shadow(0 0 4px #facc15)}}</style>' +
+      OUTLETS + CASE_SVG + g +
+      (own.disp && own.hdmi && st.post && !st.boot ? '<text x="34" y="46" font-size="9" font-weight="700" fill="#e2e8f0" font-family="ui-monospace,Consolas,monospace">No bootable device.</text><text x="34" y="60" font-size="9" fill="#94a3b8" font-family="ui-monospace,Consolas,monospace">Insert boot disk_</text>' : '') +
+      (st.shown ? '<g font-family="system-ui,sans-serif"><text x="105" y="80" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">' + (st.usable ? '班PC Ready!' : 'Hello!') + '</text><g fill="#e0f2fe" opacity=".85"><rect x="34" y="34" width="14" height="12" rx="2"/><rect x="34" y="52" width="14" height="12" rx="2"/><rect x="34" y="70" width="14" height="12" rx="2"/></g><rect x="26" y="114" width="158" height="10" fill="#0369a1"/></g>' : '') +
+      (st.power && own.board ? '<circle cx="330" cy="30" r="3" fill="' + (st.post ? '#4ade80' : '#f59e0b') + '"/>' : '') + (st.shown && st.web ? '<text x="180" y="121" text-anchor="end" font-size="9" fill="#fff" font-family="system-ui,sans-serif">🌐</text>' : '') + (st.shown ? '<text x="30" y="121" font-size="7" fill="#e0f2fe" font-family="system-ui,sans-serif">' + (st.fast ? 'SSD' : 'HDD') + '</text>' : '') +
+      '</svg>';
+  }
+
+  // ぶひんのカード（どのページのデザインにも合うよう、スタイルは中に書く）
+  function partCard(id, opt) {
+    var p = part(id); if (!p) return '';
+    opt = opt || {};
+    var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
+    return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
+      '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
+      '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
+      '<div style="margin-top:6px;font-size:13px;color:#94a3b8">いまの班PC：' + pcState().msg + '</div>' +
+      (opt.link === false ? '' : '<a href="index.html" style="display:inline-block;margin-top:8px;background:#0ea5e9;color:#fff;border-radius:10px;padding:6px 16px;text-decoration:none">📱 Tの端末にもどる</a>') +
+      '</div>';
+  }
+
+  // えほん：確認クイズを見張って、全問正解ならぶひんを出す。まちがいがあれば「もう一度」
+  function autoQuiz(id) {
+    function setup() {
+      var score = document.getElementById('score');
+      if (!score) return;
+      var box = document.createElement('div');
+      box.id = 'hubBox';
+      var host = score.closest ? score.closest('.qhead') : null;
+      (host && host.parentNode ? host.parentNode : score.parentNode).insertBefore(box, host ? host.nextSibling : score.nextSibling);
+      var page = score.parentNode && score.parentNode.closest ? score.parentNode.closest('[id]') : null;
+      function retry() {
+        location.hash = page ? page.id : '';
+        location.reload();
+      }
+      var note = function (t) { return '<div style="margin:10px auto;max-width:560px;text-align:center;font:700 14px/1.6 system-ui,sans-serif;color:#64748b">' + t + '</div>'; };
+      function update() {
+        var t = score.textContent || '';
+        if (t.indexOf('全問正解') >= 0) { clear(id); box.innerHTML = partCard(id); return; }
+        if (/問正解。/.test(t)) {
+          box.innerHTML = '<div style="margin:12px auto;max-width:560px;text-align:center;font:700 15px/1.7 system-ui,sans-serif;color:#475569">全問正解で、班PCの ぶひん が手に入る。' +
+            '<br><button type="button" id="hubRetryBtn" style="margin-top:6px;font:inherit;background:#0ea5e9;color:#fff;border:0;border-radius:10px;padding:6px 18px;cursor:pointer">🔁 もう一度ちょうせんする</button></div>';
+          var b = document.getElementById('hubRetryBtn'); if (b) b.onclick = retry;
+          return;
+        }
+        var p = part(id);
+        box.innerHTML = p ? note('✓ クリアずみ（ぶひん：' + p.name + '）') : note('🔧 全問正解すると、班PCの ぶひん が手に入る');
+      }
+      new MutationObserver(update).observe(score, { childList: true, characterData: true, subtree: true });
+      update();
+      // Tの端末へもどるボタン（右下）
+      var a = document.createElement('a');
+      a.href = 'index.html'; a.textContent = '📱 Tの端末';
+      a.setAttribute('style', 'position:fixed;right:12px;bottom:12px;z-index:9999;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:6px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+      document.body.appendChild(a);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  }
+
+  window.DroneHub = {
+    ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
+    part: part, parts: parts, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
+  };
+})();
+
+/* ==== HUB END ==== */</script>
+<script>window.DroneHub && DroneHub.autoQuiz('net');</script>
+</body>
+</html>

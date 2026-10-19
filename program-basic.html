@@ -1,0 +1,1552 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>プログラムが動くしくみ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F6FB; --surface:#FFFFFF; --ink:#141C33; --muted:#56617D; --line:#D6DDEB; --line2:#AEB9D1;
+  --run:#D9442E; --lng:#0B8A87; --trn:#5644D6; --ok:#0B8A87; --ng:#D9442E; --amber:#D4841F;
+  --code-bg:#141C33; --code-ink:#E4EAF6;
+  --shadow:0 1px 2px rgba(20,28,51,.06),0 8px 24px rgba(20,28,51,.06);
+  --disp:"Zen Maru Gothic","Noto Sans JP",system-ui,sans-serif;
+  --body:"Noto Sans JP",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+    --run:#FF7B63; --lng:#31C7C2; --trn:#9A8DFF; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542;
+    --code-bg:#0A0F1D; --code-ink:#E4EAF6;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+  --run:#FF7B63; --lng:#31C7C2; --trn:#9A8DFF; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542;
+  --code-bg:#0A0F1D; --code-ink:#E4EAF6;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 16px/1.8 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0;line-height:1.35}
+p{margin:0 0 1em;max-width:42em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--trn);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono)}
+
+/* nav */
+.pnav{position:fixed;left:0;right:0;top:0;padding-top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:2px solid var(--line);padding-inline:16px}
+.pnav .wrap{display:flex;gap:6px;align-items:center;padding-block:8px}
+.pnav .brand{flex:none;font-family:var(--disp);font-size:.7rem;font-weight:900;line-height:1.3;color:var(--muted);letter-spacing:.06em;padding:2px 12px 2px 0;border-right:2px solid var(--line);margin-right:6px}
+.pnav a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-weight:900;font-size:.92rem;padding:6px 10px;border-radius:9px;white-space:nowrap;font-family:var(--disp);border:1.5px solid var(--line2)}
+.pnav a:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,var(--bg))}
+.pnav a[aria-current="page"]{background:var(--accent,var(--ink));color:var(--bg);border-color:var(--accent,var(--ink))}
+@media(max-width:480px){.pnav{padding-inline:10px}.pnav .wrap{gap:4px}.pnav .brand{display:none}.pnav a{font-size:.7rem;padding:6px 3px;border-width:1px}}
+.run{--accent:var(--run)} .lng{--accent:var(--lng)} .trn{--accent:var(--trn)}
+.pages{height:100vh;height:100dvh}
+.pg{height:100vh;height:100dvh;padding:84px max(16px,calc((100% - 1080px)/2)) 10px;overflow-y:auto;display:none;flex-direction:column;position:relative}
+.pg.on{display:flex}
+.pg>.cols{margin-block:0 auto;width:100%}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px 36px;align-items:start}
+@media(min-width:1000px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.cols.one-col{display:block;max-width:760px;margin-inline:auto}
+.cols.wide-col{display:block;max-width:1080px;margin-inline:auto}
+@media(max-width:999px),(max-height:640px){
+  body{overflow:auto}
+  .pages{height:auto;overflow:visible}
+  .pg{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;padding-block:88px 32px}
+}
+
+/* 複数ページの項目：次へ・前へボタン */
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:10px}
+.pager .pdots{display:flex;gap:6px}
+.pager .pdots i{width:9px;height:9px;border-radius:50%;background:var(--line2)}
+.pager .pdots i.on{background:var(--accent)}
+.pager .pnum{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* 大見出し */
+.bighd{display:flex;align-items:center;gap:14px;margin-top:10px}
+.bsvg svg{display:block;width:72px;height:auto}
+.bw{font-family:var(--disp);font-weight:900;font-size:clamp(44px,5.2vw,60px);line-height:1.1;color:var(--accent);letter-spacing:.02em}
+.oneline{margin:6px 0 0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:none}
+.sec-h h2{font-size:clamp(20px,2.4vw,26px);font-weight:900;margin-top:12px}
+.sec-h .lead{margin-top:10px;font-size:15px;line-height:1.75}
+.term{background:#FFE066;color:#28251A;border-radius:4px;padding:1px 5px;font-weight:600}
+h3.sub{font-size:18px;margin:0 0 4px}
+.callout{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:14px;box-shadow:var(--shadow)}
+.callout p{margin:0;font-size:14.5px;line-height:1.7}
+
+/* figure */
+figure{margin:0;padding:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);position:relative}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.7}
+.scroll{overflow-x:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.btn{background:var(--accent);color:#fff;border:1.5px solid var(--accent);border-radius:999px;padding:6px 18px;font-weight:700;font-size:14px;min-height:40px}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+:root[data-theme="dark"] .btn:not(.ghost){color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost){color:#0D1324}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{background:var(--surface);border:1.5px solid var(--line2);border-radius:999px;padding:4px 14px;font-size:14px;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{color:#0D1324}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.chip{border-radius:999px;padding:3px 12px;font-size:13.5px;border:1.5px solid var(--line2);background:var(--surface)}
+.kd{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
+.kd h4{margin:0 0 8px;font-size:14px;font-family:var(--disp)}
+.kd .a .chip{border-color:var(--lng);background:color-mix(in srgb,var(--lng) 12%,var(--surface))}
+.kd .b .chip{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,var(--surface))}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-top:14px}
+summary{cursor:pointer;font-weight:700;font-size:15px;line-height:1.6}
+details p{margin:8px 0 2px;font-size:14.5px;line-height:1.75}
+.verdict{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14.5px;line-height:1.7}
+.badge{flex:none;border-radius:6px;padding:1px 10px;font-size:13px;font-weight:700;color:#fff;margin-top:3px;background:var(--ok)}
+.badge.ng{background:var(--ng)}
+:root[data-theme="dark"] .badge{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge{color:#0D1324}}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;min-height:36px}
+.switch input{width:18px;height:18px;accent-color:var(--ng)}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:12px}
+.tip{border-top:3px solid var(--accent);padding-top:6px;font-size:13.5px;line-height:1.6}
+.tip b{font-family:var(--disp);display:block;font-size:16px}
+
+.mcex{--accent:var(--lng)}
+table.mx{border-collapse:collapse;width:100%;margin:6px 0 4px;font-size:13px;line-height:1.5}
+table.mx th{font-family:var(--disp);white-space:nowrap;text-align:left;color:var(--lng);padding:3px 10px 3px 0;vertical-align:top;border-bottom:1px solid var(--line)}
+table.mx td{padding:3px 0;border-bottom:1px solid var(--line);word-break:break-all}
+table.mx td.mono{font-size:12.5px;letter-spacing:.02em}
+.callout .small2{font-size:12.5px;color:var(--muted)}
+
+/* 実行 */
+.cycle{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;position:relative}
+.cyc{border:1.5px solid var(--line2);border-radius:10px;padding:5px 8px;text-align:center;font-family:var(--disp);font-weight:900;font-size:16px;line-height:1.4;transition:all .25s;background:var(--surface)}
+.cyc small{display:block;font-family:var(--body);font-weight:400;font-size:11.5px;color:var(--muted)}
+.cyc.on{border-color:var(--run);background:color-mix(in srgb,var(--run) 12%,var(--surface));box-shadow:0 0 0 4px color-mix(in srgb,var(--run) 18%,transparent)}
+.memwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:560px){.memwrap{grid-template-columns:1fr}}
+table.mem{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;line-height:1.5}
+table.mem th{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:2px 8px;border-bottom:1.5px solid var(--line2)}
+table.mem td{padding:3px 8px;border-bottom:1px solid var(--line);transition:background .25s}
+table.mem tr.cur td{background:color-mix(in srgb,var(--run) 14%,var(--surface))}
+table.mem tr.cur td:first-child{box-shadow:inset 4px 0 0 var(--run)}
+.tag{font-family:var(--body);font-size:11px;border-radius:4px;padding:0 6px;font-weight:700}
+.tag.c{background:color-mix(in srgb,var(--trn) 14%,var(--surface));color:var(--trn)}
+.tag.d{background:color-mix(in srgb,var(--amber) 16%,var(--surface));color:var(--amber)}
+.memjump{position:relative;padding-left:26px}
+#jumpSvg{position:absolute;left:0;top:0;width:30px;height:100%;overflow:visible;pointer-events:none}
+#jumpSvg path{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+table.mem tr.tgt td{background:color-mix(in srgb,var(--jc,var(--amber)) 16%,var(--surface))}
+table.mem tr.tgt td:nth-child(2){outline:2px dashed var(--jc,var(--amber));outline-offset:-2px}
+table.mem td.flash{animation:flash 1s ease-out}
+@keyframes flash{0%{background:var(--amber);color:#fff}100%{}}
+.jl{font-family:var(--body);font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:0 6px;margin-left:4px;background:var(--jc,var(--amber))}
+.cpumsg{font-size:14px;line-height:1.7;background:color-mix(in srgb,var(--run) 6%,var(--surface));border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-height:6.4em}
+.cpumsg b{font-family:var(--disp);color:var(--run)}
+.clk{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.clkviz{display:flex;gap:3px;height:26px;align-items:flex-end;flex:1 1 180px}
+.clkviz i{flex:1;background:var(--line);border-radius:2px;height:35%;transition:height .08s,background .08s}
+.clkviz i.t{height:100%;background:var(--amber)}
+.lanes{display:grid;gap:4px;margin-top:8px;grid-template-rows:repeat(4,14px);height:68px}
+.lane{display:flex;gap:4px;align-items:center}
+.lane b{font-size:11.5px;line-height:1;width:46px;color:var(--muted);font-weight:500}
+.lane i{width:24px;height:14px;border-radius:4px;background:var(--run)}
+.readout{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:14.5px}
+.readout output{font-family:var(--disp);font-weight:900;font-size:24px;color:var(--run);font-variant-numeric:tabular-nums}
+
+/* クロック */
+.subpg{margin-left:auto;display:flex;gap:6px;align-self:center}
+.subpg button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line2);background:var(--surface);font-family:var(--disp);font-weight:900;font-size:15px;color:var(--muted);padding:0}
+.subpg button[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .subpg button[aria-current="page"]{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .subpg button[aria-current="page"]{color:#0D1324}}
+.m-wave{stroke-dasharray:.18 1;animation:wv 2.4s linear infinite}
+@keyframes wv{from{stroke-dashoffset:1.18}to{stroke-dashoffset:0}}
+.ladder{display:grid;gap:6px;margin-top:6px}
+.lr{display:grid;grid-template-columns:52px 1fr 70px;gap:8px;align-items:center;font-size:13.5px}
+.lr b{font-family:var(--mono);font-size:13px}
+.lb{height:14px;background:var(--bg);border-radius:4px;overflow:hidden}
+.lb i{display:block;height:100%;width:var(--w);background:var(--amber);border-radius:4px;transform-origin:left;animation:lgrow .9s cubic-bezier(.2,.8,.2,1) both}
+.lr:nth-child(2) .lb i{animation-delay:.15s}.lr:nth-child(3) .lb i{animation-delay:.3s}.lr:nth-child(4) .lb i{animation-delay:.45s}
+@keyframes lgrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.lv{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.hzl{border:1px solid var(--line);border-radius:12px;padding:6px 12px 8px;margin-top:8px;background:var(--bg)}
+.hzh{display:flex;gap:10px;align-items:baseline;font-size:13.5px}
+.hzh b{font-family:var(--disp);font-size:16px;color:var(--accent)}
+.hzt{margin-left:auto;color:var(--muted);font-size:12.5px}
+.hzt output{font-family:var(--disp);font-weight:900;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+svg.wave{display:block;width:100%;height:44px;margin:2px 0 4px}
+svg.wave path{fill:none;stroke:var(--amber);stroke-width:2.5;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+svg.wave .rd{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
+svg.wave.hit .rd{stroke:var(--run);stroke-width:3;stroke-dasharray:none}
+.jobs{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.jobs i{height:14px;border-radius:3px;border:1.5px solid var(--line2);background:var(--surface);transition:background .15s,border-color .15s}
+.jobs i.done{background:var(--amber);border-color:var(--amber)}
+.wheels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.wheels{grid-template-columns:1fr}}
+.wh{border:1px solid var(--line);border-radius:12px;padding:6px 10px 8px;background:var(--bg)}
+.whh{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--muted)}
+.whh b{font-family:var(--disp);font-size:16px;color:var(--accent)}
+.wh svg{display:block;width:100%;max-width:204px;height:auto;margin:0 auto}
+.w-ring{fill:var(--surface);stroke:var(--line2);stroke-width:2}
+.w-ticks line{stroke:var(--line2);stroke-width:2}
+.w-ptr{fill:var(--run)}
+.w-chip rect{fill:var(--surface);stroke:var(--line2);stroke-width:1.5}
+.w-chip text{font-family:var(--mono);font-size:11.5px;fill:var(--ink)}
+.w-chip.on rect{fill:var(--run);stroke:var(--run)}
+.w-chip.on text{fill:#fff;font-weight:600}
+.w-cpu line{stroke:var(--muted);stroke-width:2.5}
+.w-die{fill:var(--ink)}
+.w-lamp{fill:color-mix(in srgb,var(--amber) 30%,var(--ink));transition:fill .08s}
+.w-lamp.on{fill:var(--amber)}
+.w-hz{font-family:var(--mono);font-size:12px;font-weight:600;fill:var(--bg)}
+.whx{font-size:13px;text-align:center;min-height:1.6em}
+.whx .mono{font-weight:600;color:var(--run)}
+.whc{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.whc output{font-family:var(--disp);font-weight:900;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+#hzV{height:5.2em;overflow:hidden;align-items:flex-start}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media(max-width:560px){.facts{grid-template-columns:1fr}}
+.fact{border-top:3px solid var(--accent);padding-top:6px;display:flex;flex-direction:column;line-height:1.4}
+.fk{font-size:12.5px;color:var(--muted)}
+.fv{font-family:var(--disp);font-weight:900;font-size:24px;color:var(--accent);margin:2px 0}
+.fs{font-size:12px;color:var(--muted)}
+
+/* コア */
+.m-spin{animation:spin 1.2s steps(6) infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.regi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
+.regi>div{display:flex;flex-direction:column;gap:4px;background:var(--bg);border-radius:8px;padding:6px 10px}
+.regi b{font-family:var(--disp);font-size:14px;color:var(--run)}
+.regi .line{display:flex;gap:3px;align-items:center}
+.regi .line i{width:10px;height:10px;border-radius:50%;background:var(--line2);display:block}
+.regi .line i.reg{width:14px;height:14px;border-radius:3px;background:var(--run);margin-right:3px}
+.coret{margin-left:auto;font-size:13px;color:var(--muted)}
+.coret output{font-family:var(--disp);font-weight:900;font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+#coreSvg{display:block;width:100%;height:auto}
+#coreSvg .pk{fill:var(--surface);stroke:var(--line2);stroke-width:2}
+#coreSvg .pin{stroke:var(--line2);stroke-width:3}
+#coreSvg .lbl{font-size:12px;fill:var(--muted);font-family:var(--body)}
+#coreSvg .tile{fill:color-mix(in srgb,var(--run) 8%,var(--surface));stroke:var(--run);stroke-width:1.5}
+#coreSvg .disk{fill:var(--surface);stroke:var(--run);stroke-width:2.5}
+#coreSvg .spoke{fill:var(--line2)}
+#coreSvg .spoke.top{fill:var(--run)}
+#coreSvg .job rect{fill:var(--surface);stroke:var(--line2);stroke-width:1.5;transition:fill .15s,stroke .15s}
+#coreSvg .job text{font-size:11px;font-family:var(--mono);fill:var(--muted);font-weight:600}
+#coreSvg .job.wk rect{fill:var(--amber);stroke:var(--amber)}
+#coreSvg .job.wk text{fill:#fff}
+#coreSvg .job.dn rect{fill:var(--run);stroke:var(--run)}
+#coreSvg .job.dn text{fill:#fff}
+#coreSvg .cur{font-family:var(--mono);font-weight:700;font-size:15px;fill:var(--ink)}
+#coreV{height:3.6em;overflow:hidden;align-items:flex-start}
+.rec{display:grid;gap:4px;margin-top:8px}
+.rr{display:grid;grid-template-columns:48px 1fr 56px;gap:8px;align-items:center;font-size:13px}
+.rr b{font-family:var(--disp);color:var(--run)}
+.rb{height:12px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.rb i{display:block;height:100%;width:0;background:var(--run);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.rr output{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.rr.now b{text-decoration:underline}
+
+/* 言語 */
+pre.code{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:13px;border-radius:10px;padding:12px 14px;margin:0;overflow-x:auto;line-height:1.6;white-space:pre;min-height:196px}
+.code .k{color:#7FD6C8}.code .s{color:#F2C36B}.code .cm{color:#8A96B3}
+.code .miss{background:#D9442E;color:#fff;border-radius:3px;padding:0 3px}
+.code .hex{color:#B8C2DA}
+
+/* 言語2 つながり */
+.m-flow{animation:mflow 2.4s ease-in-out infinite}
+@keyframes mflow{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(74px);opacity:0}}
+table.who{border-collapse:collapse;width:100%;font-size:13px;line-height:1.5;margin-top:4px}
+table.who th{font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:2px 6px;border-bottom:1.5px solid var(--line2)}
+table.who td{padding:4px 6px;border-bottom:1px solid var(--line)}
+table.who td:first-child{font-family:var(--disp);font-weight:900;color:var(--lng);white-space:nowrap}
+.who .ok,.who .ng,.who .mid{font-weight:900;font-size:15px;margin-right:2px}
+.who .ok{color:var(--ok)}.who .ng{color:var(--ng)}.who .mid{color:var(--amber)}
+#flowSvg{display:block;width:100%;height:auto}
+.fl-zone rect{fill:color-mix(in srgb,var(--ink) 3%,var(--surface));stroke:var(--line2);stroke-width:1.5;stroke-dasharray:6 4;transition:fill .25s,stroke .25s}
+.fl-zone text{font-size:12px;font-weight:700;fill:var(--muted);font-family:var(--disp)}
+.fl-zone .tower{fill:none;stroke:var(--muted);stroke-width:1.8}
+.fl-zone .towerb{fill:var(--muted)}
+.fl-zone.on .towerb{fill:var(--lng)}
+.fl-zone.on rect{fill:color-mix(in srgb,var(--lng) 9%,var(--surface));stroke:var(--lng);stroke-dasharray:none;stroke-width:2}
+.fl-zone.on text{fill:var(--lng)}
+.fl-zone.on .tower{stroke:var(--lng)}
+.fl-node.tun .tube{fill:var(--code-bg);stroke:var(--lng);stroke-width:2.5}
+.fl-node.tun.on .tube{stroke-width:4}
+.fl-node.tun .mouth{fill:#000;stroke:var(--lng);stroke-width:2.5;opacity:.85}
+.fl-node.tun .tt{font-family:var(--disp);font-weight:900;font-size:14px;fill:#fff}
+.fl-node.tun .ts{font-size:10.5px;fill:#C9D3EA;font-family:var(--body)}
+.tk rect{stroke-width:2}
+.tk.src rect{fill:var(--surface);stroke:var(--lng)}
+.tk.src .t1{fill:var(--lng)}
+.tk.mc rect{fill:var(--code-bg);stroke:var(--trn)}
+.tk.mc .t1,.tk.mc .t2{fill:var(--code-ink)}
+.tk.res rect{fill:var(--amber);stroke:var(--amber)}
+.tk.res .t2{fill:#fff}
+.tk .t1{font-size:10.5px;font-weight:700;font-family:var(--disp)}
+.tk .t2{font-size:12px;font-family:var(--mono);font-weight:600;fill:var(--ink)}
+.fl-node .lamp{fill:color-mix(in srgb,var(--amber) 30%,var(--ink))}
+.fl-node .lamp.on{fill:var(--amber)}
+
+.fl-node .kb{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}
+.fl-node .keys{stroke:var(--ink);stroke-width:1.6;fill:none}
+.fl-node .stand{stroke:var(--ink);stroke-width:3;fill:none;stroke-linecap:round}
+.fl-node.mon>rect:first-child{fill:var(--ink);stroke:var(--ink)}
+.fl-node.mon.on>rect:first-child{stroke:var(--lng);stroke-width:3;fill:var(--ink)}
+.fl-node.mon .screen{fill:var(--surface);stroke:none}
+.fl-node .nm.sm2{font-size:11.5px}
+.fl-node .code.big{font-size:17px}
+
+.fl-edges path{fill:none;stroke:var(--line2);stroke-width:2.5;stroke-dasharray:5 5}
+.fl-edges path{marker-end:url(#fah)}
+.fl-edges .ah,#fah path{fill:var(--line2)}
+.fl-edges path.on{stroke:var(--lng);stroke-dasharray:none;stroke-width:3.5}
+.fl-lbl text{font-size:13px;font-weight:700;fill:var(--ink);font-family:var(--body)}
+.fl-lbl text.sm{font-size:11.5px;font-weight:500;fill:var(--muted)}
+.fl-node>rect:first-child{fill:var(--surface);stroke:var(--line2);stroke-width:2;transition:stroke .2s,fill .2s}
+.fl-node.on>rect:first-child{stroke:var(--lng);stroke-width:3;fill:color-mix(in srgb,var(--lng) 10%,var(--surface))}
+.fl-node .fill{fill:var(--lng)}
+.fl-node .nm{font-size:13px;font-weight:700;fill:var(--ink);font-family:var(--disp)}
+.fl-node .note{font-size:11px;fill:var(--muted);font-family:var(--body)}
+.fl-node .paper{fill:var(--bg);stroke:var(--line);stroke-width:1}
+.fl-node .paper.dark{fill:var(--code-bg);stroke:none}
+.fl-node .code{font-family:var(--mono);font-size:12.5px;fill:var(--ink);font-weight:600}
+.fl-node .code.lt{fill:var(--code-ink);font-size:12px}
+.fl-node .chip{fill:var(--ink)}
+.fl-node .chiptx{font-family:var(--mono);font-weight:700;font-size:13px;fill:var(--bg)}
+.fl-node .pins{stroke:var(--muted);stroke-width:2.5;fill:none}
+#flowDot{fill:var(--lng);stroke:var(--surface);stroke-width:3;opacity:0;transition:opacity .2s}
+#flowDot.on{opacity:1}
+#flowV{height:3.6em;overflow:hidden;align-items:flex-start}
+.scale{margin-top:12px}
+.sc-bar{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#fff;border-radius:999px;padding:3px 12px;background:linear-gradient(90deg,var(--lng),var(--trn) 55%,var(--ink))}
+:root[data-theme="dark"] .sc-bar{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sc-bar{color:#0D1324}}
+.sc-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
+.sc-row div{display:flex;flex-direction:column;font-size:12.5px;line-height:1.5}
+.sc-row div:nth-child(2){text-align:center}.sc-row div:nth-child(3){text-align:right}
+.sc-row b{font-family:var(--disp);font-size:14px}
+.sc-row .mono{font-size:12px}
+
+/* 翻訳 */
+.race{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.race{grid-template-columns:1fr}}
+.rl h4{margin:0;font-family:var(--disp);font-size:17px;color:var(--trn)}
+.rl .how{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 6px}
+.lines{display:grid;gap:4px}
+.ln{display:grid;grid-template-columns:minmax(0,1.25fr) 14px minmax(0,1fr);gap:4px;align-items:center;font-family:var(--mono);font-size:12px}
+.ln span{border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--bg);transition:all .18s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ln .ar{border:0;background:none;padding:0;color:var(--muted);text-align:center}
+.ln .mc{opacity:.3;color:var(--muted)}
+.ln .mc.made{opacity:1;color:var(--trn);background:color-mix(in srgb,var(--trn) 12%,var(--surface));border-color:transparent}
+.ln .src.tr{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 18%,var(--surface))}
+.ln .mc.go{background:var(--run);border-color:var(--run);color:#fff}
+.bar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--line);margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--trn)}
+.tm{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-top:4px}
+.tm output{font-family:var(--disp);font-weight:900;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+table.lt{border-collapse:collapse;font-size:13px;line-height:1.5;width:100%;margin-top:6px}
+table.lt th,table.lt td{border-bottom:1px solid var(--line);padding:2px 6px;text-align:left;vertical-align:top}
+table.lt th{font-family:var(--disp);white-space:nowrap}
+table.lt td.m{white-space:nowrap}
+.mt{font-size:11px;font-weight:700;border-radius:4px;padding:0 6px;white-space:nowrap}
+.mt.c{background:color-mix(in srgb,var(--trn) 14%,var(--surface));color:var(--trn)}
+.mt.i{background:color-mix(in srgb,var(--lng) 14%,var(--surface));color:var(--lng)}
+.mt.o{background:color-mix(in srgb,var(--muted) 14%,var(--surface));color:var(--muted)}
+
+#raceV{height:5.2em;overflow:hidden;align-items:flex-start}
+.tm span:first-child{white-space:nowrap}
+#sum .verdict{height:3.4em;overflow:hidden;align-items:flex-start}
+/* まとめ */
+.flow{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+.step{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:6px 14px;position:relative;font-size:13.5px;line-height:1.55;animation:hl 10s infinite;display:flex;gap:10px;align-items:baseline}
+.step b{flex:none;min-width:6.4em;font-family:var(--disp);font-size:15px;color:var(--accent,var(--ink))}
+.step:not(:last-child)::after{content:"\2193";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);font-size:13px;color:var(--muted);z-index:1;background:var(--bg);border-radius:50%;width:16px;text-align:center;line-height:16px}
+.step:nth-child(2){animation-delay:2s}.step:nth-child(3){animation-delay:4s}.step:nth-child(4){animation-delay:6s}.step:nth-child(5){animation-delay:8s}
+@keyframes hl{0%,16%{border-color:var(--accent,var(--ink));box-shadow:0 0 0 4px color-mix(in srgb,var(--accent,var(--ink)) 20%,transparent)}22%,100%{border-color:var(--line);box-shadow:none}}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;line-height:1.7}
+.ex p{margin:0 0 .6em;max-width:none}
+.ex p:last-child{margin:0}
+
+/* クイズ */
+.qz{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1000px){.qz{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 12px 8px;margin:0;min-width:0}
+.q .qq{font-weight:700;margin:0;font-size:13.5px;line-height:1.5;max-width:none}
+.qcat{font-weight:700;font-size:12.5px;white-space:nowrap}
+.maru{width:1.7em;height:auto;vertical-align:-.4em;margin-right:3px}
+.q .opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.q .opts button{text-align:left;background:var(--bg);border:1.5px solid var(--line2);border-radius:10px;padding:2px 12px;font-size:13.5px;line-height:1.5;min-height:30px}
+.q .opts button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--surface))}
+.q .opts button.bad{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 14%,var(--surface))}
+.q .opts button:disabled{cursor:default}
+.q .exp{font-size:13px;margin:6px 0 0;color:var(--muted);max-width:none;line-height:1.6}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+#score{font-family:var(--disp);font-weight:900;font-size:18px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+/* ページをクリックしたとき、枠線やカーソルが出ないようにする */
+html,body,.pages,.pg,.cols{caret-color:transparent}
+.pages:focus,.pg:focus,section:focus,main:focus,figure:focus,svg:focus{outline:none!important}
+.pages,.pg,svg{-webkit-tap-highlight-color:transparent}
+body{-webkit-user-select:none;user-select:none}
+button,summary,.switch,.switch *{cursor:pointer}
+button{-webkit-tap-highlight-color:transparent}
+
+/* パソコン画面風 */
+.pc{max-width:560px;margin:0 auto}
+.scr{position:relative;height:236px;border:10px solid #2A3147;border-bottom-width:14px;border-radius:12px;background:var(--bg);overflow:hidden;font-size:11px;line-height:1.35}
+.stand{width:90px;height:16px;margin:0 auto;background:linear-gradient(#2A3147,#3A4360);clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}
+.scene{position:absolute;inset:0}
+.desk{position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--trn) 45%,var(--surface)),color-mix(in srgb,var(--lng) 45%,var(--surface)))}
+.task{position:absolute;left:0;right:0;bottom:0;height:28px;background:color-mix(in srgb,var(--surface) 88%,transparent);display:flex;gap:8px;justify-content:center;align-items:center}
+.tk{width:16px;height:16px;border-radius:4px;background:var(--line2)}
+.stbtn{display:grid;grid-template-columns:7px 7px;gap:1.5px;padding:2px;border-radius:4px}
+.stbtn b{width:7px;height:7px;background:#2C7BE0;display:block}
+.smenu{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);width:min(300px,86%);background:var(--surface);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px}
+.sm-h{font-weight:700;font-size:11.5px;margin-bottom:6px}
+.sm-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ap{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;border-radius:6px;font-size:10.5px}
+.ap i{width:20px;height:20px;border-radius:6px;display:block;font-style:normal}
+.ap i.gear{background:var(--muted);color:var(--surface);text-align:center;line-height:20px;font-size:14px}
+.win{position:absolute;inset:0;background:var(--surface);display:flex;flex-direction:column}
+.wt{height:22px;padding:0 10px;display:flex;align-items:center;font-size:10.5px;border-bottom:1px solid var(--line);position:relative}
+.wt::after{content:"—  ☐  ✕";position:absolute;right:10px;color:var(--muted);letter-spacing:.2em;font-size:10px}
+.wb{flex:1;display:grid;grid-template-columns:118px 1fr;min-height:0}
+.side{list-style:none;margin:0;padding:6px 5px;background:var(--bg);display:grid;gap:2px;align-content:start}
+.side li{padding:3px 7px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side li.on{background:color-mix(in srgb,var(--ink) 8%,var(--bg));font-weight:700}
+.main{padding:6px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.mh{font-family:var(--disp);font-weight:900;font-size:14px;margin-bottom:1px}
+.card{height:30px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.main .row{padding:2px 9px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.spec{border:1px solid var(--line);border-radius:8px;padding:5px 9px;background:var(--bg)}
+.sh{font-weight:700;margin-bottom:4px}
+.spec dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0}
+.spec dt{color:var(--muted)}
+.spec dd{margin:0;font-family:var(--mono);font-size:10.5px}
+.spec dd b{color:var(--run)}
+.hl{position:relative;outline:2.5px solid var(--run);outline-offset:1px;border-radius:6px;animation:pcp 1.6s ease-in-out infinite;z-index:1}
+.hl::after{content:attr(data-tip);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:var(--run);color:#fff;font-family:var(--body);font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.ap.hl::after{left:50%;top:auto;bottom:calc(100% + 4px);transform:translateX(-50%)}
+.main .row.hl::after{left:auto;right:8px}
+.spec dd.hl::after{left:auto;right:0;top:calc(100% + 4px);transform:none}
+.hl2{outline:2px dashed var(--run);outline-offset:2px}
+@keyframes pcp{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--run) 45%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--run) 0%,transparent)}}
+@media(max-width:480px){.wb{grid-template-columns:96px 1fr}.hl::after{display:none}}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* 見出しアイコンのアニメーション */
+.m-cy{animation:mcy 3s infinite}
+@keyframes mcy{0%,30%{fill:var(--run)}34%,100%{fill:color-mix(in srgb,var(--run) 20%,var(--surface))}}
+.m-a{animation:ma 6s ease-in-out infinite}.m-b{animation:mb 6s ease-in-out infinite}
+@keyframes ma{0%,40%{opacity:1}50%,90%{opacity:0}100%{opacity:1}}
+@keyframes mb{0%,40%{opacity:0}50%,90%{opacity:1}100%{opacity:0}}
+.m-mv{animation:mmv 2.6s ease-in-out infinite}
+@keyframes mmv{0%{transform:translateX(0);opacity:0}15%{opacity:1}75%{opacity:1}100%{transform:translateX(34px);opacity:0}}
+</style>
+</head>
+<body>
+<nav class="pnav" id="pnav" aria-label="ページ切り替え"><div class="wrap">
+  <a href="#run" class="run">実行</a><a href="#lng" class="lng">言語</a><a href="#trn" class="trn">翻訳</a><a href="#sum">まとめ</a><a href="#check">確認クイズ</a>
+</div></nav>
+
+<main class="pages" id="pages">
+
+<!-- ============ 1 実行 ============ -->
+<section id="run" class="pg sec run">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="取り出し・解読・実行の3つの丸が順に光るアニメーション">
+        <path d="M60 16 A32 32 0 0 1 88 60 M84 66 A32 32 0 0 1 36 66 M32 60 A32 32 0 0 1 56 16" style="fill:none;stroke:var(--line2);stroke-width:3;stroke-linecap:round"/>
+        <path d="M86 52l2 9 8-5M40 70l-8-3 1 9M52 12l8 4-6 7" style="fill:none;stroke:var(--line2);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/>
+        <circle class="m-cy" cx="60" cy="16" r="11"/>
+        <circle class="m-cy" cx="88" cy="66" r="11" style="animation-delay:1s"/>
+        <circle class="m-cy" cx="32" cy="66" r="11" style="animation-delay:2s"/>
+      </svg></span><span class="bw">実行</span></div>
+    <p class="oneline">CPUは、メモリに並んだ命令を1つずつ順に取り出して実行する。</p>
+    <h2>命令を、順番に1つずつこなす</h2>
+    <p class="lead">ソフトウェアを実行するときは、必要なプログラムが補助記憶装置からメモリに読み込まれ、<b>CPU</b>がその命令を順に実行します。CPUの速さを決めるものの1つが<span class="term">クロック周波数</span>で、1秒間に基本的な動作を何回おこなうかを表します。たとえば1GHzなら、1秒間に約10億回です。</p>
+  </header>
+  <details>
+    <summary>考えてみよう：<br>メモリが足りないと、動作が遅くなるのはなぜ？</summary>
+    <p>メモリが足りないときは、補助記憶装置(SSDなど)の一部をメモリの代わりに使います。補助記憶装置はメモリより読み書きがずっと遅いので、そのぶんCPUが待たされ、動作が遅くなります。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <div class="seg" id="modeSeg" role="group" aria-label="進め方">
+        <button type="button" data-m="man" aria-pressed="true">手動</button>
+        <button type="button" data-m="auto" aria-pressed="false">自動</button>
+      </div>
+      <button class="btn ghost" id="backBtn" type="button">← 戻る</button>
+      <button class="btn" id="stepBtn" type="button">進める →</button>
+      <button class="btn ghost" id="resetBtn" type="button" style="margin-left:auto">最初から</button>
+    </div>
+    <div class="cycle" id="cycle">
+      <div class="cyc">命令の取り出し<small>メモリから読む</small></div>
+      <div class="cyc">命令の解読<small>意味を読み解く</small></div>
+      <div class="cyc">命令の実行<small>計算などをする</small></div>
+    </div>
+    <div class="memwrap">
+      <div class="memjump"><svg id="jumpSvg" aria-hidden="true"></svg><table class="mem" id="mem"><thead><tr><th>番地</th><th>内容</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="cpumsg" id="cpumsg" aria-live="polite">「進める」を押すと、CPUが番地1000の命令から順に処理していきます。</div>
+    </div>
+    <div class="clk">
+      <span style="font-size:14px">クロック</span>
+      <div class="seg" id="hzSeg" role="group" aria-label="クロック周波数">
+        <button type="button" data-hz="1" aria-pressed="true">1Hz</button>
+        <button type="button" data-hz="3" aria-pressed="false">3Hz</button>
+        <button type="button" data-hz="8" aria-pressed="false">8Hz</button>
+      </div>
+      <div class="clkviz" id="clkviz" aria-hidden="true"></div>
+    </div>
+    <figcaption>メモリ上の命令やデータには「番地」がついていて、場所で管理されています。CPUは「取り出し→解読→実行」をくり返して、命令を順に処理します。「自動」では、クロックが1回光るごとに1ステップ進みます。1Hzは1秒間に1回、1GHzのCPUはその10億倍の1秒間に約10億回です。</figcaption>
+  </figure></div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i><i></i></span><span class="pnum">1 / 3</span><button class="btn" type="button" data-go="hz">次へ →</button></div>
+</section>
+
+<!-- ============ クロック ============ -->
+<section id="hz" class="pg sec run hz">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="一定のリズムで上下する信号の上を点が進むアニメーション">
+        <path d="M6 64H20V26H40V64H60V26H80V64H100V26H114" style="fill:none;stroke:var(--line2);stroke-width:3;stroke-linejoin:round"/>
+        <path class="m-wave" pathLength="1" d="M6 64H20V26H40V64H60V26H80V64H100V26H114" style="fill:none;stroke:var(--amber);stroke-width:4;stroke-linejoin:round;stroke-linecap:round"/>
+      </svg></span><span class="bw" style="font-size:clamp(38px,4.3vw,50px)">クロック</span></div>
+    <p class="oneline">CPUは、一定のリズム(クロック)に合わせて1つずつ動く。</p>
+    <h2>リズムが速いほど、たくさん動ける</h2>
+    <p class="lead">CPUは、メトロノームのような一定のリズムの信号(クロック)に合わせて、基本的な動作を1回ずつおこないます。このリズムが1秒間に何回刻まれるかが<span class="term">クロック周波数</span>で、単位は<b>Hz(ヘルツ)</b>です。リズムが速いほど、同じ時間にたくさんの動作ができます。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">1秒間に何回？ 単位の大きさ</h3>
+    <div class="ladder" id="ladder">
+      <div class="lr"><b>1 Hz</b><span class="lb"><i style="--w:10%"></i></span><span class="lv">1回</span></div>
+      <div class="lr"><b>1 kHz</b><span class="lb"><i style="--w:40%"></i></span><span class="lv">1,000回</span></div>
+      <div class="lr"><b>1 MHz</b><span class="lb"><i style="--w:70%"></i></span><span class="lv">100万回</span></div>
+      <div class="lr"><b>1 GHz</b><span class="lb"><i style="--w:100%"></i></span><span class="lv">10億回</span></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:4px">k(キロ)・M(メガ)・G(ギガ)と、1段ごとに1000倍。棒の長さは「0の数」で表しています。</p>
+  </figure>
+  <details>
+    <summary>考えてみよう：<br>クロック周波数が同じなら、CPUの速さも同じ？</summary>
+    <p>同じとは限りません。クロック周波数はCPUの速さを決めるものの<b>1つ</b>です。コアの数や、1回の動作でどれだけの処理ができるかによっても、速さは変わります。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <button class="btn" id="hzBtn" type="button">スタート</button>
+      <span style="font-size:14px">CPU B のクロック周波数</span>
+      <div class="seg" id="multSeg" role="group" aria-label="CPU Bの倍率">
+        <button type="button" data-x="2" aria-pressed="true">Aの2倍</button>
+        <button type="button" data-x="4" aria-pressed="false">Aの4倍</button>
+      </div>
+    </div>
+    <div class="wheels">
+      <div class="wh" id="whA">
+        <div class="whh"><b>CPU A</b><span data-f></span></div>
+        <svg viewBox="0 0 240 236" role="img" aria-label="命令が並んだ円盤が、クロックに合わせて1コマずつ回る模型"><g data-w></g></svg>
+        <div class="whx">実行：<span class="mono" data-x>―</span></div>
+        <div class="whc"><span>命令 <output data-n>0</output> / 12</span><span>経過 <output data-t>0.0</output> 秒</span></div>
+      </div>
+      <div class="wh" id="whB">
+        <div class="whh"><b>CPU B</b><span data-f></span></div>
+        <svg viewBox="0 0 240 236" role="img" aria-label="命令が並んだ円盤が、クロックに合わせて1コマずつ回る模型"><g data-w></g></svg>
+        <div class="whx">実行：<span class="mono" data-x>―</span></div>
+        <div class="whc"><span>命令 <output data-n>0</output> / 12</span><span>経過 <output data-t>0.0</output> 秒</span></div>
+      </div>
+    </div>
+    <div class="verdict" id="hzV"><span class="badge" style="background:var(--amber)">ポイント</span><span>クロックが1回刻まれるたびに円盤が1コマ回り、上の▼の位置に来た命令を実行します。スタートを押して、12個の命令を実行するまでを比べよう。</span></div>
+    <figcaption>CPUを「回る円盤」にたとえた模型です。リズムは実際よりずっと遅くしています。</figcaption>
+  </figure>
+  <div class="facts">
+    <div class="fact"><span class="fk">1GHzで1回にかかる時間</span><span class="fv">10億分の1秒</span><span class="fs">＝1ナノ秒。まばたき(約0.1秒)の1億分の1</span></div>
+    <div class="fact"><span class="fk">その間に光が進む距離</span><span class="fv">約30cm</span><span class="fs">光は1秒間に約30万km(地球7周半)進む</span></div>
+    <div class="fact"><span class="fk">1回を1秒にのばすと</span><span class="fv">約32年</span><span class="fs">1GHzのCPUの「1秒」を人の時間にすると</span></div>
+  </div></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="run">← 前へ</button><span class="pdots"><i></i><i class="on"></i><i></i></span><span class="pnum">2 / 3</span><button class="btn" type="button" data-go="core">次へ →</button></div>
+</section>
+
+<!-- ============ コア ============ -->
+<section id="core" class="pg sec run">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="CPUの中で4つのコマが回るアニメーション">
+        <rect x="26" y="11" width="68" height="68" rx="8" style="fill:var(--surface);stroke:var(--run);stroke-width:3"/>
+        <path d="M38 5v6M52 5v6M68 5v6M82 5v6M38 79v6M52 79v6M68 79v6M82 79v6M20 23h6M20 37h6M20 53h6M20 67h6M94 23h6M94 37h6M94 53h6M94 67h6" style="stroke:var(--line2);stroke-width:3"/>
+        <g class="m-spin" style="transform-origin:45px 30px"><circle cx="45" cy="30" r="11" style="fill:color-mix(in srgb,var(--run) 18%,var(--surface));stroke:var(--run);stroke-width:2.5"/><path d="M45 21v5" style="stroke:var(--run);stroke-width:3;stroke-linecap:round"/></g>
+        <g class="m-spin" style="transform-origin:75px 30px;animation-delay:-.3s"><circle cx="75" cy="30" r="11" style="fill:color-mix(in srgb,var(--run) 18%,var(--surface));stroke:var(--run);stroke-width:2.5"/><path d="M75 21v5" style="stroke:var(--run);stroke-width:3;stroke-linecap:round"/></g>
+        <g class="m-spin" style="transform-origin:45px 60px;animation-delay:-.6s"><circle cx="45" cy="60" r="11" style="fill:color-mix(in srgb,var(--run) 18%,var(--surface));stroke:var(--run);stroke-width:2.5"/><path d="M45 51v5" style="stroke:var(--run);stroke-width:3;stroke-linecap:round"/></g>
+        <g class="m-spin" style="transform-origin:75px 60px;animation-delay:-.9s"><circle cx="75" cy="60" r="11" style="fill:color-mix(in srgb,var(--run) 18%,var(--surface));stroke:var(--run);stroke-width:2.5"/><path d="M75 51v5" style="stroke:var(--run);stroke-width:3;stroke-linecap:round"/></g>
+      </svg></span><span class="bw">コア</span></div>
+    <p class="oneline">CPUの中で処理をおこなう中核。数が多いほど、同時にこなせる。</p>
+    <h2>コマが増えると、同時にこなせる</h2>
+    <p class="lead">CPUは、処理をおこなう中核となる<span class="term">コア</span>からできています。コアを「命令をこなす回るコマ」と考えると、コマが2個、4個とあれば仕事を分担して同時に進められます。コアが2個のCPUはデュアルコア、4個のCPUはクアッドコアとよばれます。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">身近なたとえ：お店のレジ</h3>
+    <div class="regi" aria-hidden="true">
+      <div><b>レジ1台</b><span class="line"><i class="reg"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      <div><b>レジ4台</b><span class="line"><i class="reg"></i><i></i><i></i></span><span class="line"><i class="reg"></i><i></i><i></i></span><span class="line"><i class="reg"></i><i></i><i></i></span><span class="line"><i class="reg"></i><i></i><i></i></span></div>
+    </div>
+    <p>レジが4台なら4人ずつ同時に進み、早く終わります。レジ1台の速さがクロック周波数、台数がコアの数です。</p>
+  </figure>
+  <details>
+    <summary>考えてみよう：<br>コアを2倍にすれば、いつでも2倍速くなる？</summary>
+    <p>そうとは限りません。前の計算の結果を使って次の計算をするような、順番どおりにしか進められない仕事は、分担できません。コアが増えて速くなるのは、同時に進められる仕事が多いときです。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <button class="btn" id="coreBtn" type="button">スタート</button>
+      <span style="font-size:14px">コアの数</span>
+      <div class="seg" id="coreSeg" role="group" aria-label="コアの数">
+        <button type="button" data-c="1" aria-pressed="true">1個</button>
+        <button type="button" data-c="2" aria-pressed="false">2個</button>
+        <button type="button" data-c="4" aria-pressed="false">4個</button>
+      </div>
+      <span class="coret">経過 <output id="coreT">0.0</output> 秒</span>
+    </div>
+    <svg id="coreSvg" viewBox="0 0 520 262" role="img" aria-label="CPUの中のコア(回るコマ)が、並んだ12個の仕事を分担して処理するアニメーション"></svg>
+    <div class="verdict" id="coreV"><span class="badge" style="background:var(--run)">ポイント</span><span>どのコアも同じクロック(1秒間に2コマ)で回ります。コアの数を選んでスタートし、12個の仕事が終わるまでの時間を比べよう。</span></div>
+    <div class="rec" id="coreRec" aria-live="polite">
+      <div class="rr" data-c="1"><b>1コア</b><span class="rb"><i></i></span><output>―</output></div>
+      <div class="rr" data-c="2"><b>2コア</b><span class="rb"><i></i></span><output>―</output></div>
+      <div class="rr" data-c="4"><b>4コア</b><span class="rb"><i></i></span><output>―</output></div>
+    </div>
+    <figcaption>コアを「回るコマ」にたとえた模型です(実際のコアが回っているわけではありません)。1コマ回るごとに、仕事を1つ終えます。</figcaption>
+  </figure></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="hz">← 前へ</button><span class="pdots"><i></i><i></i><i class="on"></i></span><span class="pnum">3 / 3</span></div>
+</section>
+
+<!-- ============ 2 言語 ============ -->
+<section id="lng" class="pg sec lng">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="数字の羅列と、読みやすいコードが入れ替わるアニメーション">
+        <rect x="8" y="10" width="104" height="70" rx="10" style="fill:color-mix(in srgb,var(--lng) 14%,var(--surface));stroke:var(--lng);stroke-width:3"/>
+        <g class="m-a" style="font-family:var(--mono);font-size:14px;fill:var(--lng);font-weight:600">
+          <text x="20" y="36">0110 1011</text><text x="20" y="56">1100 0001</text><text x="20" y="72" style="font-size:11px">0110 1101</text>
+        </g>
+        <g class="m-b" style="font-family:var(--mono);font-size:15px;fill:var(--lng);font-weight:600">
+          <text x="20" y="40">print(</text><text x="30" y="62">"Hi")</text>
+        </g>
+      </svg></span><span class="bw">言語</span></div>
+    <p class="oneline">人間にわかりやすい言葉で書き、CPUの言葉に直して動かす。</p>
+    <h2>人間の言葉と、CPUの言葉</h2>
+    <p class="lead">CPUに与える命令を<span class="term">機械語</span>といいます。機械語は数字の羅列で、CPUの種類によっても異なります。そこで、CPUの種類を気にせず人間にわかりやすく書ける<span class="term">プログラミング言語</span>が考え出されました。プログラミング言語で書かれたプログラムを<span class="term">ソースコード</span>といい、プログラムの設計図にたとえられます。</p>
+  </header>
+  <figure class="callout mcex">
+    <h3 class="sub">機械語の例</h3>
+    <p>「CPUの中の記憶場所に、数の5を入れる」という命令は、ある種類のCPUでは次のようになります。</p>
+    <table class="mx">
+      <tr><th>2進数</th><td class="mono">10111000 00000101 00000000 00000000 00000000</td></tr>
+      <tr><th>16進数</th><td class="mono">B8 05 00 00 00</td></tr>
+      <tr><th>意味</th><td><span class="mono">B8</span>＝「記憶場所に数を入れる」、<span class="mono">05</span>＝入れる数「5」</td></tr>
+    </table>
+    <p class="small2">別の種類のCPUでは、同じ命令でもまったく違う数字の並びになります。</p>
+  </figure>
+  <details>
+    <summary>考えてみよう：<br>なぜ、はじめから機械語で書かないの？</summary>
+    <p>機械語は数字の羅列なので、人間が読んだり書いたりするのはとても大変です。しかもCPUの種類ごとに違うため、別のコンピュータ用には書き直しが必要になります。プログラミング言語なら、読みやすく、CPUの違いも気にせずに書けます。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <div class="seg" id="viewSeg" role="group" aria-label="表示の切り替え">
+        <button type="button" data-v="src" aria-pressed="true">ソースコード(C言語)</button>
+        <button type="button" data-v="mc" aria-pressed="false">機械語</button>
+      </div>
+      <label class="switch" for="bugSwitch"><input type="checkbox" id="bugSwitch"> わざとバグを入れる</label>
+    </div>
+    <pre class="code" id="codeView" aria-live="polite"></pre>
+    <div class="verdict"><span class="badge" id="vBadge">実行できる</span><span id="vWhy"></span></div>
+    <div class="kd">
+      <div class="a"><h4>ソースコード(プログラミング言語)</h4>
+        <ul class="chips"><li class="chip">英単語や記号で書く</li><li class="chip">人間が読める</li><li class="chip">CPUの種類を気にしない</li></ul></div>
+      <div class="b"><h4>機械語</h4>
+        <ul class="chips"><li class="chip">数字の羅列</li><li class="chip">CPUが直接実行できる</li><li class="chip">CPUの種類で異なる</li></ul></div>
+    </div>
+    <figcaption>同じ「Hello, world! と表示する」プログラムを、ソースコードと機械語(16進数で表示)で見比べています。</figcaption>
+  </figure><div class="tips">
+    <div class="tip"><b>バグ</b>プログラムの間違いのこと。コンピュータは書かれたとおりにしか動きません。</div>
+    <div class="tip"><b>エラー</b>バグがあると、誤動作したり、エラーで止まったりします。</div>
+    <div class="tip"><b>設計図</b>ソースコードは、プログラムの設計図にたとえられます。</div>
+  </div></div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i></span><span class="pnum">1 / 2</span><button class="btn" type="button" data-go="lng2">次へ →</button></div>
+</section>
+
+<!-- ============ 言語2 つながり ============ -->
+<section id="lng2" class="pg sec lng">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="人からソースコード、機械語へと点が流れるアニメーション">
+        <circle cx="16" cy="34" r="8" style="fill:var(--lng)"/><path d="M4 62c0-12 24-12 24 0" style="fill:var(--lng)"/>
+        <rect x="44" y="24" width="28" height="36" rx="4" style="fill:var(--surface);stroke:var(--lng);stroke-width:3"/>
+        <path d="M50 34h16M50 42h12M50 50h16" style="stroke:var(--lng);stroke-width:2.5;stroke-linecap:round"/>
+        <rect x="88" y="26" width="30" height="32" rx="5" style="fill:var(--ink)"/>
+        <text x="103" y="46" text-anchor="middle" style="font-family:var(--mono);font-size:9px;fill:var(--bg);font-weight:600">0101</text>
+        <circle class="m-flow" cx="30" cy="72" r="4" style="fill:var(--lng)"/>
+        <path d="M30 72H104" style="stroke:var(--line2);stroke-width:2;stroke-dasharray:3 4"/>
+      </svg></span><span class="bw" style="font-size:clamp(36px,4vw,48px)">つながり</span></div>
+    <p class="oneline">人(ユーザ)が書いたソースコードを、機械語に直してCPUが実行する。</p>
+    <h2>人とCPUを、ことばでつなぐ</h2>
+    <p class="lead">プログラムを作る人(<span class="term">ユーザ</span>)は、人にわかりやすいプログラミング言語で<span class="term">ソースコード</span>を書きます。しかしCPUが直接実行できるのは<span class="term">機械語</span>だけ。そこで、コンパイラやインタプリタがソースコードを機械語に翻訳して、人とCPUをつなぎます。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">だれが読める？</h3>
+    <table class="who">
+      <tr><th></th><th>ユーザ(人)</th><th>CPU</th></tr>
+      <tr><td>ソースコード</td><td><span class="ok">○</span> 読んで書ける</td><td><span class="ng">×</span> 直接は実行できない</td></tr>
+      <tr><td>機械語</td><td><span class="mid">△</span> 数字の羅列でとても大変</td><td><span class="ok">○</span> そのまま実行できる</td></tr>
+    </table>
+  </figure>
+  <details>
+    <summary>たとえるなら：<br>外国の人に手紙を送るとき</summary>
+    <p>日本語で書いた手紙(ソースコード)を、通訳(コンパイラ・インタプリタ)が相手の国のことば(機械語)に直して届けると、相手(CPU)は読んでそのとおりに動けます。通訳がいるので、書く人は相手のことばを知らなくても大丈夫です。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <button class="btn" id="flowPlay" type="button">再生</button>
+      <div class="seg" id="flowSeg" role="group" aria-label="段階">
+        <button type="button" data-s="0" aria-pressed="false">① 書く</button>
+        <button type="button" data-s="1" aria-pressed="false">② 翻訳</button>
+        <button type="button" data-s="2" aria-pressed="false">③ 実行</button>
+        <button type="button" data-s="3" aria-pressed="false">④ 表示</button>
+      </div>
+    </div>
+    <svg id="flowSvg" viewBox="0 0 560 300" role="img" aria-label="ユーザがキーボードとマウスでソースコードを書き、ソースコードが翻訳を通り抜けると機械語に姿を変え、CPUで実行され、結果がディスプレイに表示されて同じユーザが見る流れ">
+      <defs><marker id="fah" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah"/></marker><path id="fe2t" d="M490 224H357"/></defs>
+      <g class="fl-zone" id="fz1"><rect x="284" y="6" width="270" height="288" rx="14"/><text x="296" y="25">コンピュータ本体</text>
+        <path d="M524 12h16v28h-16z M528 18h8 M528 23h8" class="tower"/><circle cx="532" cy="33" r="2" class="towerb"/></g>
+      <g class="fl-edges">
+        <path id="fe0" d="M112 232H128"/>
+        <path id="fe1" d="M206 62H472H488V166"/>
+        <path id="fe2" d="M436 224H414"/>
+        <path id="fe3" d="M300 224H268V104H208"/>
+        <path id="fe4" d="M86 132V168"/>
+      </g>
+      <g class="fl-lbl">
+        <text x="80" y="156" text-anchor="end" class="sm">見る</text>
+        <text x="262" y="176" text-anchor="end" class="sm">結果</text>
+      </g>
+      <g class="fl-node mon" id="fnDisp">
+        <rect x="18" y="14" width="188" height="112" rx="8"/>
+        <rect x="26" y="22" width="172" height="96" rx="4" class="screen"/>
+        <g id="dispCode"><text x="112" y="40" text-anchor="middle" class="nm sm2">ソースコード</text>
+          <text x="36" y="68" class="code" id="dc1"></text><text x="44" y="90" class="code" id="dc2"></text></g>
+        <g id="dispRes" style="display:none"><text x="112" y="40" text-anchor="middle" class="nm sm2">実行結果</text><text x="112" y="82" text-anchor="middle" class="code big">Hello!</text></g>
+        <path d="M112 126v10M86 140h52" class="stand"/>
+        <text x="144" y="147" class="note">ディスプレイ</text>
+      </g>
+      <g class="fl-node" id="fnUser">
+        <rect x="30" y="170" width="82" height="112" rx="12"/>
+        <circle cx="71" cy="198" r="12" class="fill"/><path d="M48 246c0-26 46-26 46 0Z" class="fill"/>
+        <text x="71" y="270" text-anchor="middle" class="nm">ユーザ</text>
+      </g>
+      <g class="fl-node dev" id="fnKb">
+        <rect x="128" y="200" width="92" height="64" rx="10"/>
+        <rect x="136" y="212" width="54" height="22" rx="3" class="kb"/>
+        <path d="M140 218h5M148 218h5M156 218h5M164 218h5M172 218h5M180 218h5M140 224h5M148 224h5M156 224h5M164 224h5M172 224h5M180 224h5M146 229h36" class="keys"/>
+        <rect x="198" y="210" width="14" height="22" rx="7" class="kb"/><path d="M205 210v8" class="keys"/>
+        <text x="174" y="254" text-anchor="middle" class="note">キーボード・マウス</text>
+      </g>
+      <g class="fl-node" id="fnMc">
+        <rect x="436" y="168" width="108" height="112" rx="12"/>
+        <text x="490" y="190" text-anchor="middle" class="nm">機械語</text>
+        <rect x="448" y="200" width="84" height="48" rx="6" class="paper dark"/>
+        <text x="490" y="220" text-anchor="middle" class="code lt">10111000</text>
+        <text x="490" y="238" text-anchor="middle" class="code lt">00000101</text>
+        <text x="490" y="268" text-anchor="middle" class="note">CPUのことば</text>
+      </g>
+      <g class="fl-node" id="fnCpu">
+        <rect x="300" y="168" width="114" height="112" rx="12"/>
+        <rect x="331" y="190" width="52" height="52" rx="8" class="chip"/>
+        <path d="M339 184v6M351 184v6M363 184v6M375 184v6M339 242v6M351 242v6M363 242v6M375 242v6M325 200h6M325 216h6M325 232h6M383 200h6M383 216h6M383 232h6" class="pins"/>
+        <text x="357" y="221" text-anchor="middle" class="chiptx">CPU</text>
+        <circle cx="357" cy="202" r="4" class="lamp" id="cpuLamp"/>
+        <text x="357" y="266" text-anchor="middle" class="note">機械語を実行</text>
+      </g>
+      <g id="tok" style="display:none">
+        <g class="tk src"><rect x="-44" y="-18" width="88" height="36" rx="6"/><text x="0" y="-3" text-anchor="middle" class="t1">ソースコード</text><text x="0" y="12" text-anchor="middle" class="t2">printf(…);</text></g>
+        <g class="tk mc"><rect x="-44" y="-18" width="88" height="36" rx="6"/><text x="0" y="-3" text-anchor="middle" class="t1">機械語</text><text x="0" y="12" text-anchor="middle" class="t2">10111000…</text></g>
+        <g class="tk res"><rect x="-36" y="-14" width="72" height="28" rx="6"/><text x="0" y="5" text-anchor="middle" class="t2">Hello!</text></g>
+      </g>
+      <g class="fl-node tun" id="fnTun">
+        <path d="M318 36h124a26 26 0 0 1 0 52H318a26 26 0 0 1 0-52Z" class="tube"/>
+        <ellipse cx="318" cy="62" rx="12" ry="26" class="mouth"/><ellipse cx="442" cy="62" rx="12" ry="26" class="mouth"/>
+        <text x="380" y="58" text-anchor="middle" class="tt">翻訳</text>
+        <text x="380" y="74" text-anchor="middle" class="ts">コンパイラ・インタプリタ</text>
+        <text x="380" y="106" text-anchor="middle" class="note">通り抜けると機械語に変身</text>
+      </g>
+    </svg>
+    <div class="verdict" id="flowV"><span class="badge" style="background:var(--lng)">ポイント</span><span>「再生」を押すか番号を選んで、ユーザが書いたプログラムがCPUで動き、結果がユーザに届くまでを一周たどろう。</span></div>
+  </figure>
+  <div class="scale">
+    <div class="sc-bar"><span>人にわかりやすい</span><span>CPUが実行できる</span></div>
+    <div class="sc-row">
+      <div><b>ふだんのことば</b><span>「Hello! と表示して」</span></div>
+      <div><b>ソースコード</b><span class="mono">printf("Hello!");</span></div>
+      <div><b>機械語</b><span class="mono">10111000 00000101 …</span></div>
+    </div>
+  </div></div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="lng">← 前へ</button><span class="pdots"><i></i><i class="on"></i></span><span class="pnum">2 / 2</span></div>
+</section>
+
+<!-- ============ 3 翻訳 ============ -->
+<section id="trn" class="pg sec trn">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="ソースコードが機械語に翻訳されて流れていくアニメーション">
+        <rect x="6" y="18" width="38" height="54" rx="6" style="fill:var(--surface);stroke:var(--trn);stroke-width:3"/>
+        <path d="M14 32h22M14 42h16M14 52h22M14 62h12" style="stroke:var(--trn);stroke-width:3;stroke-linecap:round"/>
+        <rect x="76" y="18" width="38" height="54" rx="6" style="fill:color-mix(in srgb,var(--trn) 18%,var(--surface));stroke:var(--trn);stroke-width:3"/>
+        <text x="82" y="40" style="font-family:var(--mono);font-size:10px;fill:var(--trn);font-weight:600">0110</text>
+        <text x="82" y="54" style="font-family:var(--mono);font-size:10px;fill:var(--trn);font-weight:600">1011</text>
+        <text x="82" y="68" style="font-family:var(--mono);font-size:10px;fill:var(--trn);font-weight:600">1100</text>
+        <circle class="m-mv" cx="48" cy="45" r="5" style="fill:var(--trn)"/>
+        <circle class="m-mv" cx="48" cy="45" r="5" style="fill:var(--trn);animation-delay:1.3s"/>
+      </svg></span><span class="bw">翻訳</span></div>
+    <p class="oneline">ソースコードを動かす方法は、コンパイラとインタプリタの2つ。</p>
+    <h2>まとめて訳すか、1行ずつ訳すか</h2>
+    <p class="lead"><span class="term">コンパイラ</span>は、ソースコードを機械語に翻訳(コンパイル)してから実行するソフトウェアです。<span class="term">インタプリタ</span>は、ソースコードを解釈しながら実行します。一般に、インタプリタで実行するほうが手間はかかりませんが、コンパイラで翻訳して実行するほうが速く動きます。</p>
+  </header>
+  <details>
+    <summary>コラム：オープンソースソフトウェアって？</summary>
+    <p>多くのソフトウェアは、コンパイル済みのプログラムだけが配られ、ソースコードは公開されていません。これに対し、ソースコードが公開されているのが<b>オープンソースソフトウェア</b>です。利用者は書き換えて使ったり、書き換えたものを再配布したりできます。OS・ワープロ・表計算ソフトにもあり、Pythonのインタプリタもオープンソースです。</p>
+  </details>
+  </div><div class="cr"><figure class="panel">
+    <div class="ctl">
+      <button class="btn" id="raceBtn" type="button">スタート</button>
+      <div class="legend">
+        <span><i style="background:color-mix(in srgb,var(--amber) 40%,var(--surface));border:1px solid var(--amber)"></i>翻訳中</span>
+        <span><i style="background:color-mix(in srgb,var(--trn) 20%,var(--surface))"></i>機械語</span>
+        <span><i style="background:var(--run)"></i>実行中</span>
+      </div>
+    </div>
+    <div class="race">
+      <div class="rl">
+        <h4>コンパイラ</h4>
+        <p class="how">先に全部を機械語に翻訳してから実行</p>
+        <div class="lines" id="laneC"></div>
+        <div class="bar"><i id="barC"></i></div>
+        <div class="tm"><span id="stC">待機中</span><span>経過 <output id="tC">0.0</output> 秒</span></div>
+      </div>
+      <div class="rl">
+        <h4>インタプリタ</h4>
+        <p class="how">1行ずつ解釈しながら実行</p>
+        <div class="lines" id="laneI"></div>
+        <div class="bar"><i id="barI"></i></div>
+        <div class="tm"><span id="stI">待機中</span><span>経過 <output id="tI">0.0</output> 秒</span></div>
+      </div>
+    </div>
+    <div class="verdict" id="raceV"><span class="badge" style="background:var(--trn)">ポイント</span><span>同じ処理を3回くり返すプログラムです(左の列がソースコード、右の列が機械語)。スタートを押して、2つの方式を同時に動かしてみよう。</span></div>
+  </figure>
+  <figure class="callout" style="padding:8px 14px">
+    <h3 class="sub" style="font-size:16px">おもなプログラミング言語</h3>
+    <div class="scroll"><table class="lt">
+      <tr><th>Python</th><td>データ分析や人工知能(AI)の分野で広く使われる。</td><td class="m"><span class="mt i">インタプリタ</span></td></tr>
+      <tr><th>JavaScript</th><td>おもにWebページのなかで動作するプログラムに使う。</td><td class="m"><span class="mt i">インタプリタ</span></td></tr>
+      <tr><th>表計算マクロ言語</th><td>表計算ソフトの処理を自動化する。(例：VBA)</td><td class="m"><span class="mt o">―</span></td></tr>
+      <tr><th>Scratch</th><td>ブロックの組み合わせでプログラミングできる。</td><td class="m"><span class="mt o">―</span></td></tr>
+      <tr><th>C、C++</th><td>高速な処理やハードウェアの制御が必要な開発に使う。</td><td class="m"><span class="mt c">コンパイラ</span></td></tr>
+    </table></div>
+    <p style="font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:4px">PythonやJavaScriptはインタプリタの形をとるが、高速化のためにコンパイラの技術も取り入れられている。</p>
+  </figure></div></div>
+</section>
+
+<!-- ============ まとめ ============ -->
+<section id="sum" class="pg sec">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <h2>プログラムが動くまで</h2>
+    <p class="lead" style="margin-top:14px">人間が書いたプログラムは、次の順にCPUへ届いて実行されます。光っている場所が、いま見ているステップです。</p>
+  </header><div class="flow" aria-label="ソースコードを書いてからCPUが実行するまでの流れ">
+    <div class="step lng"><b>ソースコード</b>人間にわかりやすいプログラミング言語で書く。</div>
+    <div class="step trn"><b>翻訳</b>コンパイラでまとめて翻訳する、またはインタプリタで解釈する。</div>
+    <div class="step lng"><b>機械語</b>CPUが直接実行できる、数字の羅列の命令になる。</div>
+    <div class="step run"><b>メモリ</b>命令とデータが番地つきで並ぶ。</div>
+    <div class="step run"><b>CPUで実行</b>取り出し→解読→実行をくり返す。速さはクロック周波数とコアで決まる。</div>
+  </div><div class="ex">
+    <p><b>例：「Hello, world!」と表示するプログラム</b></p>
+    <p>C言語でソースコードを書き(言語)、コンパイラで機械語に翻訳し(翻訳)、メモリに読み込まれた命令をCPUが1つずつ順に処理して(実行)、画面に文字が表示されます。</p>
+  </div>
+  </div><div class="cr"><figure class="panel run">
+    <h3 class="sub">やってみよう：自分のパソコンのクロック周波数を確かめよう</h3>
+    <p style="font-size:13.5px;color:var(--muted);margin:0 0 10px">Windowsの場合の手順です。番号を押すか「次へ」で、画面が切り替わります。</p>
+    <div class="ctl" style="margin-bottom:10px">
+      <div class="seg" id="pcSeg" role="group" aria-label="手順">
+        <button type="button" data-s="0" aria-pressed="true">① 設定を開く</button>
+        <button type="button" data-s="1" aria-pressed="false">② システム</button>
+        <button type="button" data-s="2" aria-pressed="false">③ バージョン情報</button>
+        <button type="button" data-s="3" aria-pressed="false">④ プロセッサ</button>
+      </div>
+    </div>
+    <div class="pc" aria-live="polite">
+      <div class="scr">
+        <!-- ① スタートメニュー -->
+        <div class="scene" data-s="0">
+          <div class="desk">
+            <div class="smenu">
+              <div class="sm-h">ピン留め済み</div>
+              <div class="sm-g">
+                <div class="ap"><i style="background:var(--lng)"></i>メール</div>
+                <div class="ap"><i style="background:var(--amber)"></i>フォト</div>
+                <div class="ap hl" data-tip="ここをクリック"><i class="gear">⚙</i>設定</div>
+                <div class="ap"><i style="background:var(--trn)"></i>電卓</div>
+                <div class="ap"><i style="background:var(--run)"></i>カレンダー</div>
+                <div class="ap"><i style="background:var(--line2)"></i>メモ帳</div>
+              </div>
+            </div>
+            <div class="task"><span class="stbtn hl2"><b></b><b></b><b></b><b></b></span><span class="tk"></span><span class="tk"></span><span class="tk"></span></div>
+          </div>
+        </div>
+        <!-- ② 設定 > システム -->
+        <div class="scene" data-s="1" hidden>
+          <div class="win"><div class="wt">設定</div><div class="wb">
+            <ul class="side"><li class="on hl" data-tip="ここをクリック">システム</li><li>Bluetoothとデバイス</li><li>ネットワーク</li><li>個人用設定</li><li>アプリ</li><li>アカウント</li></ul>
+            <div class="main"><div class="mh">システム</div><div class="card"></div><div class="card"></div><div class="card"></div></div>
+          </div></div>
+        </div>
+        <!-- ③ システム > バージョン情報 -->
+        <div class="scene" data-s="2" hidden>
+          <div class="win"><div class="wt">設定</div><div class="wb">
+            <ul class="side"><li class="on">システム</li><li>Bluetoothとデバイス</li><li>ネットワーク</li><li>個人用設定</li><li>アプリ</li><li>アカウント</li></ul>
+            <div class="main"><div class="mh">システム</div>
+              <div class="row">ディスプレイ</div><div class="row">サウンド</div><div class="row">通知</div><div class="row">記憶域</div>
+              <div class="row hl" data-tip="いちばん下にある">バージョン情報</div>
+            </div>
+          </div></div>
+        </div>
+        <!-- ④ バージョン情報 -->
+        <div class="scene" data-s="3" hidden>
+          <div class="win"><div class="wt">設定</div><div class="wb">
+            <ul class="side"><li class="on">システム</li><li>Bluetoothとデバイス</li><li>ネットワーク</li><li>個人用設定</li><li>アプリ</li><li>アカウント</li></ul>
+            <div class="main"><div class="mh">システム ＞ バージョン情報</div>
+              <div class="spec"><div class="sh">デバイスの仕様</div>
+                <dl><dt>デバイス名</dt><dd>JOHO-PC01</dd>
+                <dt>プロセッサ</dt><dd class="hl" data-tip="ここを見る！">〇〇〇 CPU @ <b>2.40GHz</b></dd>
+                <dt>実装RAM</dt><dd>16.0 GB</dd>
+                <dt>システムの種類</dt><dd>64 ビット</dd></dl>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <div class="stand"></div>
+    </div>
+    <div class="verdict"><span class="badge" id="pcNo" style="background:var(--run)">手順1</span><span id="pcTxt"></span></div>
+    <div class="ctl" style="margin:10px 0 0;justify-content:space-between">
+      <button class="btn ghost" id="pcPrev" type="button" style="--accent:var(--run)">← 前へ</button>
+      <button class="btn" id="pcNext" type="button" style="--accent:var(--run)">次へ →</button>
+    </div>
+    <figcaption>画面は説明用に簡略化したものです。Windowsのバージョンによって、見た目や項目の名前が少し異なることがあります。</figcaption>
+  </figure></div></div>
+</section>
+
+<!-- ============ 確認クイズ ============ -->
+<section id="check" class="pg sec">
+  <div class="cols wide-col"><div class="cl">
+    <div class="qhead"><h2>確認クイズ</h2><div id="score" aria-live="polite"></div></div>
+    <div class="qz" id="qz"></div>
+  </div></div>
+</section>
+
+</main>
+
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function press(group,btn){$$(group+' button').forEach(function(x){x.setAttribute('aria-pressed',x===btn)})}
+
+/* ========== 実行: CPUの命令サイクル ========== */
+var MEM=[['1000','01101011','c','番地1100のデータを読み込む'],['1004','11000001','c','読み込んだ値に1を足す'],['1008','01101101','c','結果を番地nに書き込む'],['1012','11010010','c','番地1000の命令に戻る'],['⋮','⋮',''],['1100','00001101','d'],['n','11001011','d']];
+/* 実行のときに飛ぶ先: [行, ラベル, 色] */
+var JUMP={0:[5,'読み込み','var(--amber)'],2:[6,'書き込み','var(--amber)'],3:[0,'ジャンプ','var(--trn)']};
+var EXE=['番地1100へ飛んで、データ <span class="mono">00001101</span>(10進数の13)をCPUに読み込む。',
+ 'CPUの中で 13＋1＝14 を計算する。2進数では <span class="mono">00001110</span>。',
+ '番地nへ飛んで、計算結果 <span class="mono">00001110</span> を書き込む。番地nの内容が変わった。',
+ '次に実行する命令を番地1000に戻す。命令は、このように別の番地へ飛ぶこともできる。'];
+var tb=$('#mem tbody');
+MEM.forEach(function(r){var tr=document.createElement('tr');tr.innerHTML='<td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+(r[2]?'<span class="tag '+r[2]+'">'+(r[2]==='c'?'命令':'データ')+'</span>':'')+'</td>';tb.appendChild(tr)});
+var rows=[].slice.call(tb.children),cyc=$$('#cycle .cyc'),pc=-1,ph=2,auto=false,hz=1,jsvg=$('#jumpSvg');
+function clearJump(){jsvg.innerHTML='';rows.forEach(function(r){r.classList.remove('tgt');r.style.removeProperty('--jc');var l=r.querySelector('.jl');if(l)l.remove()})}
+function drawJump(from,to,label,col){
+  var tr=$('#mem').getBoundingClientRect(),a=rows[from].getBoundingClientRect(),b=rows[to].getBoundingClientRect(),w=jsvg.getBoundingClientRect();
+  var y1=a.top+a.height/2-w.top,y2=b.top+b.height/2-w.top,x=24,bend=Math.min(22,6+Math.abs(y2-y1)/8);
+  var up=y2<y1,hd=up?'M'+(x-6)+','+(y2-5)+'L'+x+','+y2+'L'+(x-6)+','+(y2+5):'M'+(x-6)+','+(y2-5)+'L'+x+','+y2+'L'+(x-6)+','+(y2+5);
+  jsvg.innerHTML='<path d="M'+x+','+y1+'C'+(x-bend-10)+','+y1+' '+(x-bend-10)+','+y2+' '+x+','+y2+'" style="stroke:'+col+'"/><path d="'+hd+'" style="stroke:'+col+'"/>';
+  var r=rows[to];r.classList.add('tgt');r.style.setProperty('--jc',col);
+  var l=document.createElement('span');l.className='jl';l.textContent=label;r.children[2].appendChild(l);
+}
+/* k = 進めたステップ数。k から画面の状態を決めるので、戻ることもできる */
+var k=0;
+function render(fwd){
+  clearJump();
+  if(k===0){pc=-1;ph=2;rows.forEach(function(r){r.classList.remove('cur')});cyc.forEach(function(c){c.classList.remove('on')});
+    resetMem();$('#cpumsg').textContent='「進める」を押すと、CPUが番地1000の命令から順に処理していきます。';updBtns();return}
+  ph=(k-1)%3;pc=Math.floor((k-1)/3)%4;
+  rows.forEach(function(r,i){r.classList.toggle('cur',i===pc)});
+  cyc.forEach(function(c,i){c.classList.toggle('on',i===ph)});
+  var m=MEM[pc],t,cell=rows[6].children[1];
+  cell.textContent=k>=9?'00001110':'11001011';cell.classList.remove('flash');
+  if(ph===0)t='<b>取り出し</b><br>番地'+m[0]+'の命令 <span class="mono">'+m[1]+'</span> をCPUに読み込む。';
+  else if(ph===1)t='<b>解読</b><br><span class="mono">'+m[1]+'</span> は「'+m[3]+'」という命令だと読み解く。';
+  else{
+    t='<b>実行</b><br>'+EXE[pc];
+    var j=JUMP[pc];if(j)drawJump(pc,j[0],j[1],j[2]);
+    if(pc===2&&fwd){void cell.offsetWidth;cell.classList.add('flash')}
+  }
+  $('#cpumsg').innerHTML=t;updBtns();
+}
+function step(){k++;render(true)}
+function resetMem(){rows[6].children[1].textContent='11001011';rows[6].children[1].classList.remove('flash')}
+function updBtns(){$('#stepBtn').disabled=auto;$('#backBtn').disabled=auto||k===0}
+function setMode(m){auto=(m==='auto');$$('#modeSeg button').forEach(function(x){x.setAttribute('aria-pressed',x.getAttribute('data-m')===m)});updBtns();if(auto)runClock()}
+function stopAuto(){if(auto)setMode('man')}
+$$('#modeSeg button').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-m'))})});
+$('#stepBtn').addEventListener('click',step);
+$('#backBtn').addEventListener('click',function(){if(k>0){k--;render(false)}});
+$('#resetBtn').addEventListener('click',function(){k=0;render(false)});
+updBtns();
+/* クロック */
+var cv=$('#clkviz');for(var i=0;i<24;i++)cv.appendChild(document.createElement('i'));
+var ticks=[].slice.call(cv.children),ti=0,clk=null;
+/* クロックの1回の点滅＝1つの基本動作。自動で進めるときは、点滅に合わせて1ステップ進む */
+function tick(){if(!RM||auto){ticks.forEach(function(t){t.classList.remove('t')});ticks[ti%24].classList.add('t');ti++}if(auto)step()}
+function runClock(){clearInterval(clk);if(RM&&!auto)ticks[0].classList.add('t');tick();clk=setInterval(tick,1000/hz)}
+$$('#hzSeg button').forEach(function(b){b.addEventListener('click',function(){hz=+b.getAttribute('data-hz');press('#hzSeg',b);runClock()})});
+runClock();
+
+
+/* ========== クロック: 回る円盤の模型 ========== */
+var HZBASE=1,JOBS=12,mult=2,hzRaf=0,hzRun=false;
+var CODE=['a = 5','b = 3','c = a + b','表示(c)','a = a + 1','最初へ戻る'];
+var CX=120,CY=132,R=74,NS='http://www.w3.org/2000/svg';
+function el(tag,at,par){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);par.appendChild(e);return e}
+function buildWheel(id,f){
+  var root=$(id),g=root.querySelector('[data-w]');g.innerHTML='';
+  el('circle',{cx:CX,cy:CY,r:104,'class':'w-ring'},g);
+  var ticks=el('g',{'class':'w-ticks'},g);
+  for(var i=0;i<24;i++){var an=i*15*Math.PI/180;el('line',{x1:CX+98*Math.sin(an),y1:CY-98*Math.cos(an),x2:CX+(i%4?92:86)*Math.sin(an),y2:CY-(i%4?92:86)*Math.cos(an)},ticks)}
+  el('path',{d:'M'+(CX-9)+',6L'+(CX+9)+',6L'+CX+',20Z','class':'w-ptr'},g);
+  var chips=CODE.map(function(c){var cg=el('g',{'class':'w-chip'},g);el('rect',{x:-40,y:-12,width:80,height:24,rx:6},cg);var t=el('text',{x:0,y:4,'text-anchor':'middle'},cg);t.textContent=c;return cg});
+  var cpu=el('g',{'class':'w-cpu'},g);
+  for(var p=0;p<4;p++){var o=-18+p*12;el('line',{x1:CX+o,y1:CY-34,x2:CX+o,y2:CY-28},cpu);el('line',{x1:CX+o,y1:CY+28,x2:CX+o,y2:CY+34},cpu);el('line',{x1:CX-34,y1:CY+o,x2:CX-28,y2:CY+o},cpu);el('line',{x1:CX+28,y1:CY+o,x2:CX+34,y2:CY+o},cpu)}
+  el('rect',{x:CX-28,y:CY-28,width:56,height:56,rx:8,'class':'w-die'},cpu);
+  var lamp=el('circle',{cx:CX,cy:CY-11,r:6,'class':'w-lamp'},cpu);
+  var lt=el('text',{x:CX,y:CY+14,'text-anchor':'middle','class':'w-hz'},cpu);lt.textContent=f+'Hz';
+  root.querySelector('[data-f]').textContent='クロック '+f+'Hz(1秒間に'+f+'コマ)';
+  return {root:root,f:f,chips:chips,ticks:ticks,lamp:lamp,n:0,fin:null,x:root.querySelector('[data-x]'),nEl:root.querySelector('[data-n]'),tEl:root.querySelector('[data-t]')};
+}
+function placeWheel(W,rot,top){
+  W.chips.forEach(function(cg,i){var an=(i*60-rot)*Math.PI/180;cg.setAttribute('transform','translate('+(CX+R*Math.sin(an)).toFixed(1)+','+(CY-R*Math.cos(an)).toFixed(1)+')');cg.classList.toggle('on',i===top)});
+  W.ticks.setAttribute('transform','rotate('+(-rot)+' '+CX+' '+CY+')');
+}
+var WH={};
+function hzSetup(){WH.A=buildWheel('#whA',HZBASE*2);WH.B=buildWheel('#whB',HZBASE*2*mult);['A','B'].forEach(function(k){var W=WH[k];placeWheel(W,-60,-1);W.x.textContent='―';W.nEl.textContent='0';W.tEl.textContent='0.0'})}
+function ease(u){return u<.35?1-Math.pow(1-u/.35,3):1}
+function hzFrame(t0){return function(now){
+  var t=(now-t0)/1000,all=true;
+  ['A','B'].forEach(function(k){var W=WH[k];if(W.fin!==null)return;all=false;
+    var ph=t*W.f,n=Math.min(JOBS,Math.floor(ph+1e-6)),u=ph-Math.floor(ph);
+    /* n回目のクロックで円盤がn-1コマ目から1コマ回り、上に来た命令を実行する */
+    var rot=n>=JOBS?(JOBS-1)*60:(n===0?-60:(n-2+ease(u))*60);
+    placeWheel(W,rot,n>=1&&(u>=.35||n>=JOBS)?(n-1)%6:-1);
+    if(n>W.n){W.n=n;W.nEl.textContent=n;W.x.textContent=CODE[(n-1)%6];W.lamp.classList.add('on');setTimeout(function(){W.lamp.classList.remove('on')},Math.min(150,400/W.f))}
+    W.tEl.textContent=t.toFixed(1);
+    if(n>=JOBS){W.fin=(JOBS/W.f).toFixed(1);W.tEl.textContent=W.fin;placeWheel(W,(JOBS-1)*60,(JOBS-1)%6)}
+  });
+  if(!all&&hzRun)hzRaf=requestAnimationFrame(hzFrame(t0));else if(all)hzEnd();
+}}
+function hzEnd(){hzRun=false;var b=$('#hzBtn');b.disabled=false;b.textContent='もう一度';
+  $('#hzV').innerHTML='<span class="badge" style="background:var(--amber)">結果</span><span>CPU A は '+WH.A.fin+'秒、CPU B は '+WH.B.fin+'秒。クロック周波数が'+mult+'倍のBは円盤を'+mult+'倍の速さで回し、同じ12個の命令を'+mult+'分の1の時間で実行しました。</span>'}
+function hzStop(){hzRun=false;cancelAnimationFrame(hzRaf);$('#hzBtn').disabled=false}
+function hzIntro(){$('#hzV').innerHTML='<span class="badge" style="background:var(--amber)">ポイント</span><span>クロックが1回刻まれるたびに円盤が1コマ回り、上の▼の位置に来た命令を実行します。スタートを押して、12個の命令を実行するまでを比べよう。</span>'}
+$('#hzBtn').addEventListener('click',function(){
+  hzStop();hzSetup();this.disabled=true;hzRun=true;
+  $('#hzV').innerHTML='<span class="badge" style="background:var(--amber)">ポイント</span><span>中央のランプが光るのがクロックの1回。Bは円盤が速く回るぶん、同じ時間にたくさんの命令を実行できます。</span>';
+  var t0=performance.now();hzRaf=requestAnimationFrame(hzFrame(t0));
+});
+$$('#multSeg button').forEach(function(b){b.addEventListener('click',function(){mult=+b.getAttribute('data-x');press('#multSeg',b);hzStop();hzSetup();$('#hzBtn').textContent='スタート';hzIntro()})});
+hzSetup();
+
+
+/* ========== コア: CPUの中の回るコマ ========== */
+var CF=2,CJ=12,cores=1,cRaf=0,cRun=false,cst=null;
+function cEl(tag,at,par){var e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(var k in at)e.setAttribute(k,at[k]);par.appendChild(e);return e}
+function coreBuild(){
+  var svg=$('#coreSvg');svg.innerHTML='';
+  var jobs=[],J0=20,JW=36,JG=4;
+  cEl('text',{x:20,y:14,'class':'lbl'},svg).textContent='待っている仕事(12個)';
+  for(var i=0;i<CJ;i++){var g=cEl('g',{'class':'job',transform:'translate('+(J0+i*(JW+JG)+JW/2)+',34)'},svg);cEl('rect',{x:-JW/2,y:-12,width:JW,height:24,rx:5},g);cEl('text',{x:0,y:4,'text-anchor':'middle'},g).textContent=i+1;jobs.push(g)}
+  var X0=120,Y0=64,W=280,H=182;
+  for(var p=0;p<8;p++){var px=X0+24+p*33;cEl('line',{x1:px,y1:Y0-8,x2:px,y2:Y0,'class':'pin'},svg);cEl('line',{x1:px,y1:Y0+H,x2:px,y2:Y0+H+8,'class':'pin'},svg)}
+  for(p=0;p<5;p++){var py=Y0+22+p*34;cEl('line',{x1:X0-8,y1:py,x2:X0,y2:py,'class':'pin'},svg);cEl('line',{x1:X0+W,y1:py,x2:X0+W+8,y2:py,'class':'pin'},svg)}
+  cEl('rect',{x:X0,y:Y0,width:W,height:H,rx:12,'class':'pk'},svg);
+  cEl('text',{x:X0+10,y:Y0+18,'class':'lbl'},svg).textContent='CPU';
+  var pos=cores===1?[[260,158]]:cores===2?[[200,158],[320,158]]:[[200,114],[320,114],[200,200],[320,200]];
+  var r=cores===4?30:44,tile=cores===4?80:108,cs=[];
+  pos.forEach(function(q,i){
+    cEl('rect',{x:q[0]-tile/2,y:q[1]-tile/2,width:tile,height:tile,rx:10,'class':'tile'},svg);
+    cEl('text',{x:q[0]-tile/2+6,y:q[1]-tile/2+13,'class':'lbl',style:'font-size:10.5px'},svg).textContent='コア'+(i+1);
+    cEl('circle',{cx:q[0],cy:q[1]+4,r:r,'class':'disk'},svg);
+    var rot=cEl('g',{},svg);
+    for(var k=0;k<6;k++){var an=k*60*Math.PI/180;cEl('circle',{cx:q[0]+(r-7)*Math.sin(an),cy:q[1]+4-(r-7)*Math.cos(an),r:cores===4?3.5:4.5,'class':'spoke'+(k===0?' top':'')},rot)}
+    var cur=cEl('text',{x:q[0],y:q[1]+9,'text-anchor':'middle','class':'cur'},svg);
+    cs.push({x:q[0],y:q[1]+4,rot:rot,cur:cur});
+  });
+  cst={jobs:jobs,cs:cs,b:-1};
+  $('#coreT').textContent='0.0';
+}
+function cEase(u){return u<.35?1-Math.pow(1-u/.35,3):1}
+function coreFrame(t0){return function(now){
+  var t=(now-t0)/1000,batches=Math.ceil(CJ/cores),b=Math.floor(t*CF+1e-6),u=t*CF-b;
+  if(b>=batches){coreEnd((batches/CF).toFixed(1));return}
+  if(b!==cst.b){cst.b=b;
+    cst.jobs.forEach(function(g,i){var bb=Math.floor(i/cores);g.classList.toggle('dn',bb<b);g.classList.toggle('wk',bb===b)});
+    cst.cs.forEach(function(c,i){var j=b*cores+i;c.cur.textContent=j<CJ?String(j+1):''});
+  }
+  cst.cs.forEach(function(c){c.rot.setAttribute('transform','rotate('+((b+cEase(u))*60).toFixed(1)+' '+c.x+' '+c.y+')')});
+  $('#coreT').textContent=t.toFixed(1);
+  if(cRun)cRaf=requestAnimationFrame(coreFrame(t0));
+}}
+function coreEnd(sec){
+  cRun=false;cst.jobs.forEach(function(g){g.classList.remove('wk');g.classList.add('dn')});cst.cs.forEach(function(c){c.cur.textContent='✓'});
+  $('#coreT').textContent=sec;var btn=$('#coreBtn');btn.disabled=false;btn.textContent='もう一度';
+  var rr=document.querySelector('.rr[data-c="'+cores+'"]');rr.querySelector('i').style.width=(sec/6*100)+'%';rr.querySelector('output').textContent=sec+'秒';
+  $('#coreV').innerHTML='<span class="badge" style="background:var(--run)">結果</span><span>'+cores+'コアで '+sec+'秒。'+(cores===1?'1つのコマが12個の仕事を順に片づけました。':cores+'個のコマが'+cores+'個ずつ同時に進めたので、1コアの'+cores+'分の1の時間で終わりました。')+'</span>';
+}
+function coreStop(){cRun=false;cancelAnimationFrame(cRaf);$('#coreBtn').disabled=false}
+$('#coreBtn').addEventListener('click',function(){coreStop();coreBuild();this.disabled=true;cRun=true;
+  $('#coreV').innerHTML='<span class="badge" style="background:var(--run)">ポイント</span><span>オレンジが処理中、赤が終わった仕事。コマが1コマ回るごとに、どのコアも仕事を1つずつ終えます。</span>';
+  var t0=performance.now();cRaf=requestAnimationFrame(coreFrame(t0))});
+$$('#coreSeg button').forEach(function(b){b.addEventListener('click',function(){cores=+b.getAttribute('data-c');press('#coreSeg',b);coreStop();coreBuild();$('#coreBtn').textContent='スタート';
+  $$('.rr').forEach(function(r){r.classList.toggle('now',+r.getAttribute('data-c')===cores)})})});
+coreBuild();$$('.rr')[0].classList.add('now');
+
+/* ========== 言語: ソースコードと機械語 ========== */
+var SRC='<span class="cm">// C言語のソースコード</span>\n<span class="k">#include</span> &lt;stdio.h&gt;\n\n<span class="k">int</span> main(<span class="k">void</span>)\n{\n    printf(<span class="s">"Hello, world!\\n"</span>)SEMI\n    <span class="k">return</span> 0;\n}';
+var MC='<span class="hex">7F 45 4C 46 02 01 01 00  00 00 00 00 00 00 00 00\n03 00 3E 00 01 00 00 00  60 10 00 00 00 00 00 00\n40 00 00 00 00 00 00 00  E8 36 00 00 00 00 00 00\n00 00 00 00 40 00 38 00  0D 00 40 00 1F 00 1E 00\n06 00 00 00 04 00 00 00  40 00 00 00 00 00 00 00\nF3 0F 1E FA 55 48 89 E5  48 8D 05 AC 0E 00 00 48\n89 C7 E8 F0 FE FF FF B8  00 00 00 00 5D C3 …</span>';
+var view='src';
+function renderCode(){
+  var bug=$('#bugSwitch').checked;
+  $('#codeView').innerHTML=view==='src'?SRC.replace('SEMI',bug?'<span class="miss">␣</span>':';'):MC;
+  var b=$('#vBadge');
+  if(bug){b.textContent='エラー';b.className='badge ng';$('#vWhy').textContent='6行目の最後の「;」を1文字書き忘れただけで、翻訳の段階でエラーになり、プログラムは動きません。これがバグです。'}
+  else{b.textContent='実行できる';b.className='badge';$('#vWhy').textContent=view==='src'?'実行結果：Hello, world!　英単語や記号で書かれているので、人間にも意味が想像できます。':'CPUが直接実行できる形です。数字の羅列なので、人間が読み書きするのはとても大変です。'}
+}
+$$('#viewSeg button').forEach(function(b){b.addEventListener('click',function(){view=b.getAttribute('data-v');press('#viewSeg',b);renderCode()})});
+$('#bugSwitch').addEventListener('change',function(){if(this.checked){view='src';press('#viewSeg',$('#viewSeg button'))}renderCode()});
+renderCode();
+
+
+/* ========== 言語2: ユーザ・ソースコード・機械語のつながり ========== */
+var FSTEP=[
+ {n:['fnUser','fnKb','fnDisp'],e:[0],t:'<b>書く</b>　ユーザが、キーボードとマウスで入力し、ディスプレイで見ながらソースコードを書きます。'},
+ {n:['fnDisp','fnTun','fnMc'],e:[1],t:'<b>翻訳</b>　ソースコードがコンピュータ本体の「翻訳」を通り抜けると、機械語に姿を変えます。'},
+ {n:['fnMc','fnCpu'],e:[2],t:'<b>実行</b>　機械語になった命令がCPUへ。CPUが1つずつ実行します。'},
+ {n:['fnCpu','fnDisp','fnUser'],e:[3,4],t:'<b>表示</b>　実行した結果がディスプレイに表示され、書いたのと同じユーザがそれを見ます。'}];
+var fRaf=0,fPlay=false,fStep=-1,CODE1='printf(',CODE2='"Hello!");';
+function flowSet(i){fStep=i;
+  $$('#flowSvg .fl-zone').forEach(function(z){z.classList.toggle('on',i===1||i===2)});
+  $$('#flowSvg .fl-node').forEach(function(n){n.classList.toggle('on',i>=0&&FSTEP[i].n.indexOf(n.id)>=0)});
+  $$('#flowSvg .fl-edges path').forEach(function(p,k){p.classList.toggle('on',i>=0&&FSTEP[i].e.indexOf(k)>=0)});
+  $$('#flowSeg button').forEach(function(b){b.setAttribute('aria-pressed',+b.getAttribute('data-s')===i)});
+  if(i>=0)$('#flowV').innerHTML='<span class="badge" style="background:var(--lng)">'+(i+1)+'</span><span>'+FSTEP[i].t+'</span>';
+}
+function dispShow(res,n){$('#dispCode').style.display=res?'none':'';$('#dispRes').style.display=res?'':'none';
+  if(!res){var all=CODE1.length+CODE2.length,k=n===undefined?all:n;$('#dc1').textContent=CODE1.slice(0,Math.min(k,CODE1.length));$('#dc2').textContent=CODE2.slice(0,Math.max(0,k-CODE1.length))}}
+function tokShow(kind){var t=$('#tok');t.style.display=kind?'':'none';if(kind)[].forEach.call(t.querySelectorAll('.tk'),function(g){g.style.display=g.classList.contains(kind)?'':'none'})}
+function along(path,dur,each,done){var len=path.getTotalLength(),t0=performance.now();
+  (function f(now){var u=Math.min(1,(now-t0)/dur),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,pt=path.getPointAtLength(e*len);each(pt,u);
+    if(u<1)fRaf=requestAnimationFrame(f);else done&&done()})(t0)}
+function flowMove(i,done){
+  cancelAnimationFrame(fRaf);var D=RM?1:1600,tok=$('#tok');
+  function at(pt){tok.setAttribute('transform','translate('+pt.x.toFixed(1)+','+pt.y.toFixed(1)+')')}
+  if(i===0){tokShow(null);dispShow(false,0);var all=CODE1.length+CODE2.length,t0=performance.now();
+    (function f(now){var u=Math.min(1,(now-t0)/D);dispShow(false,Math.round(u*all));if(u<1)fRaf=requestAnimationFrame(f);else done&&done()})(t0)}
+  else if(i===1){dispShow(false);tokShow('src');along($('#fe1'),D*1.5,function(pt){at(pt);if(pt.x>380)tokShow('mc')},function(){tokShow(null);done&&done()})}
+  else if(i===2){dispShow(false);tokShow('mc');along($('#fe2t'),D,at,function(){tokShow(null);var l=$('#cpuLamp');l.classList.add('on');setTimeout(function(){l.classList.remove('on')},700);done&&done()})}
+  else{dispShow(false);tokShow('res');along($('#fe3'),D*1.2,at,function(){tokShow(null);dispShow(true);done&&done()})}
+}
+function flowStop(){fPlay=false;cancelAnimationFrame(fRaf);clearTimeout(flowStop.tm);$('#flowPlay').textContent='再生'}
+function flowGo(i){flowSet(i);flowMove(i,function(){if(fPlay){flowStop.tm=setTimeout(function(){if(!fPlay)return;if(i<3)flowGo(i+1);else flowStop()},900)}})}
+$('#flowPlay').addEventListener('click',function(){if(fPlay){flowStop();return}fPlay=true;this.textContent='止める';flowGo(0)});
+$$('#flowSeg button').forEach(function(b){b.addEventListener('click',function(){flowStop();flowGo(+b.getAttribute('data-s'))})});
+dispShow(false);
+
+/* ========== 翻訳: コンパイラとインタプリタ ========== */
+var SL=['x = 0','3回くり返す:','  x = x + 1','  表示する(x)','表示する("おわり")'];
+var ML=['B8 00 00 00','B9 03 00 00','83 C0 01','E8 1A 2F 00','E8 2C 3F 00'];
+var ORDER=[0,1,2,3,1,2,3,1,2,3,4],TR=RM?80:420,EX=RM?40:110,lanes={};
+function build(id){var el=$(id);el.innerHTML='';SL.forEach(function(s,i){var d=document.createElement('div');d.className='ln';d.innerHTML='<span class="src">'+s+'</span><span class="ar">→</span><span class="mc">'+ML[i]+'</span>';el.appendChild(d)});return [].slice.call(el.children)}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function timer(k){var t0=performance.now(),on=true;(function f(){if(!on)return;$('#t'+k).textContent=((performance.now()-t0)/1000).toFixed(1);requestAnimationFrame(f)})();return function(){on=false;var v=((performance.now()-t0)/1000).toFixed(1);$('#t'+k).textContent=v;return v}}
+async function runC(){
+  var L=lanes.C,stop=timer('C');$('#stC').textContent='翻訳(コンパイル)中…';
+  for(var i=0;i<L.length;i++){var s=L[i].children[0];s.classList.add('tr');await sleep(TR);s.classList.remove('tr');L[i].children[2].classList.add('made');$('#barC').style.width=(i+1)/L.length*45+'%'}
+  $('#stC').textContent='機械語を実行中…';
+  for(var j=0;j<ORDER.length;j++){var m=L[ORDER[j]].children[2];m.classList.add('go');await sleep(EX);m.classList.remove('go');$('#barC').style.width=45+(j+1)/ORDER.length*55+'%'}
+  $('#stC').textContent='完了！';return stop();
+}
+async function runI(){
+  var L=lanes.I,stop=timer('I');
+  for(var j=0;j<ORDER.length;j++){var r=L[ORDER[j]],s=r.children[0],m=r.children[2];
+    $('#stI').textContent=(j+1)+'/'+ORDER.length+' 解釈して実行';
+    s.classList.add('tr');await sleep(TR*.55);s.classList.remove('tr');
+    m.classList.add('made','go');await sleep(EX);m.classList.remove('go','made');
+    $('#barI').style.width=(j+1)/ORDER.length*100+'%'}
+  $('#stI').textContent='完了！';return stop();
+}
+function resetRace(){lanes={C:build('#laneC'),I:build('#laneI')};$('#barC').style.width=$('#barI').style.width='0';$('#tC').textContent=$('#tI').textContent='0.0';$('#stC').textContent=$('#stI').textContent='待機中'}
+resetRace();
+$('#raceBtn').addEventListener('click',async function(){
+  var b=this;b.disabled=true;resetRace();
+  $('#raceV').innerHTML='<span class="badge" style="background:var(--trn)">ポイント</span><span>よく見よう。インタプリタは、くり返しのたびに同じ行を解釈し直しています。</span>';
+  var r=await Promise.all([runC(),runI()]);
+  $('#raceV').innerHTML='<span class="badge" style="background:var(--trn)">結果</span><span>コンパイラ '+r[0]+'秒、インタプリタ '+r[1]+'秒。一度翻訳してしまえば、機械語のまま速く実行できます。ただし、インタプリタは翻訳の手間なくすぐに動かし始められます。</span>';
+  b.disabled=false;b.textContent='もう一度';
+});
+
+
+/* ========== まとめ: パソコン画面風の手順 ========== */
+var PCT=['スタートボタン(点線の囲み)を押して、スタートメニューの「設定」を開きます。',
+ '設定の画面が開いたら、左の一覧から「システム」を選びます。',
+ 'システムの項目を下までスクロールして、「バージョン情報」を開きます。',
+ '「デバイスの仕様」の「プロセッサ」の欄を見ます。「2.40GHz」なら、1秒間に約24億回の基本的な動作をしています。'];
+var pcS=0;
+function pcShow(n){pcS=Math.max(0,Math.min(3,n));
+  $$('.scene').forEach(function(sc){sc.hidden=+sc.getAttribute('data-s')!==pcS});
+  $$('#pcSeg button').forEach(function(b){b.setAttribute('aria-pressed',+b.getAttribute('data-s')===pcS)});
+  $('#pcNo').textContent='手順'+(pcS+1);$('#pcTxt').textContent=PCT[pcS];
+  $('#pcPrev').disabled=pcS===0;$('#pcNext').textContent=pcS===3?'最初から':'次へ →';}
+$$('#pcSeg button').forEach(function(b){b.addEventListener('click',function(){pcShow(+b.getAttribute('data-s'))})});
+$('#pcPrev').addEventListener('click',function(){pcShow(pcS-1)});
+$('#pcNext').addEventListener('click',function(){pcShow(pcS===3?0:pcS+1)});
+pcShow(0);
+
+/* ========== 確認クイズ ========== */
+var QCAT={run:'実行',lng:'言語',trn:'翻訳'};
+var Q=[
+ {q:'CPUに複数のコアがあると、どうなる？',o:['同時にたくさんの計算を実行できる','メモリの容量が増える','時計が正確になる'],a:0,e:'コアは処理の中核。多いほど仕事を分担して同時に計算できます。',c:'run'},
+ {q:'CPUが1秒間に基本的な動作を何回おこなうかを示す値は？',o:['コア','クロック周波数','番地'],a:1,e:'単位はHz(ヘルツ)。時計の精度を表す数字ではありません。',c:'run'},
+ {q:'クロック周波数が1GHzのCPUは、1秒間に約何回の基本的な動作をおこなう？',o:['約1000回','約100万回','約10億回'],a:2,e:'1GHzは10億Hz。1秒間に約10億回です。',c:'run'},
+ {q:'クロック周波数が2倍になると、同じ時間にできる基本的な動作の回数は？',o:['半分になる','変わらない','2倍になる'],a:2,e:'リズムが2倍速くなるので、同じ時間に2倍の回数の動作ができます。',c:'run'},
+ {q:'1GHzのCPUで、基本的な動作1回にかかる時間は？',o:['1000分の1秒','100万分の1秒','10億分の1秒'],a:2,e:'1秒間に10億回なので、1回あたり10億分の1秒(1ナノ秒)です。',c:'run'},
+ {q:'CPUに与える命令で、数字の羅列で書かれ、CPUの種類によって異なるものは？',o:['ソースコード','機械語','プログラミング言語'],a:1,e:'機械語はAIの言語ではなく、CPUに与える命令です。',c:'lng'},
+ {q:'プログラムの「設計図」にたとえられるものは？',o:['ソースコード','機械語','バグ'],a:0,e:'プログラミング言語で書かれたプログラムがソースコードです。',c:'lng'},
+ {q:'プログラミング言語を使うと、人間にもわかりやすくプログラムを書くことができる。',o:['○','×'],a:0,e:'CPUの種類を気にせず、人間にわかりやすく書けるように考え出されました。',c:'lng'},
+ {q:'インタプリタは、ソースコードを機械語に翻訳してから実行する。',o:['○','×'],a:1,e:'先に翻訳してから実行するのはコンパイラ。インタプリタは解釈しながら実行します。',c:'trn'},
+ {q:'高速な処理やハードウェアの制御によく使われ、コンパイラで機械語に翻訳してから実行することが多い言語は？',o:['Python','Scratch','C、C++'],a:2,e:'C、C++はコンパイラで翻訳してから実行することが多い言語です。',c:'trn'},
+ {q:'表計算ソフトの処理を自動化するのに使われる言語は？',o:['VBA','JavaScript','Scratch'],a:0,e:'VBAは表計算マクロ言語の例です。Googleスプレッドシートでは GAS を使います。',c:'trn'},
+ {q:'おもにWebページのなかで動作するプログラムの作成に用いられる言語は？',o:['Python','JavaScript','C、C++'],a:1,e:'JavaScriptはWebページで動くプログラムに使われます。',c:'trn'}
+];
+var MARU='<svg class="maru" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 6C25 6 8 24 8 46C8 66 26 82 50 82C72 82 90 68 90 48C90 30 76 16 58 14" style="fill:none;stroke:#E31E24;stroke-width:11;stroke-linecap:round;stroke-linejoin:round"/></svg>';
+var qz=$('#qz'),done=0,score=0;
+Q.forEach(function(q,qi){
+  var fs=document.createElement('div');fs.className='q';
+  fs.innerHTML='<p class="qq">Q'+(qi+1)+'. '+q.q+' <span class="qcat" hidden style="color:var(--'+q.c+')">【'+QCAT[q.c]+'】</span></p><div class="opts"></div><p class="exp" hidden></p>';
+  var box=fs.querySelector('.opts');
+  q.o.forEach(function(t,oi){var b=document.createElement('button');b.type='button';b.textContent=t;
+    b.addEventListener('click',function(){
+      var bs=box.querySelectorAll('button');bs.forEach(function(x){x.disabled=true});
+      bs[q.a].classList.add('ok');if(oi!==q.a)b.classList.add('bad');else score++;
+      var ex=fs.querySelector('.exp');ex.hidden=false;
+      if(oi===q.a){ex.innerHTML=MARU+'正解！ '+q.e}else{ex.textContent='おしい。 '+q.e}
+      fs.querySelector('.qcat').hidden=false;
+      done++;$('#score').textContent=score+' / '+Q.length+' 問正解'+(done===Q.length?(score===Q.length?'。全問正解です！':'。それぞれのページに戻って確かめよう。'):'');
+    });box.appendChild(b)});
+  qz.appendChild(fs);
+});
+
+/* ページ切り替え */
+$$('.pager [data-go]').forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-go'))})});
+var ids=['run','hz','core','lng','lng2','trn','sum','check'],links=$$('#pnav a');
+function show(id){
+  if(ids.indexOf(id)<0)id=ids[0];
+  ids.forEach(function(k){$('#'+k).classList.toggle('on',k===id)});
+  var grp=(id==='hz'||id==='core')?'run':(id==='lng2'?'lng':id);links.forEach(function(a){if(a.getAttribute('href')==='#'+grp)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  $('#'+id).scrollTop=0;window.scrollTo(0,0);
+  if(id!=='run')stopAuto();
+  if(id!=='hz')hzStop();
+  if(id!=='core')coreStop();
+  if(id!=='lng2')flowStop();
+  if(id==='hz'){$$('#ladder .lb i').forEach(function(i){i.style.animation='none';void i.offsetWidth;i.style.animation=''})}
+}
+function curPage(){for(var i=0;i<ids.length;i++)if($('#'+ids[i]).classList.contains('on'))return i;return 0}
+links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();show(a.getAttribute('href').slice(1))})});
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey)return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();show(ids[Math.min(ids.length-1,curPage()+1)])}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(ids[Math.max(0,curPage()-1)])}
+});
+show((location.hash||'').slice(1));
+})();
+</script>
+
+<script>document.write('<script src="hub_config.js?v=' + Date.now() + '"><\/script>');</script>
+<script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
+/* =====================================================================
+   Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
+   ・項目の一覧と、クラスごとの表示は hub_config.js に書く（そちらを直す）
+   ・hub_config.js が読めないとき（zip を展開せずに開いたなど）は、下の DEF_ITEMS を使う
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var DEF_ITEMS = [
+    // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
+    { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
+    { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
+    { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
+    { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
+    { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
+    { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
+    { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
+  ];
+  var CFG = window.HUB_CONFIG || {};
+  var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
+  var SHOW = CFG.show || {};
+
+  // 班PCにつくもの。type：hard（ハード）・soft（ソフト）・cable（ケーブル）。can：できるようになること
+  var GEAR = {
+    board:   { type: 'hard',  name: 'マザーボード', can: 'ぶひんをつなぐ土台ができた' },
+    cpu:     { type: 'hard',  name: 'CPU',         can: 'プログラムの命令を実行できるようになった' },
+    mem:     { type: 'hard',  name: 'メモリ',       can: '作業中のデータを、一時的におぼえておけるようになった' },
+    psu:     { type: 'hard',  name: '電源ユニット', can: 'コンセントの電気を、班PCで使える電気に変えられるようになった' },
+    hdd:     { type: 'hard',  name: 'HDD',         can: 'データを保存できるようになった（でも読み書きは少しおそい）' },
+    ssd:     { type: 'hard',  name: 'SSD',         can: 'データを保存できるようになった（HDDより速く読み書きできる）' },
+    disp:    { type: 'hard',  name: 'ディスプレイ', can: '結果を画面に映せるようになった' },
+    kbd:     { type: 'hard',  name: 'キーボード',   can: '文字を入力できるようになった' },
+    mouse:   { type: 'hard',  name: 'マウス',       can: '画面の中を指して、操作できるようになった' },
+    router:  { type: 'hard',  name: 'ルータ',       can: '班PCのネットワークと、インターネットを中継できるようになった' },
+    spk:     { type: 'hard',  name: 'スピーカー',   can: '音を出せるようになった' },
+    cam:     { type: 'hard',  name: 'Webカメラ',    can: '映像を取りこめるようになった' },
+    os:      { type: 'soft',  name: 'OS',          can: 'ハードウェアとアプリの仲立ちをする、基本のソフトが入った' },
+    browser: { type: 'soft',  name: 'Webブラウザ', can: 'Webページを見られるようになった（HTTPで通信）' },
+    doc:     { type: 'soft',  name: '文書アプリ',   can: '文章を書いて、保存できるようになった' },
+    sheet:   { type: 'soft',  name: '表計算アプリ', can: '表やグラフを作れるようになった' },
+    tcpip:   { type: 'soft',  name: 'TCP/IP',      can: 'インターネットの通信のきまり（プロトコル）で、データをやりとりできるようになった' },
+    mail:    { type: 'soft',  name: 'メールアプリ', can: 'メールサーバとやりとりして、メールを送ったり受け取ったりできるようになった' },
+    sec:     { type: 'soft',  name: '暗号化（HTTPS）', can: '通信を暗号にして、安全にやりとりできるようになった' },
+    pwr:     { type: 'cable', name: '電源コード',   can: 'コンセントから、班PCに電気が来るようになった' },
+    hdmi:    { type: 'cable', name: 'HDMIケーブル', can: '本体とディスプレイがつながった' },
+    usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
+    lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
+  };
+  var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
+
+  // 絵（viewBox 0 0 360 250）
+  var PART_SVG = {
+    disp:  '<rect x="16" y="18" width="178" height="118" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="3"/><rect class="pcScreen" x="26" y="28" width="158" height="96" rx="3" fill="#0ea5e9"/><rect x="92" y="136" width="26" height="16" fill="#334155"/><rect x="70" y="150" width="70" height="8" rx="3" fill="#475569"/>',
+    cam:   '<rect x="95" y="8" width="20" height="10" rx="4" fill="#334155"/><circle cx="105" cy="13" r="3" fill="#38bdf8"/>',
+    spk:   '<rect x="200" y="96" width="22" height="58" rx="5" fill="#475569"/><circle cx="211" cy="112" r="6" fill="#1e293b"/><circle cx="211" cy="137" r="8" fill="#1e293b"/>',
+    router:'<rect x="198" y="44" width="34" height="16" rx="3" fill="#334155"/><g fill="#4ade80"><circle cx="205" cy="52" r="1.6"/><circle cx="211" cy="52" r="1.6"/><circle cx="217" cy="52" r="1.6"/></g><line x1="204" y1="44" x2="201" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/><line x1="226" y1="44" x2="229" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
+    kbd:   '<rect x="22" y="172" width="160" height="30" rx="5" fill="#cbd5e1"/><g fill="#94a3b8"><rect x="30" y="178" width="144" height="5" rx="1"/><rect x="30" y="186" width="144" height="5" rx="1"/><rect x="60" y="194" width="84" height="4" rx="1"/></g>',
+    mouse: '<ellipse cx="204" cy="188" rx="10" ry="15" fill="#cbd5e1"/><line x1="204" y1="174" x2="204" y2="184" stroke="#94a3b8" stroke-width="2"/>',
+    board: '<rect x="244" y="34" width="90" height="120" rx="3" fill="#15803d"/><g stroke="#4ade80" stroke-width="1.2" opacity=".7"><path d="M250 44 h30 v20 M326 44 v40 h-20 M252 140 h40 v-12 M320 146 h-16"/></g>',
+    cpu:   '<rect x="266" y="54" width="30" height="30" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/><rect x="273" y="61" width="16" height="16" rx="2" fill="#334155"/>',
+    mem:   '<rect x="306" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><rect x="317" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><g fill="#facc15"><rect x="307" y="96" width="5" height="6"/><rect x="318" y="96" width="5" height="6"/></g>',
+    ssd:   '<rect x="248" y="162" width="34" height="14" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/><rect x="253" y="166" width="14" height="6" fill="#38bdf8"/>',
+    hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
+    psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
+    // ソフト（左下の棚。ディスクの形）
+    os:      '<circle cx="34" cy="232" r="11" fill="#e2e8f0"/><circle cx="34" cy="232" r="3" fill="#94a3b8"/><text x="50" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="84" cy="232" r="11" fill="#38bdf8"/><circle cx="84" cy="232" r="3" fill="#0369a1"/><text x="100" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="140" cy="232" r="11" fill="#60a5fa"/><circle cx="140" cy="232" r="3" fill="#1d4ed8"/><text x="156" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="194" cy="232" r="11" fill="#4ade80"/><circle cx="194" cy="232" r="3" fill="#15803d"/><text x="210" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    // ケーブル
+    pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
+    hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
+    usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
+    lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
+  };
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'pwr', 'hdmi', 'usb', 'lan'];
+  var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
+  var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
+
+  var KEY = 'droneHub_v1';
+  var TEAM_KEY = 'droneLessonTeam_set5';   // 脱出ゲームの記録（班・名前・ポイント）
+
+  function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function rec() { var r = read(KEY); if (!r || typeof r !== 'object') r = {}; if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = []; return r; }
+  function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できない環境 */ } }
+  function item(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
+
+  // 脱出ゲームの「自分」の記録（部屋2のクリア）
+  function ledgerCleared(key) {
+    var t = read(TEAM_KEY);
+    if (!t || t.me === null || t.me === undefined || !t.ledger) return false;
+    var l = t.ledger[t.me] || {};
+    return !!l[key];
+  }
+  function rawCleared(r, it) { return !!(r.cleared[it.id] || (it.ledger && ledgerCleared(it.ledger))); }
+  // クリアした順（ぶひんの順）を記録にそろえる
+  function sync() {
+    var r = rec(), changed = false;
+    ITEMS.forEach(function (it) { if (rawCleared(r, it) && r.order.indexOf(it.id) < 0) { r.order.push(it.id); changed = true; } });
+    if (changed) save(r);
+    return r;
+  }
+  function isCleared(id) { var it = item(id); return !!it && rawCleared(rec(), it); }
+  function clear(id) {
+    var r = rec();
+    if (!r.cleared[id]) r.cleared[id] = Date.now();
+    if (r.order.indexOf(id) < 0) r.order.push(id);
+    save(r);
+  }
+  function isOpen(id) {
+    var it = item(id); if (!it || !it.file) return false;
+    return (it.needs || []).every(isCleared);
+  }
+  function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
+  // 手に入ったもの（手に入れた順）
+  function parts() {
+    return sync().order.map(item).filter(function (it) { return it && GEAR[it.gives]; }).map(function (it) {
+      var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
+    });
+  }
+  // その項目で手に入ったもの（まだなら null）
+  function part(id) { var x = parts().filter(function (p) { return p.item === id; })[0]; return x ? x.part : null; }
+  // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
+  var LOCK = 'droneGroupLock';
+  function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
+  function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
+  function team() {
+    var t = read(TEAM_KEY) || {};
+    var g = lockedGroup() || t.group || '';
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (t.names[t.me] || '') : '' };
+  }
+  // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
+  function visible(id) {
+    var c = team().cls, list = (c && SHOW[c]) || SHOW['default'];
+    if (!list || list === 'all') return true;
+    return list.indexOf(id) >= 0;
+  }
+
+  // 班PCの絵：手に入れたものは色つき、まだのものは点線。hi のものは光らせる
+  // 実際のパソコンと同じように、そろったもので動き方が決まる
+  //   電源（電源ユニット＋電源コード）→ マザーボード・CPU・メモリ で動き出す → SSD（OS）で起動
+  //   → ディスプレイ＋HDMIケーブル で画面に映る → キーボード・マウス＋USBケーブル で操作できる
+  function owned() { var own = {}; parts().forEach(function (p) { own[p.id] = 1; }); return own; }
+  function pcState(own) {
+    own = own || owned();
+    var store = own.ssd || own.hdd;
+    var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
+    var shown = boot && own.disp && own.hdmi, usable = shown && own.kbd && own.mouse && own.usb;
+    var net = usable && own.lan && own.router && own.tcpip;
+    var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
+    var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
+    if (!Object.keys(own).length) return m(0, 'まだ ぶひん がない');
+    if (!own.psu) return m(1, '電源が入らない（電源ユニットがない）');
+    if (!own.pwr) return m(1, 'コンセントにつながっていないので、電気が来ない（電源コードがない）');
+    if (!own.board) return m(1, 'ぶひんをつなぐ土台がないので、動かない（マザーボードがない）');
+    if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので起動できない（メモリがない）');
+    if (!store) return m(2, '動き出したが、データをしまう場所がない（SSD か HDD がない）');
+    if (!own.os) return m(2, '動き出したが、OS が入っていないので起動できない（OS がない）');
+    var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
+    if (!own.disp) return m(3, '起動したが、画面がないので何も見えない（ディスプレイがない）' + slow);
+    if (!own.hdmi) return m(3, '起動したが、ディスプレイにつながっていないので映らない（HDMIケーブルがない）');
+    if (!own.kbd || !own.mouse) return m(4, '画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
+    if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
+    return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
+  }
+  function pcSvg(hi, cls) {
+    var own = owned(), st = pcState(own);
+    var order = DRAW_ORDER;
+    var g = order.map(function (k) {
+      var has = !!own[k];
+      return '<g class="' + (has ? 'pcHas' : 'pcGhost') + (k === hi ? ' pcHi' : '') + '">' + PART_SVG[k] + '</g>';
+    }).join('');
+    return '<svg class="' + (cls || 'pcSvg') + '" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班PCの完成状況">' +
+      '<style>.pcGhost *{fill:none!important;stroke:#64748b!important;stroke-width:1.3!important;stroke-dasharray:4 3}.pcGhost{opacity:.55}.pcGhost text{fill:#64748b!important;stroke:none!important}' +
+      '.pcHi{animation:pcHi 1.2s ease-in-out infinite}.pcHi path{stroke-width:5!important}@keyframes pcHi{0%,100%{filter:drop-shadow(0 0 0 #facc15)}50%{filter:drop-shadow(0 0 6px #facc15)}}' +
+      (st.shown ? '' : '.pcHas .pcScreen{fill:#020617!important}') + '@media (prefers-reduced-motion:reduce){.pcHi{animation:none;filter:drop-shadow(0 0 4px #facc15)}}</style>' +
+      OUTLETS + CASE_SVG + g +
+      (own.disp && own.hdmi && st.post && !st.boot ? '<text x="34" y="46" font-size="9" font-weight="700" fill="#e2e8f0" font-family="ui-monospace,Consolas,monospace">No bootable device.</text><text x="34" y="60" font-size="9" fill="#94a3b8" font-family="ui-monospace,Consolas,monospace">Insert boot disk_</text>' : '') +
+      (st.shown ? '<g font-family="system-ui,sans-serif"><text x="105" y="80" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">' + (st.usable ? '班PC Ready!' : 'Hello!') + '</text><g fill="#e0f2fe" opacity=".85"><rect x="34" y="34" width="14" height="12" rx="2"/><rect x="34" y="52" width="14" height="12" rx="2"/><rect x="34" y="70" width="14" height="12" rx="2"/></g><rect x="26" y="114" width="158" height="10" fill="#0369a1"/></g>' : '') +
+      (st.power && own.board ? '<circle cx="330" cy="30" r="3" fill="' + (st.post ? '#4ade80' : '#f59e0b') + '"/>' : '') + (st.shown && st.web ? '<text x="180" y="121" text-anchor="end" font-size="9" fill="#fff" font-family="system-ui,sans-serif">🌐</text>' : '') + (st.shown ? '<text x="30" y="121" font-size="7" fill="#e0f2fe" font-family="system-ui,sans-serif">' + (st.fast ? 'SSD' : 'HDD') + '</text>' : '') +
+      '</svg>';
+  }
+
+  // ぶひんのカード（どのページのデザインにも合うよう、スタイルは中に書く）
+  function partCard(id, opt) {
+    var p = part(id); if (!p) return '';
+    opt = opt || {};
+    var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
+    return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
+      '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
+      '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
+      '<div style="margin-top:6px;font-size:13px;color:#94a3b8">いまの班PC：' + pcState().msg + '</div>' +
+      (opt.link === false ? '' : '<a href="index.html" style="display:inline-block;margin-top:8px;background:#0ea5e9;color:#fff;border-radius:10px;padding:6px 16px;text-decoration:none">📱 Tの端末にもどる</a>') +
+      '</div>';
+  }
+
+  // えほん：確認クイズを見張って、全問正解ならぶひんを出す。まちがいがあれば「もう一度」
+  function autoQuiz(id) {
+    function setup() {
+      var score = document.getElementById('score');
+      if (!score) return;
+      var box = document.createElement('div');
+      box.id = 'hubBox';
+      var host = score.closest ? score.closest('.qhead') : null;
+      (host && host.parentNode ? host.parentNode : score.parentNode).insertBefore(box, host ? host.nextSibling : score.nextSibling);
+      var page = score.parentNode && score.parentNode.closest ? score.parentNode.closest('[id]') : null;
+      function retry() {
+        location.hash = page ? page.id : '';
+        location.reload();
+      }
+      var note = function (t) { return '<div style="margin:10px auto;max-width:560px;text-align:center;font:700 14px/1.6 system-ui,sans-serif;color:#64748b">' + t + '</div>'; };
+      function update() {
+        var t = score.textContent || '';
+        if (t.indexOf('全問正解') >= 0) { clear(id); box.innerHTML = partCard(id); return; }
+        if (/問正解。/.test(t)) {
+          box.innerHTML = '<div style="margin:12px auto;max-width:560px;text-align:center;font:700 15px/1.7 system-ui,sans-serif;color:#475569">全問正解で、班PCの ぶひん が手に入る。' +
+            '<br><button type="button" id="hubRetryBtn" style="margin-top:6px;font:inherit;background:#0ea5e9;color:#fff;border:0;border-radius:10px;padding:6px 18px;cursor:pointer">🔁 もう一度ちょうせんする</button></div>';
+          var b = document.getElementById('hubRetryBtn'); if (b) b.onclick = retry;
+          return;
+        }
+        var p = part(id);
+        box.innerHTML = p ? note('✓ クリアずみ（ぶひん：' + p.name + '）') : note('🔧 全問正解すると、班PCの ぶひん が手に入る');
+      }
+      new MutationObserver(update).observe(score, { childList: true, characterData: true, subtree: true });
+      update();
+      // Tの端末へもどるボタン（右下）
+      var a = document.createElement('a');
+      a.href = 'index.html'; a.textContent = '📱 Tの端末';
+      a.setAttribute('style', 'position:fixed;right:12px;bottom:12px;z-index:9999;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:6px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+      document.body.appendChild(a);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  }
+
+  window.DroneHub = {
+    ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
+    part: part, parts: parts, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
+  };
+})();
+
+/* ==== HUB END ==== */</script>
+<script>window.DroneHub && DroneHub.autoQuiz('prog');</script>
+</body>
+</html>
