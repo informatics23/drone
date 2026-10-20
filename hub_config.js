@@ -30,12 +30,12 @@ window.HUB_CONFIG = {
   { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
   { id: 'cs',     kind: 'note', title: 'クライアント・サーバとDNS',  file: 'client-server-dns.html', gives: 'mail' },
     // file が '' のあいだは「準備中」
-  { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
+  { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
   { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
   // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
   { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
   { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
-  { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
+  { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
   { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
 ],
 
