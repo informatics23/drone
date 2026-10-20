@@ -4990,12 +4990,12 @@ return $.__chunk_javascript;
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
-    { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
-    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: '', gives: 'usb', needs: ['arr'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
     { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
   ];
   var CFG = window.HUB_CONFIG || {};
@@ -5109,7 +5109,7 @@ return $.__chunk_javascript;
   function team() {
     var t = read(TEAM_KEY) || {};
     var g = lockedGroup() || t.group || '';
-    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (t.names[t.me] || '') : '' };
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
   function visible(id) {
@@ -7688,10 +7688,10 @@ return $.__chunk_javascript;
     // 同じカードを何度読み込んでも、二重には数えない（項目ごとに大きいほうを残す）。
     const POINTS_PER_MISSION = 1;
     // 変数は2段階：部屋1（var）1pt、部屋2（var2）2pt
-    const POINT_MAX = { var: 1, var2: 2 };
+    const POINT_MAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2 };
     const ptMax = (key) => POINT_MAX[key] || POINTS_PER_MISSION;
     const keyUnit = (key) => String(key).replace(/\d+$/, '');
-    const POINT_ITEMS = [['var', '変数①'], ['var2', '変数②'], ['array', '配列'], ['func', '関数'], ['lsearch', '線形探索'], ['bsearch', '二分探索'], ['sort', '並べ替え']];
+    const POINT_ITEMS = [['var', '変数①'], ['var2', '変数②'], ['array', '配列①'], ['array2', '配列②'], ['fn', '関数①'], ['fn2', '関数②'], ['func', '関数'], ['lsearch', '線形探索'], ['bsearch', '二分探索'], ['sort', '並べ替え']];
     function ledgerOf(k) {
       if (!team.ledger) team.ledger = {};
       if (!team.ledger[k]) team.ledger[k] = {};
@@ -7747,8 +7747,20 @@ return $.__chunk_javascript;
     }
     const b64e = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const b64d = (b) => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+    // Tの端末（えほん・スキル）のクリアも、コードに入れる（後日・別の端末で読み込むと、班PCのぶひんももどる）
+    function hubOrderNow() { try { const r = JSON.parse(localStorage.getItem('droneHub_v1') || 'null'); return r && Array.isArray(r.order) ? r.order.filter((id) => r.cleared && r.cleared[id]) : []; } catch (e) { return []; } }
+    function mergeHubOrder(list) {
+      if (!Array.isArray(list) || !list.length) return;
+      try {
+        const r = JSON.parse(localStorage.getItem('droneHub_v1') || 'null') || {};
+        if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = [];
+        list.forEach((id) => { if (typeof id !== 'string') return; if (!r.cleared[id]) r.cleared[id] = Date.now(); if (!r.order.includes(id)) r.order.push(id); });
+        localStorage.setItem('droneHub_v1', JSON.stringify(r));
+      } catch (e) { /* なし */ }
+    }
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* なし */ }
     function pointCode() {
-      const body = JSON.stringify({ g: team.group || '', n: team.names, m: team.me, l: team.ledger || {}, r: team.round || 0, p: PROBLEM_SET, s: Object.keys(Object.assign({}, team.seen || {}, hasMe() ? { [team.me]: 1 } : {})).map(Number), t: Date.now() });
+      const body = JSON.stringify({ g: team.group || '', n: team.names, m: team.me, l: team.ledger || {}, r: team.round || 0, p: PROBLEM_SET, s: Object.keys(Object.assign({}, team.seen || {}, hasMe() ? { [team.me]: 1 } : {})).map(Number), x: manualKeys().map((k) => k.slice(7)), h: hubOrderNow(), t: Date.now() });
       const enc = b64e(body);
       return `DRONE-PT:${enc}.${cardSign(enc)}`;
     }
@@ -7765,11 +7777,13 @@ return $.__chunk_javascript;
         '<li><b>送信</b>（➤）を押したら完了！</li></ol>';
     }
     // 貼り付けた文の中から、ポイントコードを全部ひろって読み込む
-    function loadPointCodes(text, fromCover) {
+    async function loadPointCodes(text, fromCover) {
       const found = [...String(text || '').matchAll(/DRONE-PT:([A-Za-z0-9_-]+)\.([0-9a-z]+)/g)];
       const msgs = [];
       const wasFresh = !team.group && team.names.every((n) => !n);
       const ownerMs = new Set();   // 読み込んだファイルを作った人（自分の機体の候補）
+      const groupAns = {};   // ちがう班の記録を読むかどうか（班ごとに1回だけ聞く）
+      let switched = '';
       if (!found.length) msgs.push('ポイントコード（DRONE-PT: で始まる文字）が見つかりません');
       for (const [, enc, sig] of found) {
         if (sig !== cardSign(enc)) { msgs.push('書きかえられたコードがあったので、それは読み込みませんでした'); continue; }
@@ -7777,11 +7791,23 @@ return $.__chunk_javascript;
         try { c = JSON.parse(b64d(enc)); } catch (e) { msgs.push('読めないコードがありました'); continue; }
         if (!c || !Array.isArray(c.n)) { msgs.push('読めないコードがありました'); continue; }
         // ちがう問題（問題1〜5）の記録は、まぜない
-        if ((Number(c.p) || 1) !== PROBLEM_SET) { msgs.push(`問題${Number(c.p) || 1} の記録なので、読み込みませんでした（このファイルは 問題${PROBLEM_SET}）`); continue; }
-        const fresh = !team.group && team.names.every((n) => !n);
-        const sameTeam = (c.g || '') === (team.group || '') && c.n.join('|') === team.names.join('|');
-        if (!fresh && !sameTeam && !confirm(`ちがう班（${c.g || '名前なし'}：${c.n.join('・')}）のコードかもしれません。読み込みますか？`)) continue;
-        if (fresh) { team.group = c.g || ''; team.names = c.n.slice(0, 4); if (c.m >= 0 && c.m <= 3) team.round = Number(c.r) || 0; }
+        // 前の形（問題の番号なし・問題1〜4）の記録も、そのまま読む（項目の名前は共通）
+        let fresh = !team.group && team.names.every((n) => !n);
+        const curG = (fromCover && coverGroup()) || team.group || '';
+        if (c.g && curG && c.g !== curG) {
+          // ちがう班の記録：確認して、その班に入力し直して読み込む（読まないこともできる）
+          if (!(c.g in groupAns)) groupAns[c.g] = await askOtherGroup(c.g, curG, c.n);
+          if (!groupAns[c.g]) { msgs.push(`${c.g} の記録は、読み込みませんでした`); continue; }
+          if (team.group !== c.g) {
+            if (fresh) { team.group = c.g; try { localStorage.setItem('droneGroupLock', c.g); } catch (e) { /* なし */ } }
+            else switchToGroup(c.g);
+            switched = c.g;
+          }
+          if (!team.names.some((n) => n)) fresh = true;
+        } else if (fresh && !c.g && curG) team.group = curG;
+        if (fresh) { team.group = c.g || team.group || ''; if (c.n.some((n) => String(n || '').trim())) team.names = c.n.slice(0, 4); if (c.m >= 0 && c.m <= 3) team.round = Number(c.r) || 0; }
+        (Array.isArray(c.x) ? c.x : []).forEach((x) => { if (/^\d:\w+$/.test(x)) team.steps['manual:' + x] = 1; });
+        mergeHubOrder(c.h);
         // 自分の機体：本人のファイルなら m、先生の CSV なら行の人（me）
         const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
         if ((fresh || (fromCover && !hasMe())) && own >= 0) team.me = own;
@@ -7804,8 +7830,11 @@ return $.__chunk_javascript;
         if (ownerMs.size === 1) { team.me = [...ownerMs][0]; msgs.push(`自分の機体：${memberName(team.me)}（ちがうときは選びなおしてね）`); }
         else { team.me = null; msgs.push('「自分」の機体をえらぼう'); }
       }
+      if (switched) msgs.unshift(`班を ${switched} に入力し直しました`);
       saveTeam();
       try { lastLoadMsgs = msgs; } catch (e) { /* なし */ }
+      try { if (window.applyGroupLock) window.applyGroupLock(); } catch (e) { /* なし */ }
+      if (switched && !fromCover) { try { curWsKey = null; setUnit(currentUnit); } catch (e) { /* なし */ } }
       if (fromCover) {
         fillTeamForm();
         document.getElementById('coverCardMsg').textContent = msgs.join(' ／ ');
@@ -7816,9 +7845,9 @@ return $.__chunk_javascript;
       updateTeamBox();
       return found.length;
     }
-    function loadPointsFromBox(boxId, fromCover) {
+    async function loadPointsFromBox(boxId, fromCover) {
       const box = document.getElementById(boxId);
-      if (loadPointCodes(box.value, fromCover)) box.value = '';
+      if (await loadPointCodes(box.value, fromCover)) box.value = '';
     }
 
     // ==================== 記録の引きつぎ（提出した画像がそのまま記録になる） ====================
@@ -7927,27 +7956,123 @@ return $.__chunk_javascript;
         document.body.appendChild(ov);
       });
     }
+
+    // ---- ほかの班の記録を読み込むとき・データの入っていない画像のとき ----
+    const coverGroup = () => { try { const c = document.getElementById('inClass').value, h = document.getElementById('inHan').value; return c && h ? `${c}組${h}班` : ''; } catch (e) { return ''; } };
+    // 手入力した記録（先生の確認用）：team.steps['manual:機体:項目'] = 1
+    const manualKeys = () => Object.keys(team.steps || {}).filter((k) => /^manual:\d:/.test(k) && team.steps[k]);
+    const isManual = (k, u) => !!(team.steps && team.steps[`manual:${k}:${u}`]);
+    function modalAsk(html, buttons) {
+      return new Promise((resolve) => {
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;padding:16px';
+        ov.innerHTML = `<div style="background:#fff;color:#0f172a;border-radius:14px;padding:20px 22px;max-width:560px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:16px;line-height:1.7">${html}` +
+          `<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px">${buttons.map((b, i) => `<button data-i="${i}" style="padding:9px 16px;border-radius:10px;border:none;font-weight:800;font-size:15px;cursor:pointer;background:${b.go ? '#0284c7' : '#e2e8f0'};color:${b.go ? '#fff' : '#0f172a'}">${b.label}</button>`).join('')}</div></div>`;
+        ov.addEventListener('click', (e) => {
+          const b = e.target.closest('button[data-i]');
+          if (!b) return;
+          const v = buttons[Number(b.dataset.i)].value;
+          const out = typeof v === 'function' ? v(ov) : v;
+          if (out === undefined) return;   // 入力が足りないときは閉じない
+          ov.remove();
+          resolve(out);
+        });
+        document.body.appendChild(ov);
+      });
+    }
+    const classOf = (g) => (String(g || '').match(/^(\d)組/) || [])[1] || '';
+    function askOtherGroup(g, cur, names) {
+      const who = (names || []).filter((n) => String(n || '').trim()).join('・');
+      if (classOf(g) && classOf(cur) && classOf(g) !== classOf(cur)) {
+        return modalAsk(`<div style="font-weight:900;font-size:19px;margin-bottom:8px">⚠ ちがうクラスの記録です</div>` +
+          `<div>えらんだファイルは <b style="color:#b45309">${escapeHtml(g)}</b>${who ? `（${escapeHtml(who)}）` : ''} の記録です。<br>この端末のクラスは <b>${escapeHtml(classOf(cur))}組</b> なので、読み込めません。</div>` +
+          `<div style="margin-top:8px;font-size:14px;color:#475569">自分のファイルか、もう一度確かめよう。</div>`,
+          [{ label: 'とじる', value: false, go: true }]);
+      }
+      return modalAsk(`<div style="font-weight:900;font-size:19px;margin-bottom:8px">⚠ ちがう班の記録です</div>` +
+        `<div>えらんだファイルは <b style="color:#b45309">${escapeHtml(g)}</b>${who ? `（${escapeHtml(who)}）` : ''} の記録です。<br>いまの班は <b>${escapeHtml(cur)}</b> になっています。</div>` +
+        `<div style="margin-top:8px;font-size:14px;color:#475569">自分の班が ${escapeHtml(g)} なら、班を入力し直して読み込もう（クラスはそのまま）。いまの班（${escapeHtml(cur)}）の記録は、この端末に残ります。</div>`,
+        [{ label: '読み込まない', value: false }, { label: `班を ${escapeHtml(g.replace(/^\d組/, ''))} に入力し直して読み込む`, value: true, go: true }]);
+    }
+    // 班を入れかえる（今の班を保存してから、その班の記録に。なければ空から）
+    function switchToGroup(g) {
+      try { saveWs(); } catch (e) { /* なし */ }
+      saveTeam();
+      const sv = groupSaved(g) || {};
+      team.group = g;
+      team.names = (Array.isArray(sv.names) ? sv.names : ['', '', '', '']).slice(0, 4);
+      while (team.names.length < 4) team.names.push('');
+      team.me = Number.isInteger(sv.me) ? sv.me : null;
+      team.ledger = sv.ledger || {}; team.steps = sv.steps || {}; team.ws = sv.ws || {}; team.seen = sv.seen || {}; team.round = sv.round || 0;
+      team.data = makePuzzleData(g, team.round);
+      try { localStorage.setItem('droneGroupLock', g); if (classOf(g)) localStorage.setItem('droneClassLock', classOf(g)); } catch (e) { /* なし */ }
+      try { if (window.applyGroupLock) window.applyGroupLock(); } catch (e) { /* なし */ }
+    }
+    // 記録のデータが入っていない画像（前の形の「問題の提出」など）：画像を見ながら手で入力する
+    async function manualRecord(file, fromCover) {
+      let g = (fromCover && coverGroup()) || team.group || '';
+      if (!g) { alert('この画像には記録のデータが入っていません。先に、表紙で「クラス」と「班」を選んでから、もう一度読み込もう'); return false; }
+      const url = URL.createObjectURL(file);
+      const names = [0, 1, 2, 3].map((k) => { const el = fromCover && document.getElementById('inName' + k); return (el && el.value.trim()) || (g === team.group && team.names[k]) || `${k + 1}号機`; });
+      const meSel = fromCover && document.querySelector('input[name="inMe"]:checked');
+      const meDef = meSel ? Number(meSel.value) : (g === team.group && hasMe() ? team.me : -1);
+      const items = POINT_ITEMS.filter(([u]) => /^(var|array|fn)2?$/.test(u));
+      const res = await modalAsk(`<div style="font-weight:900;font-size:19px;margin-bottom:6px">📝 画像を見て入力しよう</div>` +
+        `<div style="font-size:14px;color:#475569">この画像（${escapeHtml(file.name)}）には、記録のデータが入っていません（前の形の画像）。画像に書かれている内容を入力しよう。<b>手入力の記録は、ポイント情報に「手入力」と出て、先生が確認します。</b></div>` +
+        `<img src="${url}" style="display:block;max-width:100%;max-height:260px;margin:10px auto;border:1px solid #cbd5e1;border-radius:8px">` +
+        `<div style="font-weight:800;margin-top:6px">班：<span style="color:#b45309">${escapeHtml(g)}</span> <span style="font-size:13px;color:#64748b">（ちがうときは「やめる」→ 表紙で班を選び直す）</span></div>` +
+        `<div style="font-weight:800;margin-top:6px">だれの記録？</div><div style="display:flex;gap:6px;flex-wrap:wrap">${names.map((n, k) => `<label style="border:2px solid ${MEMBER_COLORS[k].css === '#FFFFFF' ? '#cbd5e1' : MEMBER_COLORS[k].css};border-radius:9px;padding:3px 10px;cursor:pointer"><input type="radio" name="mrWho" value="${k}"${k === meDef ? ' checked' : ''}> ${escapeHtml(n)}</label>`).join('')}</div>` +
+        `<div style="font-weight:800;margin-top:8px">クリアした所（画像で「クリア」になっている所）</div><div style="display:flex;gap:6px;flex-wrap:wrap">${items.map(([u, n]) => `<label style="border:1px solid #cbd5e1;border-radius:9px;padding:3px 10px;cursor:pointer"><input type="checkbox" name="mrItem" value="${u}"> ${n}（${ptMax(u)}pt）</label>`).join('')}</div>` +
+        '<div id="mrErr" style="color:#dc2626;font-weight:800;min-height:1.4em;margin-top:6px"></div>',
+        [{ label: 'やめる', value: null }, { label: '入力した記録を読み込む', go: true, value: (ov) => {
+          const w = ov.querySelector('input[name="mrWho"]:checked'), its = [...ov.querySelectorAll('input[name="mrItem"]:checked')].map((x) => x.value);
+          if (!w || !its.length) { ov.querySelector('#mrErr').textContent = !w ? 'だれの記録かを選ぼう' : 'クリアした所に、1つ以上チェックを入れよう'; return undefined; }
+          return { k: Number(w.value), its };
+        } }]);
+      URL.revokeObjectURL(url);
+      if (!res) return false;
+      if (g !== team.group) {
+        const fresh = !team.group && team.names.every((n) => !n);
+        if (fresh) { team.group = g; try { localStorage.setItem('droneGroupLock', g); } catch (e) { /* なし */ } }
+        else switchToGroup(g);
+      }
+      if (fromCover && team.names.every((n) => !n)) for (let k = 0; k < 4; k++) team.names[k] = (document.getElementById('inName' + k).value || '').trim();
+      const L = ledgerOf(res.k);
+      res.its.forEach((u) => { if (!L[u]) { L[u] = ptMax(u); team.steps[`manual:${res.k}:${u}`] = 1; } });
+      if (!team.seen) team.seen = {};
+      team.seen[res.k] = 1;
+      if (!hasMe()) team.me = res.k;
+      saveTeam();
+      const msg = `${names[res.k]} の記録（${res.its.map((u) => (POINT_ITEMS.find((x) => x[0] === u) || [u, u])[1]).join('・')}）を手入力で読み込みました`;
+      if (fromCover) { fillTeamForm(); try { if (window.applyGroupLock) window.applyGroupLock(); } catch (e) { /* なし */ } document.getElementById('coverCardMsg').textContent = msg; }
+      else { renderPoints(); document.getElementById('pointsMsg').textContent = msg; }
+      updateTeamBox();
+      return true;
+    }
     // 提出した画像（何枚でも）や記録ファイルを選んで読み込む（fromCover：表紙から）
     function openRecordFile(fromCover, after) {
       const input = document.createElement('input');
       input.type = 'file';
       input.multiple = true;
-      input.accept = '.png,image/png,.csv,text/csv,.txt,text/plain';
+      input.accept = '.png,image/png,image/*,.csv,text/csv,.txt,text/plain';
       input.onchange = async () => {
         const files = [...(input.files || [])];
         if (!files.length) return;
         let text = '';
+        const noCode = [];   // 記録のデータが入っていない画像（前の形の画像など）
         for (const f of files) {
           try {
             const buf = await f.arrayBuffer();
-            if (/\.png$/i.test(f.name) || f.type === 'image/png') text += codeFromPng(buf);
+            if (/\.png$/i.test(f.name) || f.type === 'image/png') { const t = codeFromPng(buf); if (!t) noCode.push(f); text += t; }
+            else if (/^image\//.test(f.type) || /\.(jpe?g|heic|webp|gif)$/i.test(f.name)) noCode.push(f);
             else if (/\.csv$/i.test(f.name)) { const t = await csvCodesFor(new TextDecoder().decode(buf), fromCover); if (t === null) return; text += t; }
             else text += new TextDecoder().decode(buf);
             text += '\n';
           } catch (e) { /* 読めないファイルはとばす */ }
         }
-        const n = loadPointCodes(text, fromCover);
-        if (!n) alert('えらんだファイルの中に、ポイントの記録が見つかりませんでした。このアプリが保存した「ポイント情報」のファイルをえらぼう');
+        let n = /DRONE-PT:/.test(text) ? await loadPointCodes(text, fromCover) : 0;
+        for (const f of noCode) { if (await manualRecord(f, fromCover)) n++; }
+        if (!n && !noCode.length) alert('えらんだファイルの中に、ポイントの記録が見つかりませんでした。このアプリが保存した「ポイント情報」のファイルをえらぼう');
         else if (!fromCover) { document.getElementById('pointsMsg').textContent = lastLoadMsgs.join(' ／ '); try { if (curStep() === 4) renderStep(); const m = document.getElementById('stepPtMsg'); if (m) m.textContent = lastLoadMsgs.join(' ／ '); } catch (e) { /* なし */ } }
         if (n && typeof after === 'function') after();
       };
@@ -8010,15 +8135,15 @@ return $.__chunk_javascript;
       [0, 1, 2, 3].forEach((k) => {
         const L = (team.ledger || {})[k] || {};
         const cells = [`${memberName(k)}${k === team.me ? '（登録した人）' : ''}`,
-          ...items.map(([u]) => L[u] ? `✓ クリア ${Math.min(L[u], ptMax(u))}pt` : (membersIncluded().includes(k) ? 'まだ' : '未読込')), `${memberPoints(k)}pt`];
+          ...items.map(([u]) => L[u] ? `✓ ${isManual(k, u) ? '手入力' : 'クリア'} ${Math.min(L[u], ptMax(u))}pt` : (membersIncluded().includes(k) ? 'まだ' : '未読込')), `${memberPoints(k)}pt`];
         row(cells, t0 + ROW * (k + 1),
-          (ci) => ci === 0 ? MEMBER_COLORS[k].css : (ci <= items.length && L[items[ci - 1][0]] ? '#dcfce7' : '#ffffff'),
+          (ci) => ci === 0 ? MEMBER_COLORS[k].css : (ci <= items.length && L[items[ci - 1][0]] ? (isManual(k, items[ci - 1][0]) ? '#fef9c3' : '#dcfce7') : '#ffffff'),
           (ci) => ci === 0 ? (MEMBER_COLORS[k].dark ? '#0f172a' : '#ffffff') : (ci <= items.length && !L[items[ci - 1][0]] ? '#94a3b8' : '#0f172a'));
       });
       const colSum = (u) => [0, 1, 2, 3].reduce((s, k) => s + Math.min(Number(((team.ledger || {})[k] || {})[u]) || 0, ptMax(u)), 0);
       row(['班の合計', ...items.map(([u]) => `${colSum(u)}pt`), `${groupPoints()}pt`], t0 + ROW * 5, () => '#fef3c7', null, true);
       g.fillStyle = '#64748b'; g.font = `600 17px ${FONT}`;
-      g.fillText(membersMissing().length ? `※ 「未読込」の班員（${membersMissing().map(memberName).join('、')}）の記録は、まだこの一覧に入っていません。` : '✓ 班員全員の記録が入っています。', M, t0 + ROW * 6 + 30);
+      g.fillText((membersMissing().length ? `※ 「未読込」の班員（${membersMissing().map(memberName).join('、')}）の記録は、まだこの一覧に入っていません。` : '✓ 班員全員の記録が入っています。') + (manualKeys().length ? '　「手入力」は、前の形の画像から手で入力した記録（先生が確認）' : ''), M, t0 + ROW * 6 + 30);
       g.fillStyle = '#b45309'; g.font = `800 19px ${FONT}`;
       g.fillText(escRecordLine(), M, t0 + ROW * 6 + 66);
       return c;
@@ -10465,31 +10590,51 @@ return $.__chunk_javascript;
   (function () {
     var LOCK = 'droneGroupLock';
     var get = function () { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } };
-    var set = function (g) { try { if (g) localStorage.setItem(LOCK, g); else localStorage.removeItem(LOCK); } catch (e) { /* なし */ } };
-    try { if (!get() && team && team.group) set(team.group); } catch (e) { /* なし */ }
+    var CLOCK = 'droneClassLock';   // クラスは変わらないので、班を入力し直すときもクラスはロックしたまま
+    var getC = function () { try { return localStorage.getItem(CLOCK) || ''; } catch (e) { return ''; } };
+    var set = function (g) { try { if (g) { localStorage.setItem(LOCK, g); var mm = String(g).match(/^(\d)組/); if (mm) localStorage.setItem(CLOCK, mm[1]); } else localStorage.removeItem(LOCK); } catch (e) { /* なし */ } };
+    var clearAll = function () { try { localStorage.removeItem(LOCK); localStorage.removeItem(CLOCK); } catch (e) { /* なし */ } };
+    try { if (!get() && team && team.group) set(team.group); if (!getC() && get()) set(get()); } catch (e) { /* なし */ }
     function apply() {
       var g = get(), c = document.getElementById('inClass'), h = document.getElementById('inHan');
       if (!c || !h) return;
-      var m = String(g).match(/^(\d)組(\d)班$/);
-      c.disabled = h.disabled = !!m;
+      var m = String(g).match(/^(\d)組(\d)班$/), cl = getC();
+      c.disabled = !!(m || cl); h.disabled = !!m;
       if (m) { c.value = m[1]; h.value = m[2]; try { c.dispatchEvent(new Event('change')); } catch (e) { /* なし */ } }
+      else if (cl && c.value !== cl) { c.value = cl; try { c.dispatchEvent(new Event('change')); } catch (e) { /* なし */ } }
       var note = document.getElementById('lockNote');
       if (!note) { note = document.createElement('div'); note.id = 'lockNote'; note.setAttribute('style', 'margin:4px 0 0;font-size:13px;font-weight:800;color:#fca5a5'); var gs = c.closest('.groupSel'); if (gs) gs.parentNode.insertBefore(note, gs.nextSibling); }
-      note.textContent = m ? '🔒 クラス・班は「' + g + '」に決まっています（変えられません）' : '';
+      note.innerHTML = '';
+      if (!m && cl) note.textContent = '🔒 クラスは「' + cl + '組」に決まっています。班を選んで「はじめる」を押そう';
+      if (m) {
+        note.appendChild(document.createTextNode('🔒 クラス・班は「' + g + '」に決まっています '));
+        var rb = document.createElement('button');
+        rb.type = 'button'; rb.textContent = '班だけ入力し直す';
+        rb.setAttribute('style', 'margin-left:6px;padding:2px 10px;border-radius:8px;border:1px solid #fca5a5;background:#450a0a;color:#fecaca;font-weight:800;font-size:13px;cursor:pointer');
+        rb.onclick = function () {
+          if (!confirm('班を入力し直しますか？（クラス「' + m[1] + '組」はそのままです）\n（いまの班「' + g + '」の記録は、この端末に残ります。もとの班にもどすこともできます）')) return;
+          set(''); c.disabled = true; h.disabled = false;
+          note.textContent = '🔒 クラスは「' + m[1] + '組」のまま。班を選び直して、「はじめる」を押そう';
+        };
+        note.appendChild(rb);
+      }
     }
+    window.applyGroupLock = apply;
     var origStart = window.startTeam;
     window.startTeam = function () {
-      var g = get(), c = document.getElementById('inClass').value, h = document.getElementById('inHan').value;
-      if (g && c && h && (c + '組' + h + '班') !== g) { alert('クラス・班は「' + g + '」に決まっています。変えられません'); apply(); return; }
+      var g = get(), cl = getC(), c = document.getElementById('inClass').value, h = document.getElementById('inHan').value;
+      if (g && c && h && (c + '組' + h + '班') !== g) { alert('クラス・班は「' + g + '」に決まっています。変えるときは「班だけ入力し直す」を押そう'); apply(); return; }
+      if (cl && c && c !== cl) { alert('クラスは「' + cl + '組」に決まっています。変えられません'); apply(); return; }
       origStart.apply(this, arguments);
-      try { if (team && team.group) set(team.group); } catch (e) { /* なし */ }
+      // 「はじめる」が最後まで進んだとき（選んだ班になったとき）だけロックする
+      try { if (team && team.group && c && h && team.group === (c + '組' + h + '班')) set(team.group); } catch (e) { /* なし */ }
       apply();
     };
     var origReset = window.resetTeam;
     if (origReset) window.resetTeam = function () {
       var before = (team && team.round) || 0;
       origReset.apply(this, arguments);
-      if (((team && team.round) || 0) !== before) { set(''); apply(); }
+      if (((team && team.round) || 0) !== before) { clearAll(); apply(); }
     };
     var origForm = window.openTeamForm;
     if (origForm) window.openTeamForm = function () { origForm.apply(this, arguments); apply(); };

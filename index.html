@@ -22,7 +22,7 @@
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
-    { id: 'www',    kind: 'note', title: 'WWW',                        file: '', gives: 'browser' },
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: '', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
@@ -141,7 +141,7 @@
   function team() {
     var t = read(TEAM_KEY) || {};
     var g = lockedGroup() || t.group || '';
-    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (t.names[t.me] || '') : '' };
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
   function visible(id) {
@@ -521,12 +521,210 @@
     if (!c || !h) { alert('クラスと班を選ぼう'); return; }
     var g = c + '組' + h + '班';
     if (!confirm('「' + g + '」でよいですか？ 一度決めると変えられません')) return;
-    H.setGroup(g); render();
+    H.setGroup(g); try { localStorage.setItem('droneClassLock', c); } catch (e) { /* なし */ } render();
   });
   window.addEventListener('storage', render);
   window.addEventListener('pageshow', render);
   render();
   checkFiles();
+})();
+</script>
+<script>
+/* ==== 記録カード：後日・別の端末でも続きから（保存した画像を読み込む） ====
+   この端末（ブラウザ）の記録は、しばらく使わないと消えることがある（iPad の Safari は約1週間）。
+   「💾 記録カードを保存」で、班・名前・クリアの記録を画像に入れて保存しておく。
+   次の時間は「📥 記録を読み込む」でその画像（またはドローンアプリの「ポイント情報」の画像）を選ぶと、元にもどる。 */
+(function () {
+  var TEAM = 'droneLessonTeam_set5', GROUPS = 'droneLessonGroups_set5', HUB = 'droneHub_v1', LOCK = 'droneGroupLock', CLOCK = 'droneClassLock', PNG_KEY = 'DronePoints';
+  var $ = function (id) { return document.getElementById(id); };
+  function rd(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function wr(k, v) { try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (e) { /* なし */ } }
+  function str(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  // ブラウザに「この記録は消さないで」とたのむ（できるブラウザだけ）
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* なし */ }
+
+  // ---- ドローンアプリと同じ形のコード ----
+  function cardSign(s) { var h = 2166136261, t = 'drone-points|' + s + '|v1'; for (var i = 0; i < t.length; i++) { h ^= t.codePointAt(i); if (t.codePointAt(i) > 0xffff) i++; h = Math.imul(h, 16777619) >>> 0; } return h.toString(36); }
+  function b64e(s) { var b = new TextEncoder().encode(s), x = ''; for (var i = 0; i < b.length; i++) x += String.fromCharCode(b[i]); return btoa(x).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function b64d(b) { var x = atob(b.replace(/-/g, '+').replace(/_/g, '/')), u = new Uint8Array(x.length); for (var i = 0; i < x.length; i++) u[i] = x.charCodeAt(i); return new TextDecoder().decode(u); }
+  var CRC = (function () { var t = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { var c = 0xffffffff; for (var i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+  function codeFromPng(buf) {
+    var b = new Uint8Array(buf), dv = new DataView(buf), p = 8, out = '';
+    if (b.length < 8 || b[0] !== 0x89 || b[1] !== 0x50) return '';
+    while (p + 12 <= b.length) {
+      var len = dv.getUint32(p), type = String.fromCharCode(b[p + 4], b[p + 5], b[p + 6], b[p + 7]);
+      if (type === 'tEXt') { var s = new TextDecoder('latin1').decode(b.subarray(p + 8, p + 8 + len)); if (s.indexOf(PNG_KEY + '\0') === 0) out += s.slice(PNG_KEY.length + 1) + '\n'; }
+      if (type === 'IEND') break;
+      p += 12 + len;
+    }
+    return out;
+  }
+  function pngWithCode(bytes, text) {
+    var data = new TextEncoder().encode(PNG_KEY + '\0' + text), type = new TextEncoder().encode('tEXt');
+    var chunk = new Uint8Array(12 + data.length), dv = new DataView(chunk.buffer);
+    dv.setUint32(0, data.length); chunk.set(type, 4); chunk.set(data, 8);
+    var ci = new Uint8Array(4 + data.length); ci.set(type, 0); ci.set(data, 4); dv.setUint32(8 + data.length, crc32(ci));
+    var end = 8 + 8 + new DataView(bytes.buffer).getUint32(8) + 4, out = new Uint8Array(bytes.length + chunk.length);
+    out.set(bytes.subarray(0, end), 0); out.set(chunk, end); out.set(bytes.subarray(end), end + chunk.length);
+    return new Blob([out], { type: 'image/png' });
+  }
+  function hubOrder() { var r = rd(HUB) || {}; return (Array.isArray(r.order) ? r.order : []).filter(function (id) { return window.DroneHub ? DroneHub.isCleared(id) : true; }); }
+  function myCode() {
+    var g = str(LOCK), t = rd(TEAM) || {};
+    var same = t.group === g;
+    var seen = Object.keys(same && t.seen ? t.seen : {}).map(Number).filter(function (k) { return k >= 0 && k <= 3; });
+    var body = JSON.stringify({ g: g, n: same && Array.isArray(t.names) ? t.names : ['', '', '', ''], m: same && t.me !== null && t.me !== undefined ? t.me : -1, l: same ? (t.ledger || {}) : {}, r: same ? (t.round || 0) : 0, p: 5, s: seen,
+      x: Object.keys(same && t.steps ? t.steps : {}).filter(function (k) { return /^manual:\d:/.test(k) && t.steps[k]; }).map(function (k) { return k.slice(7); }), h: hubOrder(), t: Date.now() });
+    var enc = b64e(body);
+    return 'DRONE-PT:' + enc + '.' + cardSign(enc);
+  }
+  function parseCodes(text) {
+    var re = /DRONE-PT:([A-Za-z0-9_-]+)\.([0-9a-z]+)/g, m, out = [];
+    while ((m = re.exec(text))) {
+      if (m[2] !== cardSign(m[1])) continue;
+      try { var c = JSON.parse(b64d(m[1])); if (c && Array.isArray(c.n)) out.push(c); } catch (e) { /* 読めないものはとばす */ }
+    }
+    return out;
+  }
+  var classOf = function (g) { return (String(g || '').match(/^(\d)組/) || [])[1] || ''; };
+
+  // ---- 読み込む ----
+  function ask(html, buttons) {
+    return new Promise(function (resolve) {
+      var ov = document.createElement('div');
+      ov.setAttribute('style', 'position:fixed;inset:0;z-index:100001;background:rgba(2,6,23,.75);display:flex;align-items:center;justify-content:center;padding:16px');
+      ov.innerHTML = '<div style="background:#fff;color:#0f172a;border-radius:14px;padding:20px 22px;max-width:520px;width:100%;font:600 16px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif">' + html +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px">' + buttons.map(function (b, i) { return '<button data-i="' + i + '" style="padding:8px 16px;border-radius:10px;border:0;font:800 15px system-ui,sans-serif;cursor:pointer;background:' + (b.go ? '#0284c7;color:#fff' : '#e2e8f0;color:#0f172a') + '">' + b.label + '</button>'; }).join('') + '</div></div>';
+      ov.addEventListener('click', function (e) { var b = e.target.closest('button[data-i]'); if (!b) return; ov.remove(); resolve(buttons[Number(b.dataset.i)].value); });
+      document.body.appendChild(ov);
+    });
+  }
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  async function loadFiles(files) {
+    var text = '';
+    for (var i = 0; i < files.length; i++) {
+      try { var buf = await files[i].arrayBuffer(); text += (/\.png$/i.test(files[i].name) || files[i].type === 'image/png') ? codeFromPng(buf) : new TextDecoder().decode(buf); text += '\n'; } catch (e) { /* とばす */ }
+    }
+    var codes = parseCodes(text).filter(function (c) { return /^\d組\d班$/.test(c.g || ''); });
+    if (!codes.length) { alert('えらんだファイルの中に、記録が見つかりませんでした。\n「記録カード」か、ドローンアプリの「ポイント情報」の画像をえらぼう\n（前の形の「問題の提出」の画像は、ドローンアプリの「📥 ポイント読込」で入力できます）'); return; }
+    var lock = str(LOCK), cl = str(CLOCK) || classOf(lock), target = lock || codes[0].g, msgs = [];
+    var groups = codes.map(function (c) { return c.g; }).filter(function (g, i, a) { return a.indexOf(g) === i; });
+    if (target && groups.indexOf(target) < 0) {
+      // ちがう班の記録だけ：クラスがちがえば読まない。同じクラスなら、班を入力し直すか聞く
+      var g2 = groups[0];
+      if (cl && classOf(g2) !== cl) { await ask('<div style="font-weight:900;font-size:19px">⚠ ちがうクラスの記録です</div>えらんだファイルは <b style="color:#b45309">' + esc(g2) + '</b> の記録です。この端末のクラスは <b>' + esc(cl) + '組</b> なので、読み込めません。', [{ label: 'とじる', value: 0, go: true }]); return; }
+      var ok = await ask('<div style="font-weight:900;font-size:19px">⚠ ちがう班の記録です</div>えらんだファイルは <b style="color:#b45309">' + esc(g2) + '</b> の記録です。いまの班は <b>' + esc(target) + '</b> です。<div style="font-size:14px;color:#475569;margin-top:6px">自分の班が ' + esc(g2) + ' なら、班を入力し直して読み込もう（クラスはそのまま）。</div>',
+        [{ label: '読み込まない', value: false }, { label: '班を ' + esc(g2.replace(/^\d組/, '')) + ' に入力し直して読み込む', value: true, go: true }]);
+      if (!ok) return;
+      target = g2; msgs.push('班を ' + g2 + ' に入力し直しました');
+    }
+    var use = codes.filter(function (c) { return c.g === target; });
+    if (codes.length > use.length) msgs.push('ほかの班の記録は、読み込みませんでした');
+    // 班の記録（ドローンアプリと同じ所）に入れる
+    var all = rd(GROUPS) || {}, t = rd(TEAM);
+    if (t && t.group && t.group !== target) {   // 今の班は、班ごとの記録にしまっておく
+      all[t.group] = Object.assign({}, all[t.group] || {}, { names: t.names, me: t.me, round: t.round || 0, ledger: t.ledger || {}, steps: t.steps || {}, ws: t.ws || {}, seen: t.seen || {} });
+    }
+    var switched = !t || t.group !== target;
+    if (switched) { var sv = all[target] || {}; t = { group: target, names: (sv.names || ['', '', '', '']).slice(0, 4), me: Number.isInteger(sv.me) ? sv.me : null, ledger: sv.ledger || {}, steps: sv.steps || {}, ws: sv.ws || {}, seen: sv.seen || {}, round: sv.round || 0, data: null }; }
+    var owners = [];
+    use.forEach(function (c) {
+      if (!t.names.some(function (n) { return n; }) && c.n.some(function (n) { return String(n || '').trim(); })) t.names = c.n.slice(0, 4);
+      if (!t.ledger) t.ledger = {};
+      Object.keys(c.l || {}).forEach(function (k) { var row = c.l[k] || {}, L = t.ledger[k] || (t.ledger[k] = {}); Object.keys(row).forEach(function (u) { L[u] = Math.max(Number(L[u]) || 0, Number(row[u]) || 0); }); });
+      if (!t.seen) t.seen = {};
+      [c.m].concat(Array.isArray(c.s) ? c.s : []).forEach(function (k) { if (k >= 0 && k <= 3) t.seen[k] = 1; });
+      if (!t.steps) t.steps = {};
+      (Array.isArray(c.x) ? c.x : []).forEach(function (x) { if (/^\d:\w+$/.test(x)) t.steps['manual:' + x] = 1; });
+      if (c.m >= 0 && c.m <= 3 && owners.indexOf(c.m) < 0) owners.push(c.m);
+      if (switched && Number(c.r)) t.round = Number(c.r);
+    });
+    // 自分の機体：まだ決まっていなければ、ファイルを作った人。何人もいたら、えらんでもらう
+    if (t.me === null || t.me === undefined || t.me < 0) {
+      if (owners.length === 1) t.me = owners[0];
+      else if (owners.length > 1) {
+        var names = t.names.map(function (n, k) { return String(n || '').trim() || (k + 1) + '号機'; });
+        t.me = await ask('<div style="font-weight:900;font-size:19px">自分はどれ？</div>班員のファイルもいっしょに読み込みました。自分の機体をえらぼう。', owners.map(function (k) { return { label: esc(names[k]), value: k, go: true }; }));
+      }
+    }
+    wr(TEAM, t);
+    all[target] = Object.assign({}, all[target] || {}, { names: t.names, me: t.me, round: t.round || 0, ledger: t.ledger || {}, steps: t.steps || {}, ws: t.ws || {}, seen: t.seen || {} });
+    wr(GROUPS, all);
+    wr(LOCK, target); wr(CLOCK, classOf(target));
+    // えほん・スキルのクリア（班PCのぶひん）
+    var r = switched ? { cleared: {}, order: [] } : (rd(HUB) || {});
+    if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = [];
+    use.forEach(function (c) { (Array.isArray(c.h) ? c.h : []).forEach(function (id) { if (!r.cleared[id]) r.cleared[id] = Date.now(); if (r.order.indexOf(id) < 0) r.order.push(id); }); });
+    wr(HUB, r);
+    var who = t.me !== null && t.me !== undefined && t.me >= 0 ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '';
+    msgs.push(target + (who ? '・' + who : '') + ' の記録を読み込みました');
+    try { sessionStorage.setItem('hubRecMsg', msgs.join(' ／ ')); } catch (e) { /* なし */ }
+    location.reload();
+  }
+
+  // ---- 記録カードを保存（画像に記録を入れる） ----
+  function saveCard() {
+    var g = str(LOCK);
+    if (!g) { alert('先に、クラスと班を決めよう'); return; }
+    var t = rd(TEAM) || {}, same = t.group === g, me = same && t.me !== null && t.me !== undefined ? t.me : -1;
+    var name = me >= 0 ? (String((t.names || [])[me] || '').trim() || (me + 1) + '号機') : '';
+    var H = window.DroneHub, items = H ? H.ITEMS.filter(function (it) { return H.isCleared(it.id); }) : [];
+    var W = 1000, rows = Math.max(1, Math.ceil(items.length / 2)), Hh = 300 + rows * 44;
+    var c = document.createElement('canvas'); c.width = W; c.height = Hh;
+    var x = c.getContext('2d'), F = '"Hiragino Sans","Meiryo","Yu Gothic",sans-serif';
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, Hh);
+    x.fillStyle = '#0f172a'; x.fillRect(0, 0, W, 90);
+    x.fillStyle = '#fde68a'; x.font = '900 34px ' + F; x.textBaseline = 'middle'; x.fillText('忘れられた端末　記録カード', 44, 45);
+    x.fillStyle = '#0f172a'; x.font = '800 30px ' + F; x.fillText('班：' + g + (name ? '　' + name : ''), 44, 140);
+    var d = new Date(), p2 = function (n) { return String(n).padStart(2, '0'); };
+    x.fillStyle = '#475569'; x.font = '700 19px ' + F; x.fillText('保存した日時：' + d.getFullYear() + '/' + p2(d.getMonth() + 1) + '/' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()), 44, 182);
+    x.fillStyle = '#0f172a'; x.font = '800 22px ' + F; x.fillText('クリアしたもの（' + items.length + '）', 44, 230);
+    x.font = '700 20px ' + F;
+    if (!items.length) { x.fillStyle = '#94a3b8'; x.fillText('まだない', 60, 272); }
+    items.forEach(function (it, i) {
+      var cx = 60 + (i % 2) * 460, cy = 272 + Math.floor(i / 2) * 44;
+      x.fillStyle = it.kind === 'note' ? '#1d4ed8' : '#b91c1c'; x.fillText((it.kind === 'note' ? '📘 ' : '🚀 ') + it.title, cx, cy);
+    });
+    x.fillStyle = '#64748b'; x.font = '600 16px ' + F; x.fillText('次の時間は、Tの端末の「📥 記録を読み込む」でこの画像をえらぶと、続きから始められる', 44, Hh - 24);
+    c.toBlob(async function (blob) {
+      var bytes = new Uint8Array(await blob.arrayBuffer());
+      var out = pngWithCode(bytes, myCode());
+      var fn = '記録カード_' + g + (name ? '_' + name.replace(/[\\/:*?"<>|\s]/g, '') : '') + '_' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '.png';
+      var a = document.createElement('a'); a.href = URL.createObjectURL(out); a.download = fn;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+      $('recMsg').innerHTML = '✅ 「' + esc(fn) + '」を保存しました。' + (ios ? '<br>「ダウンロードしますか？」と出たら「ダウンロード」。「ファイル」アプリの「ダウンロード」に入ります。' : '「ダウンロード」フォルダに入ります。') + '<br>Teams に送っておくと、ほかの端末でも続きができる。';
+    }, 'image/png');
+  }
+
+  // ---- 画面 ----
+  var box = document.createElement('div');
+  box.id = 'recBox';
+  box.setAttribute('style', 'margin:0 0 12px;background:#0f172a;border:1px solid #334155;border-radius:12px;padding:8px 12px;font-size:13.5px;line-height:1.6');
+  box.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+    '<button type="button" id="recLoad" style="font:800 14px system-ui,sans-serif;padding:6px 14px;border:0;border-radius:9px;background:#0ea5e9;color:#fff;cursor:pointer">📥 記録を読み込む</button>' +
+    '<button type="button" id="recSave" style="font:800 14px system-ui,sans-serif;padding:6px 14px;border:0;border-radius:9px;background:#334155;color:#fde68a;cursor:pointer">💾 記録カードを保存</button></div>' +
+    '<div id="recMsg" style="margin-top:4px;color:#94a3b8;font-weight:700"></div>';
+  var anchor = $('groupPick');
+  if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor.nextSibling);
+  function hint() {
+    var m = ''; try { m = sessionStorage.getItem('hubRecMsg') || ''; sessionStorage.removeItem('hubRecMsg'); } catch (e) { /* なし */ }
+    if (m) { $('recMsg').style.color = '#86efac'; $('recMsg').textContent = '✅ ' + m; return; }
+    $('recMsg').textContent = str(LOCK)
+      ? '授業の終わりに「💾 記録カードを保存」。記録が消えていたら、その画像を「📥 記録を読み込む」でもどせる'
+      : '前の時間の記録がある人は「📥 記録を読み込む」で、記録カードかドローンアプリの「ポイント情報」の画像をえらぼう';
+  }
+  hint();
+  $('recLoad').addEventListener('click', function () {
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.multiple = true; inp.accept = '.png,image/png,.txt,text/plain';
+    inp.onchange = function () { var f = [].slice.call(inp.files || []); if (f.length) loadFiles(f); };
+    inp.click();
+  });
+  $('recSave').addEventListener('click', saveCard);
+  window.HubRecord = { code: myCode, load: loadFiles };
 })();
 </script>
 </body>
