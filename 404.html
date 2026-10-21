@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>忘れられた端末</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #020617; color: #e2e8f0; font: 700 17px/1.8 system-ui, -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; padding: 16px; box-sizing: border-box; }
+  .box { max-width: 520px; background: #0f172a; border: 2px solid #38bdf8; border-radius: 16px; padding: 22px 26px; text-align: center; }
+  a { display: inline-block; margin-top: 10px; background: #0ea5e9; color: #fff; border-radius: 10px; padding: 8px 20px; text-decoration: none; font-weight: 900; }
+  small { color: #94a3b8; font-weight: 600; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div style="font-size:40px">📱</div>
+  <div style="font-size:20px;font-weight:900;color:#fde68a">Tの端末へ移動しています…</div>
+  <div>アドレスが少しちがっていたので、正しいページに案内します。</div>
+  <a id="go" href="index.html">📱 Tの端末をひらく</a>
+  <div style="margin-top:10px"><small id="bad"></small></div>
+</div>
+<script>
+  // アドレスのうしろに、かっこ・句読点・日本語などがくっついて「見つからない」になったときの案内
+  //   /drone/drone_array.html）  → /drone/drone_array.html
+  //   /drone/index.htmlを開こう → /drone/index.html
+  //   /drone/xxxx（ないページ）  → /drone/index.html
+  (function () {
+    var FILES = ['index.html', 'drone_variable.html', 'drone_array.html', 'drone_function.html',
+      'hardware-software.html', 'program-basic.html', 'network-internet.html', 'packet-protocol.html', 'client-server-dns.html', 'www-webapp.html'];
+    var path = location.pathname, dec = path;
+    try { dec = decodeURIComponent(path); } catch (e) { /* そのまま */ }
+    var parts = dec.split('/').filter(Boolean);
+    // GitHub Pages のプロジェクト（/drone/）なら、その中へ
+    var first = parts.length && !/\.html?/i.test(parts[0]) ? parts[0].replace(/[^A-Za-z0-9_.-].*$/, '') : '';
+    var base = first ? '/' + first + '/' : '/';
+    var last = parts.length > 1 || base === '/' ? parts[parts.length - 1] || '' : '';
+    var target = 'index.html';
+    for (var i = 0; i < FILES.length; i++) {
+      var f = FILES[i], stem = f.replace(/\.html$/, '');
+      if (last.toLowerCase().indexOf(stem.toLowerCase()) === 0) { target = f; break; }
+    }
+    var url = base + target + location.search + location.hash;
+    document.getElementById('go').href = url;
+    document.getElementById('bad').textContent = '開こうとしたアドレス：' + location.href;
+    // 同じアドレスに飛ぶとくり返しになるので、そのときは案内だけ
+    if (url.split('?')[0] !== location.pathname) setTimeout(function () { location.replace(url); }, 1200);
+  })();
+</script>
+</body>
+</html>
