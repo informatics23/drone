@@ -358,8 +358,9 @@
       <div class="heroText">
         <h1>忘れられた<br>端末</h1>
         <div class="who" id="who"></div>
+        <button type="button" id="regroupBtn" style="display:none;margin:-6px 0 12px;font:800 13px system-ui,sans-serif;padding:4px 12px;border-radius:8px;border:1px solid #fca5a5;background:#450a0a;color:#fecaca;cursor:pointer">班だけ入力し直す</button>
         <div id="groupPick" style="display:none;margin:0 0 12px;background:#1e293b;border:2px solid #38bdf8;border-radius:12px;padding:10px 14px;font-weight:800">
-          はじめに、クラスと班を選ぼう（一度決めると変えられない）<br>
+          <span id="gpMsg">はじめに、クラスと班を選ぼう（クラスは一度決めると変えられない）</span><br>
           <select id="gpC" style="font:inherit;padding:4px 8px;margin-top:6px"><option value="">－</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select> 組
           <select id="gpH" style="font:inherit;padding:4px 8px"><option value="">－</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>0</option></select> 班
           <button type="button" id="gpGo" style="font:inherit;margin-left:8px;padding:4px 14px;border:0;border-radius:8px;background:#0ea5e9;color:#fff;cursor:pointer">決定</button>
@@ -507,6 +508,12 @@
     $('notes').innerHTML = H.ITEMS.filter(function (it) { return it.kind === 'note' && H.visible(it.id); }).map(card).join('');
     $('escapes').innerHTML = H.ITEMS.filter(function (it) { return it.kind === 'escape' && H.visible(it.id); }).map(card).join('');
     $('groupPick').style.display = H.lockedGroup() ? 'none' : 'block';
+    // 班だけ入力し直す（クラスはそのまま）
+    var cl = ''; try { cl = localStorage.getItem('droneClassLock') || ''; } catch (e) { /* なし */ }
+    if (!cl && t.cls) cl = t.cls;
+    $('regroupBtn').style.display = H.lockedGroup() ? 'inline-block' : 'none';
+    if (!H.lockedGroup() && cl) { $('gpC').value = cl; $('gpC').disabled = true; $('gpMsg').textContent = '班を選び直そう（クラスは ' + cl + '組 のまま）'; }
+    else { $('gpC').disabled = false; }
     var ps = H.parts();
     $('pcArt').innerHTML = H.pcSvg(ps.length ? ps[ps.length - 1].part.id : '');
     var st = H.pcState(); $('pcState').textContent = (st.lv >= 5 ? '' : st.lv ? '⚠ ' : '') + st.msg;
@@ -519,9 +526,16 @@
   $('gpGo').addEventListener('click', function () {
     var c = $('gpC').value, h = $('gpH').value;
     if (!c || !h) { alert('クラスと班を選ぼう'); return; }
-    var g = c + '組' + h + '班';
-    if (!confirm('「' + g + '」でよいですか？ 一度決めると変えられません')) return;
+    var g = c + '組' + h + '班', cl = ''; try { cl = localStorage.getItem('droneClassLock') || ''; } catch (e) { /* なし */ }
+    if (cl && c !== cl) { alert('クラスは「' + cl + '組」に決まっています。変えられません'); return; }
+    if (!confirm('「' + g + '」でよいですか？（クラスは、あとから変えられません）')) return;
     H.setGroup(g); try { localStorage.setItem('droneClassLock', c); } catch (e) { /* なし */ } render();
+  });
+  $('regroupBtn').addEventListener('click', function () {
+    var g = H.lockedGroup();
+    if (!g || !confirm('班を入力し直しますか？（クラス「' + g.replace(/組.*$/, '') + '組」はそのままです）\n（いまの班「' + g + '」の記録は、この端末に残ります。もとの班にもどすこともできます）')) return;
+    try { localStorage.setItem('droneClassLock', g.replace(/組.*$/, '')); localStorage.removeItem('droneGroupLock'); } catch (e) { /* なし */ }
+    render();
   });
   window.addEventListener('storage', render);
   window.addEventListener('pageshow', render);
