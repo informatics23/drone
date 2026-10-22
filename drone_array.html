@@ -5345,6 +5345,20 @@ window.DroneQR = (function () {
     }, { passive: false });
   })();
 </script>
+
+<style>
+  /* 部屋2：手がかりがそろったら、部屋のかわりに「部屋1のプログラム」をならべて見せる */
+  #toggleArea { position: relative; }
+  #comparePanel { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: #0f172a; border-radius: 10px; overflow: hidden; }
+  #comparePanel.viewHidden { display: none; }
+  #comparePanel .cmpHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: #1e293b; color: #fde68a; font: 800 14px system-ui, -apple-system, "Hiragino Sans", sans-serif; }
+  #comparePanel .cmpHead small { display: block; color: #94a3b8; font-weight: 700; font-size: 12px; }
+  #comparePanel .cmpHead button { flex: none; font: 800 13px system-ui, sans-serif; padding: 4px 10px; border: 0; border-radius: 8px; background: #334155; color: #e2e8f0; cursor: pointer; }
+  #compareDiv { flex: 1; min-height: 0; position: relative; }
+  #compareEmpty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; color: #94a3b8; font: 700 14px/1.7 system-ui, sans-serif; text-align: center; }
+  body.cmpOn #invBar { display: none !important; }
+  #cmpBackBtn { position: absolute; left: 8px; bottom: 8px; z-index: 31; font: 800 13px system-ui, sans-serif; padding: 5px 12px; border: 0; border-radius: 999px; background: #0ea5e9; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+</style>
 </head>
 <body>
   <!-- プログラム（JavaScript）が動かない画面で開いたときだけ見える注意（動けばすぐ消す） -->
@@ -5464,6 +5478,11 @@ window.DroneQR = (function () {
       </div>
     </div>
 
+    <div id="comparePanel" class="viewHidden">
+      <div class="cmpHead"><span id="cmpTitle">部屋1のプログラム<small>くらべてみよう（見るだけ・動かせない）</small></span><button type="button" onclick="cmpToggle(false)">🏠 部屋を見る</button></div>
+      <div id="compareDiv"><div id="compareEmpty" hidden></div></div>
+    </div>
+    <button type="button" id="cmpBackBtn" hidden onclick="cmpToggle(true)">🧩 部屋1のプログラムとくらべる</button>
     <div id="simContainer" class="panel viewHidden">
       <div id="simCanvasContainer">
         <div id="hint">マウスで視点を変えよう！</div>
@@ -9194,7 +9213,7 @@ window.DroneQR = (function () {
           ? `<div class="stageDone">${[1, 2].map((st) => { const k = st === 1 ? 'array' : 'array2'; return `<span class="${myCleared(k) ? 'on' : ''}">${VAR_STAGE_NAME[st]} ${myCleared(k) ? '✓ クリア' : 'まだ'}（${ptMax(k)}pt）</span>`; }).join('')}</div>` : '';
         mt.innerHTML = `<span class="mLabel">${UNITS[u].name}</span>ポイントゲット`;
         tools.innerHTML = '';
-        layer.innerHTML = '<div class="storyCard"><div class="storyStep">④ ポイントゲット</div>' + (u === 'array' ? escSummaryHtml() : '') +
+        layer.innerHTML = '<div class="storyCard"><div class="storyStep">④ ポイントゲット</div>' + (u === 'array' ? escSummaryHtml() : '') + (u === 'array' && typeof sortTaskCard === 'function' ? sortTaskCard() : '') +
           (cleared
             ? `<h2>ミッションクリア！</h2><div class="pointRow"><div class="pointCol"><div class="pointWho">${meChipHtml()} 自分</div><div class="pointBig">+${earned}pt</div><div class="pointSub">合計 ${myPoints()}pt</div></div>` +
               `<div class="pointCol"><div class="pointWho">${escapeHtml(groupName())}</div><div class="pointBig">+${earned}pt</div><div class="pointSub">合計 ${groupPoints()}pt</div></div></div>` + stageLine +
@@ -10856,6 +10875,385 @@ window.DroneQR = (function () {
       if (note) note.innerHTML = '出ないときや、まちがえて「表示」を押したときは、下の「💾 もう一度保存する」を押そう。<br>Teams に送るときは、📎（ファイルを添付）→「ファイル」→「ダウンロード」から、この画像を選ぼう。';
     } catch (e) { /* なし */ }
   })();
+</script>
+<script>
+  // ==== 部屋2：手がかりを全部そろえたら、部屋のかわりに「部屋1で組んだプログラム（ブロック）」を左に出す ====
+  //   左：部屋1のプログラム（見るだけ） ／ 真ん中：部屋2のプログラム ／ 右：Python
+  //   「🏠 部屋を見る」で部屋にもどせる。扉が開くとき（脱出のアニメーション）は部屋を出す
+  (function () {
+    var U = 'array', cmpWs = null, userOff = false, shownKey = '', lastOn = null;
+    var ROOM1 = '部屋1（変数で）のプログラム';
+    function room1Xml() {
+      try { return team.ws[U + ':pz1b'] || team.ws[U + ':pz'] || ''; } catch (e) { return ''; }
+    }
+    function wanted() {
+      try {
+        if (currentUnit !== U || curStep() !== 3 || varStage() !== 2) return false;
+        if (escClearTime(2) !== null) return false;
+        return escDecodedCount(2) >= 4;
+      } catch (e) { return false; }
+    }
+    function ensureWs() {
+      if (cmpWs) return cmpWs;
+      cmpWs = Blockly.inject('compareDiv', { readOnly: true, sounds: false, scrollbars: false, trashcan: false, move: { scrollbars: false, drag: false, wheel: false }, zoom: { controls: false, wheel: false, startScale: 0.8 } });
+      return cmpWs;
+    }
+    function fit() {
+      if (!cmpWs) return;
+      Blockly.svgResize(cmpWs);
+      var div = document.getElementById('compareDiv'), box = cmpWs.getBlocksBoundingBox();
+      if (!div.clientWidth || !box || !isFinite(box.right)) return;
+      var w = Math.max(1, box.right - box.left), h = Math.max(1, box.bottom - box.top);
+      var sc = Math.max(0.45, Math.min(1.1, (div.clientWidth - 24) / w, (div.clientHeight - 24) / h));
+      cmpWs.setScale(sc);
+      // 左上にそろえる（はみ出すときは、上から見えるところまで）
+      cmpWs.translate(12 - box.left * sc, 12 - box.top * sc);
+    }
+    function load() {
+      var xml = room1Xml(), key = xml + '|' + (team.names || []).join(',');
+      var empty = document.getElementById('compareEmpty');
+      if (!xml) { empty.hidden = false; empty.textContent = '部屋1で組んだプログラムが、この端末に残っていません。'; if (cmpWs) cmpWs.clear(); return; }
+      empty.hidden = true;
+      ensureWs();
+      if (key === shownKey) { fit(); return; }
+      shownKey = key;
+      cmpWs.clear();
+      try { Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), cmpWs); } catch (e) { /* 読めない */ }
+      // つながっていないかたまりは、上から順に並べ直す
+      var y = 0;
+      cmpWs.getTopBlocks(true).forEach(function (b) { b.moveTo(new Blockly.utils.Coordinate(0, y)); y += b.getHeightWidth().height + 24; });
+      setTimeout(fit, 30);
+    }
+    function apply() {
+      var on = wanted() && !userOff;
+      var panel = document.getElementById('comparePanel'), back = document.getElementById('cmpBackBtn');
+      back.hidden = !(wanted() && userOff);
+      if (on === lastOn) { if (on) fit(); return; }
+      lastOn = on;
+      panel.classList.toggle('viewHidden', !on);
+      document.body.classList.toggle('cmpOn', on);
+      if (on) { document.getElementById('cmpTitle').innerHTML = ROOM1 + '<small>部屋2のプログラムとくらべてみよう（見るだけ・動かせない）</small>'; load(); }
+      else { try { resizeRenderer(); } catch (e) { /* なし */ } }
+    }
+    window.cmpToggle = function (on) { userOff = !on; lastOn = null; apply(); };
+    // 脱出のアニメーションは、部屋を出してから
+    if (typeof escapeDoorAnim === 'function') {
+      var orig = escapeDoorAnim;
+      escapeDoorAnim = async function (st) {
+        document.getElementById('comparePanel').classList.add('viewHidden'); lastOn = false;
+        try { resizeRenderer(); } catch (e) { /* なし */ }
+        return orig.apply(this, arguments);
+      };
+    }
+    window.addEventListener('resize', function () { if (lastOn) setTimeout(fit, 50); });
+    setInterval(apply, 700);
+    apply();
+  })();
+</script>
+<script>window.SORT_TASK_CFG = { unit: 'array', id: 'sortArr' };</script>
+<style>
+  /* ==== まほうの課題（並べ替え） ==== */
+  #stOverlay { position: fixed; inset: 0; z-index: 9000; background: #020617; display: flex; flex-direction: column; color: #e2e8f0; font-family: system-ui, -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; }
+  #stOverlay.viewHidden { display: none; }
+  #stHead { flex: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: #0f172a; border-bottom: 2px solid #7c3aed; }
+  #stHead .stTitle { font-weight: 900; font-size: 18px; color: #e9d5ff; }
+  #stHead .stMission { flex: 1; min-width: 260px; font-weight: 700; font-size: 14px; line-height: 1.5; color: #cbd5e1; }
+  #stHead button { font: 800 14px system-ui, sans-serif; padding: 6px 14px; border: 0; border-radius: 9px; cursor: pointer; }
+  #stRun { background: #16a34a; color: #fff; } #stReset { background: #334155; color: #e2e8f0; } #stClose { background: #475569; color: #fff; }
+  #stSpeed { font: 700 13px system-ui; padding: 4px; border-radius: 8px; }
+  #stBody { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .stCol { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #0f172a; border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
+  .stColHead { flex: none; padding: 6px 10px; background: #1e293b; font-weight: 900; font-size: 14px; color: #fde68a; display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+  .stColHead .cnt { color: #f0abfc; font-size: 13px; white-space: nowrap; }
+  .stWs { flex: 1; min-height: 0; position: relative; }
+  #stBoxes { flex: none; display: flex; gap: 8px; justify-content: center; align-items: flex-end; padding: 10px 6px 4px; flex-wrap: wrap; }
+  .stBox { text-align: center; font-weight: 900; }
+  .stBox .v { width: 52px; height: 52px; border-radius: 10px; border: 3px solid #64748b; background: #020617; display: grid; place-items: center; font-size: 26px; transition: transform .15s; }
+  .stBox .l { font: 800 12px ui-monospace, monospace; color: #fde68a; margin-top: 2px; }
+  .stBox.tmp .v { border-color: #f472b6; }
+  .stBox.flash .v { transform: scale(1.18); background: #422006; }
+  .stBox.cmp .v { border-color: #facc15; box-shadow: 0 0 0 3px rgba(250, 204, 21, .35); }
+  #stI { font: 900 14px ui-monospace, monospace; color: #38bdf8; text-align: center; min-height: 1.4em; }
+  #stPy { flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 8px 12px; font: 600 14px/1.55 ui-monospace, Consolas, monospace; color: #e2e8f0; white-space: pre; }
+  #stMsg { flex: none; padding: 6px 10px; min-height: 2.6em; font-weight: 800; font-size: 14px; line-height: 1.5; color: #fde68a; border-top: 1px solid #334155; }
+  .stDone { position: fixed; inset: 0; z-index: 9100; background: rgba(2, 6, 23, .8); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .stDone > div { max-width: 560px; background: #0f172a; border: 3px solid #a855f7; border-radius: 16px; padding: 20px 24px; text-align: center; line-height: 1.8; font-weight: 700; box-shadow: 0 0 24px rgba(168, 85, 247, .45); }
+  .stDone h3 { margin: 0 0 6px; font-size: 22px; color: #f5d0fe; }
+  .stDone .cmpRow { display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap; margin: 10px 0; font-size: 16px; }
+  .stDone .cmpRow b { font-size: 26px; color: #fde68a; }
+  .stDone button { margin-top: 10px; font: 800 15px system-ui; padding: 8px 18px; border: 0; border-radius: 10px; background: #7c3aed; color: #fff; cursor: pointer; }
+  .stCard { margin: 12px auto; max-width: 640px; background: #1e1b4b; border: 2px solid #a855f7; border-radius: 14px; padding: 12px 16px; text-align: center; font-weight: 700; line-height: 1.7; color: #e9d5ff; }
+  .stCard button { margin-top: 6px; font: 800 15px system-ui; padding: 7px 18px; border: 0; border-radius: 10px; background: #7c3aed; color: #fff; cursor: pointer; }
+  @media (max-width: 900px) { #stBody { grid-template-columns: 1fr 1fr; } #stColRef { display: none; } }
+</style>
+<div id="stOverlay" class="viewHidden">
+  <div id="stHead">
+    <span class="stTitle">🪄 まほうの課題：並べ替え</span>
+    <span class="stMission" id="stMission"></span>
+    <select id="stSpeed" title="速さ"><option value="1">ふつう</option><option value="3">はやい</option><option value="10">一瞬</option></select>
+    <button id="stRun" type="button">▶ 実行</button>
+    <button id="stReset" type="button">↺ ブロックを最初に</button>
+    <button id="stClose" type="button">✕ とじる</button>
+  </div>
+  <div id="stBody">
+    <div class="stCol" id="stColRef"><div class="stColHead"><span id="stRefTitle">参考</span><span class="cnt" id="stRefCnt"></span></div><div class="stWs" id="stRefWs"></div></div>
+    <div class="stCol"><div class="stColHead"><span id="stMyTitle">自分のプログラム</span><span class="cnt" id="stMyCnt"></span></div><div class="stWs" id="stMyWs"></div></div>
+    <div class="stCol"><div class="stColHead"><span>箱の数と Python</span><span class="cnt" id="stPyCnt"></span></div>
+      <div id="stBoxes"></div><div id="stI"></div><pre id="stPy"></pre><div id="stMsg"></div></div>
+  </div>
+</div>
+<script>
+/* ==== まほうの課題（並べ替え）：配列ステージ／関数ステージのあとに挑戦する ====
+   配列ステージ：変数だけで書いた並べ替え（参考・24個）と、配列＋繰返で書く並べ替え（自分で）をくらべる。
+   クリアした記録は、この端末の localStorage 'droneMagic_v1' に入る（関数ステージの課題とあわせて「まほう：並べ替え」になる）。 */
+(function () {
+  var CFG = window.SORT_TASK_CFG || { unit: 'array', id: 'sortArr' };
+  var MAGIC = 'droneMagic_v1';
+  function magic() { try { return JSON.parse(localStorage.getItem(MAGIC) || '{}') || {}; } catch (e) { return {}; } }
+  function setMagic(k) { var m = magic(); if (!m[k]) m[k] = Date.now(); try { localStorage.setItem(MAGIC, JSON.stringify(m)); } catch (e) { /* なし */ } }
+  window.SortTask = { magic: magic };
+
+  // ---- ブロック（並べ替えで使う「もし ＞ なら」） ----
+  if (!Blockly.Blocks['ra_if_gt']) Blockly.Blocks['ra_if_gt'] = {
+    init: function () {
+      this.appendDummyInput().appendField('もし').appendField(dd(RA_OPTS, 'i'), 'A').appendField('＞').appendField(dd(RA_OPTS, 'i+1'), 'B').appendField('なら');
+      this.appendStatementInput('DO');
+      this.setPreviousStatement(true, null); this.setNextStatement(true, null); this.setColour(IF_COLOUR);
+    }
+  };
+  if (!Blockly.Blocks['rv_if_gt']) Blockly.Blocks['rv_if_gt'] = {
+    init: function () {
+      this.appendDummyInput().appendField('もし').appendField(dd(MEMBER_OPTS, 'M0'), 'A').appendField('＞').appendField(dd(MEMBER_OPTS, 'M1'), 'B').appendField('なら');
+      this.appendStatementInput('DO');
+      this.setPreviousStatement(true, null); this.setNextStatement(true, null); this.setColour(IF_COLOUR);
+    }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var B = function (type, fields, inner) { return '<block type="' + type + '">' + Object.keys(fields || {}).map(function (k) { return '<field name="' + k + '">' + fields[k] + '</field>'; }).join('') + (inner || '') + '</block>'; };
+  var CH = function (list) { return list.reduceRight(function (acc, b) { return acc ? b.replace(/<\/block>$/, '<next>' + acc + '</next></block>') : b; }, ''); };
+  var ST = function (name, list) { return '<statement name="' + name + '">' + CH(list) + '</statement>'; };
+  var XW = function (s) { return '<xml xmlns="https://developers.google.com/blockly/xml">' + s + '</xml>'; };
+
+  // 参考：変数だけで書いた並べ替え（となりどうしを、3＋2＋1＝6回比べる）
+  function refXml() {
+    var pairs = [[0, 1], [1, 2], [2, 3], [0, 1], [1, 2], [0, 1]];
+    return XW(CH(pairs.map(function (p) {
+      var A = 'M' + p[0], C = 'M' + p[1];
+      return B('rv_if_gt', { A: A, B: C }, ST('DO', [B('rv_copy', { X: 'tmp', Y: A }), B('rv_copy', { X: A, Y: C }), B('rv_copy', { X: C, Y: 'tmp' })]));
+    })));
+  }
+  // 用意するブロック（ならべる順番・入れる場所は自由。まちがっている所が2つある）
+  function presetList() {
+    return [
+      B('custom_repeat', { TIMES: 2 }, ''),
+      B('ra_for', { FROM: 0, TO: 3, DIR: 'UP' }, ''),
+      B('ra_if_gt', { A: 'i', B: 'i+1' }, ''),
+      B('ra_assign', { L: 'tmp', R: 'i' }),
+      B('ra_assign', { L: 'i', R: 'i+1' }),
+      B('ra_assign', { L: 'i+1', R: 'tmp' })
+    ];
+  }
+  // 最初の数（班ごとに決まる。3回くり返さないとそろわない並び）
+  function initVals() {
+    var r = seededRand((team.group || '') + '|sorttask|' + (team.round || 0));
+    for (var t = 0; t < 200; t++) {
+      var a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; }
+      var v = a.slice(0, 4), inv = 0;
+      for (var p = 0; p < 4; p++) for (var q = p + 1; q < 4; q++) if (v[p] > v[q]) inv++;
+      if (inv >= 4 && v[3] !== Math.max.apply(null, v) && v[0] === Math.max.apply(null, v.slice(0, 2))) return v;
+    }
+    return [7, 5, 9, 2];
+  }
+
+  var refWs = null, myWs = null, vals = [], tmpV = null, iV = undefined, running = false, runTok = 0;
+  function mkWs(id, ro) {
+    return Blockly.inject(id, { readOnly: ro, sounds: false, trashcan: false, scrollbars: true, move: { scrollbars: true, drag: true, wheel: true }, zoom: { controls: false, wheel: false, startScale: 0.8, maxScale: 1.4, minScale: 0.4 }, grid: ro ? undefined : { spacing: 24, length: 2, colour: '#334155', snap: true } });
+  }
+  function layout(ws) {
+    // 描いてから並べる（高さが決まってから）
+    var go = function () { try { Blockly.svgResize(ws); ws.render && ws.render(); var y = 10; ws.getTopBlocks(true).forEach(function (b) { b.moveTo(new Blockly.utils.Coordinate(10, y)); y += b.getHeightWidth().height + 22; }); ws.scrollCenter && ws.scrollCenter(); } catch (e) { /* なし */ } };
+    go(); setTimeout(go, 80);
+  }
+  function fitRef() {
+    if (!refWs) return;
+    Blockly.svgResize(refWs);
+    var div = $('stRefWs'), box = refWs.getBlocksBoundingBox();
+    if (!div.clientWidth || !box) return;
+    var sc = Math.max(0.35, Math.min(0.9, (div.clientWidth - 30) / (box.right - box.left), (div.clientHeight - 30) / (box.bottom - box.top)));
+    refWs.setScale(sc); refWs.scrollCenter();
+  }
+  function count(ws) { return ws ? ws.getAllBlocks(false).length : 0; }
+
+  // ---- Python（自分のプログラム・参考） ----
+  var pyIdx = function (v) { return v === 'tmp' ? 'tmp' : 'box[' + v.replace('+', ' + ').replace('-', ' - ') + ']'; };
+  function pyOf(ws, vars) {
+    var out = [];
+    function walk(b, ind) {
+      for (; b; b = b.getNextBlock()) {
+        var pad = new Array(ind + 1).join('    '), f = function (n) { return b.getFieldValue(n); };
+        var nm = function (v) { return v === 'tmp' ? 'tmp' : pyName(Number(v.slice(1))); };
+        switch (b.type) {
+          case 'custom_repeat': out.push(pad + 'for _ in range(' + f('TIMES') + '):'); sub(b, ind); break;
+          case 'ra_for': { var a = Number(f('FROM')), c = Number(f('TO')); out.push(pad + 'for i in ' + (f('DIR') === 'UP' ? 'range(' + a + ', ' + (c + 1) + ')' : 'range(' + a + ', ' + (c - 1) + ', -1)') + ':'); sub(b, ind); break; }
+          case 'ra_if_gt': out.push(pad + 'if ' + pyIdx(f('A')) + ' > ' + pyIdx(f('B')) + ':'); sub(b, ind); break;
+          case 'ra_assign': out.push(pad + pyIdx(f('L')) + ' = ' + pyIdx(f('R'))); break;
+          case 'rv_if_gt': out.push(pad + 'if ' + nm(f('A')) + ' > ' + nm(f('B')) + ':'); sub(b, ind); break;
+          case 'rv_copy': out.push(pad + nm(f('X')) + ' = ' + nm(f('Y'))); break;
+          default: out.push(pad + '# ?');
+        }
+      }
+    }
+    function sub(b, ind) { var n = out.length; walk(b.getInputTargetBlock('DO'), ind + 1); if (out.length === n) out.push(new Array(ind + 2).join('    ') + 'pass'); }
+    var tops = ws.getTopBlocks(true);
+    if (tops[0]) walk(tops[0], 0);
+    var head = vars ? [0, 1, 2, 3].map(function (k) { return pyName(k) + ' = ' + vals0[k]; }) : ['box = [' + vals0.join(', ') + ']'];
+    var foot = vars ? 'print(' + [0, 1, 2, 3].map(pyName).join(', ') + ')' : 'print(box)';
+    return { text: head.join('\n') + '\n\n' + (out.length ? out.join('\n') : '# ブロックをつなげよう') + '\n\n' + foot, lines: out.length };
+  }
+  var vals0 = [];
+  function showPy() {
+    var p = pyOf(myWs, false);
+    $('stPy').textContent = p.text;
+    $('stMyCnt').textContent = 'ブロック ' + count(myWs) + ' 個';
+    $('stPyCnt').textContent = 'Python ' + p.lines + ' 行（並べ替えの部分）';
+  }
+  // ---- 箱の表示 ----
+  function drawBoxes(flash, cmp) {
+    var h = '';
+    for (var k = 0; k < 4; k++) h += '<div class="stBox' + (flash === k ? ' flash' : '') + (cmp && cmp.indexOf(k) >= 0 ? ' cmp' : '') + '"><div class="v" style="border-color:' + (MEMBER_COLORS[k].css === '#FFFFFF' ? '#cbd5e1' : MEMBER_COLORS[k].css) + '">' + vals[k] + '</div><div class="l">box[' + k + ']</div></div>';
+    h += '<div class="stBox tmp' + (flash === 'tmp' ? ' flash' : '') + '" style="margin-left:10px"><div class="v">' + (tmpV === null ? '－' : tmpV) + '</div><div class="l">tmp</div></div>';
+    $('stBoxes').innerHTML = h;
+    $('stI').textContent = iV === undefined ? '' : 'i = ' + iV;
+  }
+  var wait = function (ms) { var my = runTok; return new Promise(function (res, rej) { setTimeout(function () { if (my !== runTok) rej('stop'); else res(); }, ms / Number($('stSpeed').value || 1)); }); };
+  function hl(b) {
+    myWs.getAllBlocks(false).forEach(function (x) { var r = x.getSvgRoot(); if (r) r.classList.remove('blockRunning'); });
+    if (b && b.getSvgRoot()) b.getSvgRoot().classList.add('blockRunning');
+  }
+  function err(m) { var e = new Error(m); e.friendly = true; return e; }
+  // ---- 実行（ブロックを1つずつたどる）。fast：画面に出さずに一瞬で（ほかの並びでのテスト用） ----
+  async function exec(ws, start, st, fast) {
+    var steps = 0;
+    function ref(v, needIdx) {
+      if (v === 'tmp') return 'tmp';
+      var raw = /^\d$/.test(v) ? Number(v) : (function () { if (st.i === undefined) throw err('box[' + v + '] の i は、「繰返 i を…」の中でしか使えません'); return v === 'i' ? st.i : v === 'i+1' ? st.i + 1 : st.i - 1; })();
+      if (raw > 3 || raw < -4) throw err('box[' + v + '] は box[' + raw + '] になります。box の添字は 0〜3 です（Python では IndexError）。繰返の範囲を見直そう');
+      return raw < 0 ? raw + 4 : raw;
+    }
+    function get(r) { if (r === 'tmp') { if (st.tmp === null) throw err('tmp にまだ何も入っていません'); return st.tmp; } return st.v[r]; }
+    async function run(b) {
+      for (; b; b = b.getNextBlock()) {
+        if (++steps > 3000) throw err('くり返しが多すぎます');
+        var f = function (n) { return b.getFieldValue(n); };
+        if (!fast) hl(b);
+        if (b.type === 'custom_repeat') { for (var t = 0; t < Number(f('TIMES')); t++) { if (!fast) await wait(150); await run(b.getInputTargetBlock('DO')); } }
+        else if (b.type === 'ra_for') {
+          var a = Number(f('FROM')), c = Number(f('TO')), up = f('DIR') === 'UP', save = st.i;
+          for (var i = a; up ? i <= c : i >= c; i += up ? 1 : -1) { st.i = i; if (!fast) { iV = i; drawBoxes(); await wait(150); hl(b); } await run(b.getInputTargetBlock('DO')); }
+          st.i = save; if (!fast) { iV = save; drawBoxes(); }
+        } else if (b.type === 'ra_if_gt') {
+          var A = ref(f('A')), C = ref(f('B')), va = get(A), vc = get(C);
+          if (!fast) { drawBoxes(null, [A, C].filter(function (x) { return x !== 'tmp'; })); $('stMsg').textContent = pyIdx(f('A')) + '（' + va + '）＞ ' + pyIdx(f('B')) + '（' + vc + '）？ → ' + (va > vc ? 'はい：入れかえる' : 'いいえ'); await wait(500); }
+          if (va > vc) await run(b.getInputTargetBlock('DO'));
+        } else if (b.type === 'ra_assign') {
+          var L = ref(f('L')), R = ref(f('R')), val = get(R);
+          if (L === 'tmp') st.tmp = val; else st.v[L] = val;
+          if (!fast) { vals = st.v; tmpV = st.tmp; drawBoxes(L); await wait(380); drawBoxes(); }
+        }
+      }
+    }
+    await run(start);
+  }
+  function mainTop() { var t = myWs.getTopBlocks(true); return t; }
+  async function runIt() {
+    if (running) { runTok++; running = false; $('stRun').textContent = '▶ 実行'; return; }
+    var tops = mainTop();
+    if (!tops.length) return;
+    running = true; runTok++; $('stRun').textContent = '■ 止める';
+    vals = vals0.slice(); tmpV = null; iV = undefined; drawBoxes(); $('stMsg').textContent = '';
+    var st = { v: vals, tmp: null, i: undefined }, ok = false;
+    try {
+      await exec(myWs, tops[0], st, false);
+      hl(null);
+      var sorted = st.v.every(function (x, k) { return k === 0 || st.v[k - 1] <= x; });
+      if (tops.length > 1) $('stMsg').textContent = '⚠ つながっていないブロックがあります（' + tops.length + ' かたまり）。一番上のかたまりだけ実行されるよ';
+      else if (!sorted) $('stMsg').textContent = 'おしい！ まだ小さい順になっていません。何周くり返せば、ぜんぶそろうかな？ i はどこまで動けばいい？';
+      else {
+        // ほかの並びでもそろうか、画面に出さずに試す（どんな並びでも並べ替えられるのが、並べ替えのプログラム）
+        var tests = [[9, 7, 4, 1], [3, 8, 1, 6], [5, 2, 9, 4], vals0.slice().reverse()], bad = null;
+        for (var t = 0; t < tests.length && !bad; t++) {
+          var s2 = { v: tests[t].slice(), tmp: null, i: undefined };
+          try { await exec(myWs, tops[0], s2, true); } catch (e) { bad = tests[t]; break; }
+          if (!s2.v.every(function (x, k) { return k === 0 || s2.v[k - 1] <= x; })) bad = tests[t];
+        }
+        if (bad) $('stMsg').textContent = 'この並びではそろったけれど、[' + bad.join(', ') + '] から始めるとそろいません。どんな並びでもそろうように、くり返す回数を考えよう';
+        else ok = true;
+      }
+    } catch (e) {
+      hl(null);
+      if (e !== 'stop') $('stMsg').textContent = '⚠ ' + (e && e.friendly ? e.message : String(e && e.message || e));
+    }
+    running = false; $('stRun').textContent = '▶ 実行';
+    if (ok) done();
+  }
+  function done() {
+    setMagic(CFG.id);
+    try { team.steps[CFG.unit + ':sortdone'] = 1; saveTeam(); } catch (e) { /* なし */ }
+    var mine = count(myWs), ref = count(refWs), pyMine = pyOf(myWs, false).lines, pyRef = pyOf(refWs, true).lines;
+    var d = document.createElement('div'); d.className = 'stDone';
+    d.innerHTML = '<div><h3>🪄 並べ替えができた！</h3>' +
+      '<div class="cmpRow"><span>変数だけ <b>' + ref + '</b> 個</span><span>→</span><span>配列と繰返で <b>' + mine + '</b> 個</span></div>' +
+      '<div style="color:#cbd5e1">Python の並べ替えの部分は <b style="color:#fde68a">' + pyRef + ' 行 → ' + pyMine + ' 行</b>。<br>箱が100個にふえても、配列と繰返なら、プログラムの長さはほとんど変わらない。</div>' +
+      '<div style="margin-top:8px;color:#e9d5ff">関数ステージで、この並べ替えを <b>関数 sort</b> にすると、<b>まほう「並べ替え」</b>が手に入る。</div>' +
+      '<button type="button">とじる</button></div>';
+    d.querySelector('button').onclick = function () { d.remove(); };
+    document.body.appendChild(d);
+    try { if (typeof renderStep === 'function') renderStep(); } catch (e) { /* なし */ }
+  }
+  function resetBlocks() {
+    myWs.clear();
+    // 置く場所は、はじめから離しておく（重なると、くっついて見えるので）
+    var ys = [10, 100, 190, 280, 350, 420];
+    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(XW(presetList().map(function (x, k) { return x.replace('<block ', '<block x="' + (k >= 3 ? 40 : 10) + '" y="' + ys[k] + '" '); }).join(''))), myWs);
+    var mi = {}; myWs.getAllBlocks(false).forEach(function (b) { mi[b.type] = (mi[b.type] || 0) + 1; b.setDeletable(false); });
+    myWs.options.maxInstances = mi;
+    saveMine(); showPy();
+  }
+  var KEY = function () { return CFG.unit + ':sorttask'; };
+  function saveMine() { try { team.ws[KEY()] = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(myWs)); saveTeam(); } catch (e) { /* なし */ } }
+  function open() {
+    $('stOverlay').classList.remove('viewHidden');
+    vals0 = initVals(); vals = vals0.slice(); tmpV = null; iV = undefined; drawBoxes();
+    $('stMission').innerHTML = '4つの箱の数を <b>小さい順</b> に並べ替えよう。となりどうしを比べて、大きいほうを右へ入れかえる。左は、同じことを<b>変数だけ</b>で書いたプログラム。真ん中のブロックで、<b>配列 box と繰返</b> を使って書こう（まちがっている所が2つある）';
+    $('stRefTitle').textContent = '参考：変数だけで書くと';
+    $('stMyTitle').textContent = '自分のプログラム（配列と繰返で）';
+    if (!refWs) refWs = mkWs('stRefWs', true);
+    if (!myWs) { myWs = mkWs('stMyWs', false); myWs.addChangeListener(function (e) { if (e.isUiEvent) return; showPy(); clearTimeout(open._t); open._t = setTimeout(saveMine, 400); }); }
+    refWs.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(refXml()), refWs); layout(refWs);
+    $('stRefCnt').textContent = 'ブロック ' + count(refWs) + ' 個・Python ' + pyOf(refWs, true).lines + ' 行';
+    var saved = team.ws && team.ws[KEY()];
+    if (saved) { myWs.clear(); try { Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(saved), myWs); } catch (e) { /* なし */ } if (!myWs.getAllBlocks(false).length) resetBlocks(); else { var mi = {}; presetList().forEach(function (x) { var t = x.match(/type="([^"]+)"/)[1]; mi[t] = (mi[t] || 0) + 1; }); myWs.options.maxInstances = mi; myWs.getAllBlocks(false).forEach(function (b) { b.setDeletable(false); }); } }
+    else resetBlocks();
+    setTimeout(function () { Blockly.svgResize(refWs); Blockly.svgResize(myWs); fitRef(); showPy(); }, 60);
+    $('stMsg').textContent = '「▶ 実行」で、箱の数の動きを見よう';
+  }
+  function close() { runTok++; running = false; $('stRun').textContent = '▶ 実行'; $('stOverlay').classList.add('viewHidden'); try { renderStep(); } catch (e) { /* なし */ } }
+  $('stRun').addEventListener('click', runIt);
+  $('stReset').addEventListener('click', function () { if (confirm('ブロックを最初の並びにもどしますか？')) resetBlocks(); });
+  $('stClose').addEventListener('click', close);
+  window.addEventListener('resize', function () { if (!$('stOverlay').classList.contains('viewHidden')) { Blockly.svgResize(refWs); Blockly.svgResize(myWs); fitRef(); } });
+  window.openSortTask = open;
+  // ④ ポイントゲットに出すカード（部屋2まで脱出したら）
+  window.sortTaskCard = function () {
+    var cleared = false; try { cleared = myCleared(CFG.unit + '2'); } catch (e) { /* なし */ }
+    if (!cleared) return '';
+    var done = !!magic()[CFG.id];
+    return '<div class="stCard">🪄 <b>まほうの課題：並べ替え</b>' + (done ? ' <span style="color:#86efac">✓ クリア</span>' : '') +
+      '<br><span style="font-size:14px;color:#c4b5fd">4つの箱の数を小さい順に。変数だけだと24個のブロックが、配列と繰返なら何個になる？</span><br>' +
+      '<button type="button" onclick="openSortTask()">' + (done ? 'もう一度やってみる' : '挑戦する →') + '</button></div>';
+  };
+})();
 </script>
 </body>
 
