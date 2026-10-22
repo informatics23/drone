@@ -10928,7 +10928,8 @@ window.DroneQR = (function () {
       var on = wanted() && !userOff;
       var panel = document.getElementById('comparePanel'), back = document.getElementById('cmpBackBtn');
       back.hidden = !(wanted() && userOff);
-      if (on === lastOn) { if (on) fit(); return; }
+      // 同じ状態なら何もしない（倍率を変えると、開いているプルダウンが閉じてしまうので、くり返し fit しない）
+      if (on === lastOn) return;
       lastOn = on;
       panel.classList.toggle('viewHidden', !on);
       document.body.classList.toggle('cmpOn', on);
@@ -10945,7 +10946,8 @@ window.DroneQR = (function () {
         return orig.apply(this, arguments);
       };
     }
-    window.addEventListener('resize', function () { if (lastOn) setTimeout(fit, 50); });
+    var lastSize = '';
+    window.addEventListener('resize', function () { var d = document.getElementById('compareDiv'), sz = d.clientWidth + 'x' + d.clientHeight; if (lastOn && sz !== lastSize) { lastSize = sz; setTimeout(fit, 50); } });
     setInterval(apply, 700);
     apply();
   })();

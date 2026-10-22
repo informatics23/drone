@@ -5345,6 +5345,20 @@ window.DroneQR = (function () {
     }, { passive: false });
   })();
 </script>
+
+<style>
+  /* 部屋2：手がかりがそろったら、部屋のかわりに「部屋1のプログラム」をならべて見せる */
+  #toggleArea { position: relative; }
+  #comparePanel { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; background: #0f172a; border-radius: 10px; overflow: hidden; }
+  #comparePanel.viewHidden { display: none; }
+  #comparePanel .cmpHead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; background: #1e293b; color: #fde68a; font: 800 14px system-ui, -apple-system, "Hiragino Sans", sans-serif; }
+  #comparePanel .cmpHead small { display: block; color: #94a3b8; font-weight: 700; font-size: 12px; }
+  #comparePanel .cmpHead button { flex: none; font: 800 13px system-ui, sans-serif; padding: 4px 10px; border: 0; border-radius: 8px; background: #334155; color: #e2e8f0; cursor: pointer; }
+  #compareDiv { flex: 1; min-height: 0; position: relative; }
+  #compareEmpty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; color: #94a3b8; font: 700 14px/1.7 system-ui, sans-serif; text-align: center; }
+  body.cmpOn #invBar { display: none !important; }
+  #cmpBackBtn { position: absolute; left: 8px; bottom: 8px; z-index: 31; font: 800 13px system-ui, sans-serif; padding: 5px 12px; border: 0; border-radius: 999px; background: #0ea5e9; color: #fff; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
+</style>
 </head>
 <body>
   <!-- プログラム（JavaScript）が動かない画面で開いたときだけ見える注意（動けばすぐ消す） -->
@@ -5464,6 +5478,11 @@ window.DroneQR = (function () {
       </div>
     </div>
 
+    <div id="comparePanel" class="viewHidden">
+      <div class="cmpHead"><span id="cmpTitle">部屋1のプログラム<small>くらべてみよう（見るだけ・動かせない）</small></span><button type="button" onclick="cmpToggle(false)">🏠 部屋を見る</button></div>
+      <div id="compareDiv"><div id="compareEmpty" hidden></div></div>
+    </div>
+    <button type="button" id="cmpBackBtn" hidden onclick="cmpToggle(true)">🧩 部屋1のプログラムとくらべる</button>
     <div id="simContainer" class="panel viewHidden">
       <div id="simCanvasContainer">
         <div id="hint">マウスで視点を変えよう！</div>
@@ -10910,6 +10929,82 @@ window.DroneQR = (function () {
       if (saved) saved.innerHTML = '📱 画面に「<b>…をダウンロードしますか？</b>」と出たら、<b style="color:#fde68a">「ダウンロード」</b>を押そう（「表示」は押さない）。<br>✅ <b id="submitFile"></b> が「ファイル」アプリの「ダウンロード」に保存されます。';
       if (note) note.innerHTML = '出ないときや、まちがえて「表示」を押したときは、下の「💾 もう一度保存する」を押そう。<br>Teams に送るときは、📎（ファイルを添付）→「ファイル」→「ダウンロード」から、この画像を選ぼう。';
     } catch (e) { /* なし */ }
+  })();
+</script>
+<script>
+  // ==== 部屋2：手がかりを全部そろえたら、部屋のかわりに「部屋1で組んだプログラム（ブロック）」を左に出す ====
+  //   左：部屋1のプログラム（見るだけ） ／ 真ん中：部屋2のプログラム ／ 右：Python
+  //   「🏠 部屋を見る」で部屋にもどせる。扉が開くとき（脱出のアニメーション）は部屋を出す
+  (function () {
+    var U = 'fn', cmpWs = null, userOff = false, shownKey = '', lastOn = null;
+    var ROOM1 = '部屋1（関数なしで）のプログラム';
+    function room1Xml() {
+      try { return team.ws[U + ':pz1b'] || team.ws[U + ':pz'] || ''; } catch (e) { return ''; }
+    }
+    function wanted() {
+      try {
+        if (currentUnit !== U || curStep() !== 3 || varStage() !== 2) return false;
+        if (escClearTime(2) !== null) return false;
+        return escDecodedCount(2) >= 4;
+      } catch (e) { return false; }
+    }
+    function ensureWs() {
+      if (cmpWs) return cmpWs;
+      cmpWs = Blockly.inject('compareDiv', { readOnly: true, sounds: false, scrollbars: false, trashcan: false, move: { scrollbars: false, drag: false, wheel: false }, zoom: { controls: false, wheel: false, startScale: 0.8 } });
+      return cmpWs;
+    }
+    function fit() {
+      if (!cmpWs) return;
+      Blockly.svgResize(cmpWs);
+      var div = document.getElementById('compareDiv'), box = cmpWs.getBlocksBoundingBox();
+      if (!div.clientWidth || !box || !isFinite(box.right)) return;
+      var w = Math.max(1, box.right - box.left), h = Math.max(1, box.bottom - box.top);
+      var sc = Math.max(0.45, Math.min(1.1, (div.clientWidth - 24) / w, (div.clientHeight - 24) / h));
+      cmpWs.setScale(sc);
+      // 左上にそろえる（はみ出すときは、上から見えるところまで）
+      cmpWs.translate(12 - box.left * sc, 12 - box.top * sc);
+    }
+    function load() {
+      var xml = room1Xml(), key = xml + '|' + (team.names || []).join(',');
+      var empty = document.getElementById('compareEmpty');
+      if (!xml) { empty.hidden = false; empty.textContent = '部屋1で組んだプログラムが、この端末に残っていません。'; if (cmpWs) cmpWs.clear(); return; }
+      empty.hidden = true;
+      ensureWs();
+      if (key === shownKey) { fit(); return; }
+      shownKey = key;
+      cmpWs.clear();
+      try { Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), cmpWs); } catch (e) { /* 読めない */ }
+      // つながっていないかたまりは、上から順に並べ直す
+      var y = 0;
+      cmpWs.getTopBlocks(true).forEach(function (b) { b.moveTo(new Blockly.utils.Coordinate(0, y)); y += b.getHeightWidth().height + 24; });
+      setTimeout(fit, 30);
+    }
+    function apply() {
+      var on = wanted() && !userOff;
+      var panel = document.getElementById('comparePanel'), back = document.getElementById('cmpBackBtn');
+      back.hidden = !(wanted() && userOff);
+      // 同じ状態なら何もしない（倍率を変えると、開いているプルダウンが閉じてしまうので、くり返し fit しない）
+      if (on === lastOn) return;
+      lastOn = on;
+      panel.classList.toggle('viewHidden', !on);
+      document.body.classList.toggle('cmpOn', on);
+      if (on) { document.getElementById('cmpTitle').innerHTML = ROOM1 + '<small>部屋2のプログラムとくらべてみよう（見るだけ・動かせない）</small>'; load(); }
+      else { try { resizeRenderer(); } catch (e) { /* なし */ } }
+    }
+    window.cmpToggle = function (on) { userOff = !on; lastOn = null; apply(); };
+    // 脱出のアニメーションは、部屋を出してから
+    if (typeof escapeDoorAnim === 'function') {
+      var orig = escapeDoorAnim;
+      escapeDoorAnim = async function (st) {
+        document.getElementById('comparePanel').classList.add('viewHidden'); lastOn = false;
+        try { resizeRenderer(); } catch (e) { /* なし */ }
+        return orig.apply(this, arguments);
+      };
+    }
+    var lastSize = '';
+    window.addEventListener('resize', function () { var d = document.getElementById('compareDiv'), sz = d.clientWidth + 'x' + d.clientHeight; if (lastOn && sz !== lastSize) { lastSize = sz; setTimeout(fit, 50); } });
+    setInterval(apply, 700);
+    apply();
   })();
 </script>
 </body>
