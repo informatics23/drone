@@ -4991,7 +4991,7 @@ return $.__chunk_javascript;
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'doc' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
@@ -5097,12 +5097,17 @@ return $.__chunk_javascript;
   function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
   // 手に入ったもの（手に入れた順）
   function parts() {
-    return sync().order.map(item).filter(function (it) { return it && GEAR[it.gives]; }).map(function (it) {
+    var got = {};   // 同じぶひんを2つの項目でもらえるとき（えほんかクイズのどちらか）は、1つだけ数える
+    return sync().order.map(item).filter(function (it) { if (!it || !GEAR[it.gives] || got[it.gives]) return false; got[it.gives] = 1; return true; }).map(function (it) {
       var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
     });
   }
   // その項目で手に入ったもの（まだなら null）
-  function part(id) { var x = parts().filter(function (p) { return p.item === id; })[0]; return x ? x.part : null; }
+  function part(id) {
+    var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
+    if (!x && it && it.gives && isCleared(id)) x = ps.filter(function (p) { return p.id === it.gives; })[0];   // ほかの項目で、もう手に入れている
+    return x ? x.part : null;
+  }
   // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
   var LOCK = 'droneGroupLock';
   function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
@@ -5397,7 +5402,7 @@ window.DroneQR = (function () {
       <div class="coverCard"><button type="button" onclick="openRecordFile(true)">📥 ポイント読込</button>
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v44）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v45）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
