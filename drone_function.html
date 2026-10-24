@@ -5390,7 +5390,7 @@ window.DroneQR = (function () {
       <div class="coverCard"><button type="button" onclick="openRecordFile(true)">📥 ポイント読込</button>
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-22（v40）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v42）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -10073,11 +10073,15 @@ window.DroneQR = (function () {
     renderer.domElement.addEventListener('pointerleave', () => { roomState.hover = -1; });
     // ドラッグで視点を回したときは、クリックとして数えない
     let escDown = null;
-    renderer.domElement.addEventListener('pointerdown', (ev) => { escDown = { x: ev.clientX, y: ev.clientY }; });
-    renderer.domElement.addEventListener('click', (ev) => {
-      if (escDown && Math.hypot(ev.clientX - escDown.x, ev.clientY - escDown.y) > 6) return;
+    // iPad では、視点の操作（ドラッグ）と重なって click が来ないことがあるので、指を離したとき（pointerup）で判定する
+    renderer.domElement.addEventListener('pointerdown', (ev) => { escDown = { x: ev.clientX, y: ev.clientY, t: Date.now(), id: ev.pointerId }; });
+    renderer.domElement.addEventListener('pointerup', (ev) => {
+      const d = escDown; escDown = null;
+      if (!d || d.id !== ev.pointerId) return;
+      if (Math.hypot(ev.clientX - d.x, ev.clientY - d.y) > (ev.pointerType === 'touch' ? 12 : 6) || Date.now() - d.t > 800) return;
       const i = clueAt(ev); if (i >= 0) openClue(i);
     });
+    renderer.domElement.addEventListener('pointercancel', () => { escDown = null; });
     // ---- 視点（ドラッグで回す。床の下や部屋の外には回りこまない。実行しても視点はそのまま） ----
     controls.enablePan = false;
     controls.minPolarAngle = 0.15; controls.maxPolarAngle = Math.PI / 2 - 0.02;   // 真横（水平）まで下げられる
