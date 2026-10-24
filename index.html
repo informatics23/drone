@@ -23,6 +23,7 @@
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
@@ -464,7 +465,7 @@
     記録（ぶひん・班・名前・ポイント）は、<b>同じ端末・同じブラウザ</b>のときだけ引きつがれます。<br>
     ポイント情報のファイルは、iPad では「ファイル」アプリの「ダウンロード」に保存されます。
   </div>
-<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v42）</div>
+<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v43）</div>
 </main>
 
 <script>
@@ -492,7 +493,7 @@
     var done = H.isCleared(it.id), pt = H.part(it.id);
     var icon = it.kind === 'note' ? '📖' : '🧸';
     var cls = 'app ' + it.kind, state = '', tag = 'div', href = '';
-    var dsc = it.kind === 'escape' ? esc(it.sub || '') + (it.rooms ? '<br>' + esc(it.rooms) : '') : '確認クイズ';
+    var dsc = it.kind === 'escape' ? esc(it.sub || '') + (it.rooms ? '<br>' + esc(it.rooms) : '') : esc(it.sub || '確認クイズ');
     if (done) { cls += ' done'; state = '✓ クリア'; if (pt) dsc += '<span class="pc"' + (it.kind === 'escape' ? ' style="background:#fecaca;color:#7f1d1d"' : '') + '>' + H.TYPE_ICON[pt.type] + ' ' + esc(pt.name) + '</span>'; }
     if (!it.file || missing[it.id]) { cls += ' soon'; state = '準備中'; icon = '⏳'; }
     else if (!H.isOpen(it.id)) { cls += ' locked'; state = '🔒 ロック'; icon = '🔒'; dsc = esc(it.sub || '') + '<br>' + (it.needs || []).map(nameOf).join('・') + 'をクリアすると開く'; }
