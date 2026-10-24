@@ -1030,7 +1030,7 @@ show(0);
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'doc' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
@@ -1286,7 +1286,11 @@ show(0);
       if (m && m[1] === m[2] && window.DroneHub) {
         var first = !DroneHub.isCleared(ID);
         DroneHub.clear(ID);
-        if (first) { note.style.display = 'block'; setTimeout(function () { note.style.display = 'none'; }, 5000); }
+        if (first) {
+          var pt = DroneHub.part(ID);
+          note.textContent = '📖 さいごまで よんだ！' + (pt ? ' 班PCの ぶひん「' + pt.name + '」を手に入れた！' : '');
+          note.style.display = 'block'; setTimeout(function () { note.style.display = 'none'; }, 6000);
+        }
       }
     }
     if (pn) new MutationObserver(check).observe(pn, { childList: true, characterData: true, subtree: true });

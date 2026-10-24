@@ -4991,7 +4991,7 @@ return $.__chunk_javascript;
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'doc' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
@@ -5397,7 +5397,7 @@ window.DroneQR = (function () {
       <div class="coverCard"><button type="button" onclick="openRecordFile(true)">📥 ポイント読込</button>
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v43）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v44）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>

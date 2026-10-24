@@ -31,7 +31,7 @@ window.HUB_CONFIG = {
   { id: 'cs',     kind: 'note', title: 'クライアント・サーバとDNS',  file: 'client-server-dns.html', gives: 'mail' },
     // file が '' のあいだは「準備中」
   { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-  { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html' },
+  { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'doc' },
   { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
   // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
   { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
