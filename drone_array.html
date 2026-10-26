@@ -5399,7 +5399,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v61）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v63）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -10904,14 +10904,29 @@ window.DroneQR = (function () {
         rb.type = 'button'; rb.textContent = '班だけ入力し直す';
         rb.setAttribute('style', 'margin-left:6px;padding:2px 10px;border-radius:8px;border:1px solid #fca5a5;background:#450a0a;color:#fecaca;font-weight:800;font-size:13px;cursor:pointer');
         rb.onclick = function () {
-          if (!confirm('班を入力し直しますか？（クラス「' + m[1] + '組」はそのままです）\n（いまの班「' + g + '」の記録は、この端末に残ります。もとの班にもどすこともできます）')) return;
-          set(''); c.disabled = true; h.disabled = false;
-          note.textContent = '🔒 クラスは「' + m[1] + '組」のまま。班を選び直して、「はじめる」を押そう';
+          if (!confirm('班を入力し直しますか？（クラス「' + m[1] + '組」はそのままです）\n\n⚠ この端末の、ドローンのステージの記録（ポイント・クリア・組んだブロック）は、すべて消えます（えほんのクリアは残ります）。\n続きをやるときは、新しい班を入れてから、Tの端末の「📥 記録読込」か、ドローンアプリの「📥 ポイント読込」で、自分のファイルを読み込もう。')) return;
+          wipeDroneRecords();
+          try { localStorage.setItem(CLOCK, m[1]); } catch (e) { /* なし */ }
+          set('');
+          try { sessionStorage.setItem('droneRegroupMsg', '1'); } catch (e) { /* なし */ }
+          location.reload();
         };
         note.appendChild(rb);
       }
     }
     window.applyGroupLock = apply;
+    function wipeDroneRecords() {   // 班を入れかえるとき：この端末のドローンのステージの記録を全部消す（えほんのクリアは残す）
+      try {
+        localStorage.removeItem('droneLessonTeam_set5'); localStorage.removeItem('droneLessonGroups_set5'); localStorage.removeItem('droneMagic_v1');
+        var ST = ['var', 'arr', 'func', 'app'], hr = JSON.parse(localStorage.getItem('droneHub_v1') || 'null');
+        if (hr && typeof hr === 'object') {
+          ST.forEach(function (id) { if (hr.cleared) delete hr.cleared[id]; });
+          if (Array.isArray(hr.order)) hr.order = hr.order.filter(function (id) { return ST.indexOf(id) < 0; });
+          localStorage.setItem('droneHub_v1', JSON.stringify(hr));
+        }
+      } catch (e) { /* なし */ }
+    }
+    try { if (sessionStorage.getItem('droneRegroupMsg')) { sessionStorage.removeItem('droneRegroupMsg'); setTimeout(function () { var cm = document.getElementById('coverCardMsg'); if (cm) cm.textContent = '記録を消しました。新しい班・名前・自分を入れて、続きをやるときは「📥 ポイント読込」で自分のファイルを読み込もう'; }, 300); } } catch (e) { /* なし */ }
     var origStart = window.startTeam;
     window.startTeam = function () {
       var g = get(), cl = getC(), c = document.getElementById('inClass').value, h = document.getElementById('inHan').value;
