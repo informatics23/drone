@@ -4991,8 +4991,8 @@ return $.__chunk_javascript;
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつのおてがみ\n（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
@@ -5402,7 +5402,7 @@ window.DroneQR = (function () {
       <div class="coverCard"><button type="button" onclick="openRecordFile(true)">📥 ポイント読込</button>
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v45）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v56）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -7916,6 +7916,8 @@ window.DroneQR = (function () {
       const wasFresh = !team.group && team.names.every((n) => !n);
       const ownerMs = new Set();   // 読み込んだファイルを作った人（自分の機体の候補）
       const groupAns = {};   // ちがう班の記録を読むかどうか（班ごとに1回だけ聞く）
+      const mineOwner = {};  // 班替えまえの記録：その班のだれのファイルを「自分」として入れたか
+      let mineDone = false;
       let switched = '';
       if (!found.length) msgs.push('ポイントコード（DRONE-PT: で始まる文字）が見つかりません');
       for (const [, enc, sig] of found) {
@@ -7927,10 +7929,43 @@ window.DroneQR = (function () {
         // 前の形（問題の番号なし・問題1〜4）の記録も、そのまま読む（項目の名前は共通）
         let fresh = !team.group && team.names.every((n) => !n);
         const curG = (fromCover && coverGroup()) || team.group || '';
-        if (c.g && curG && c.g !== curG) {
+        // 汎用データ（u）：クラス・班にかかわらず、いまの班の「自分」に入れる（先生が配る、とちゅうまで進んだ記録）
+        if (c.u && !curG) { msgs.push('汎用データは、先にクラスと班を入れてから読み込もう'); continue; }
+        if (c.u || (c.g && curG && c.g !== curG)) {
           // ちがう班の記録：確認して、その班に入力し直して読み込む（読まないこともできる）
-          if (!(c.g in groupAns)) groupAns[c.g] = await askOtherGroup(c.g, curG, c.n);
-          if (!groupAns[c.g]) { msgs.push(`${c.g} の記録は、読み込みませんでした`); continue; }
+          if (!c.u && !(c.g in groupAns)) groupAns[c.g] = await askOtherGroup(c.g, curG, c.n);
+          if (!c.u && !groupAns[c.g]) { msgs.push(`${c.g} の記録は、読み込みませんでした`); continue; }
+          if (c.u || groupAns[c.g] === 'mine') {
+            // 班替えのまえの自分の記録：ファイルを作った人の行だけを、いまの班の「自分」に入れる
+            const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
+            if (own < 0) { msgs.push(`${c.g} のまとめ（だれの記録か分からない）は、読み込みませんでした`); continue; }
+            if (!c.u && c.g in mineOwner && mineOwner[c.g] !== own) { msgs.push(`${c.g} の ${c.n[own] || ((own + 1) + '号機')} の記録は、自分のではないので読み込みませんでした`); continue; }
+            if (team.group !== curG) {
+              if (!team.group && team.names.every((n) => !n)) team.group = curG; else switchToGroup(curG);
+              try { localStorage.setItem('droneGroupLock', curG); } catch (e) { /* なし */ }
+            }
+            // 表紙で入れた名前・自分を使う
+            if (fromCover) {
+              for (let k = 0; k < 4; k++) { const v = (document.getElementById('inName' + k) || {}).value; if (v && String(v).trim()) team.names[k] = String(v).trim(); }
+              const r = document.querySelector('input[name="inMe"]:checked');
+              if (r) team.me = Number(r.value);
+            }
+            if (!hasMe()) {
+              const k = await chooseMeFromCsv(team.names);
+              if (k === null) { msgs.push(`${c.g} の記録は、読み込みませんでした（自分をえらばなかった）`); continue; }
+              team.me = k;
+            }
+            if (!c.u) mineOwner[c.g] = own;
+            const me = team.me, L = ledgerOf(me);
+            Object.entries((c.l || {})[own] || {}).forEach(([u, p]) => { L[u] = Math.max(L[u] || 0, Number(p) || 0); });
+            (Array.isArray(c.x) ? c.x : []).forEach((x) => { const p = String(x).split(':'); if (Number(p[0]) === own && /^\w+$/.test(p[1] || '')) team.steps[`manual:${me}:${p[1]}`] = 1; });
+            if (!team.seen) team.seen = {};
+            team.seen[me] = 1;
+            mergeHubOrder(c.h);
+            mineDone = true;
+            msgs.push(c.u ? `汎用データ（${escapeHtml(String(c.lb || ''))}）を、${curG} の ${memberName(me)} に入れました` : `前の班（${c.g}）の ${c.n[own] || ((own + 1) + '号機')} の記録を、いまの班（${curG}）の ${memberName(me)} に入れました`);
+            continue;
+          }
           if (team.group !== c.g) {
             if (fresh) { team.group = c.g; try { localStorage.setItem('droneGroupLock', c.g); } catch (e) { /* なし */ } }
             else switchToGroup(c.g);
@@ -7959,7 +7994,7 @@ window.DroneQR = (function () {
       // はじめての端末で読み込んだときは、だれの画像かに関係なく「自分」はえらび直してもらう（班員の1枚を読み込んでも大丈夫なように）
       // はじめての端末で読み込んだとき：自分のファイル（作った人が1人だけ）なら、自分の機体ももどす。
       // 班員のファイルもまとめて読み込んだときは、だれが自分か分からないので、えらび直してもらう
-      if (fromCover && wasFresh && found.length) {
+      if (fromCover && wasFresh && found.length && !mineDone) {
         if (ownerMs.size === 1) { team.me = [...ownerMs][0]; msgs.push(`自分の機体：${memberName(team.me)}（ちがうときは選びなおしてね）`); }
         else { team.me = null; msgs.push('「自分」の機体をえらぼう'); }
       }
@@ -8124,8 +8159,9 @@ window.DroneQR = (function () {
       }
       return modalAsk(`<div style="font-weight:900;font-size:19px;margin-bottom:8px">⚠ ちがう班の記録です</div>` +
         `<div>えらんだファイルは <b style="color:#b45309">${escapeHtml(g)}</b>${who ? `（${escapeHtml(who)}）` : ''} の記録です。<br>いまの班は <b>${escapeHtml(cur)}</b> になっています。</div>` +
-        `<div style="margin-top:8px;font-size:14px;color:#475569">自分の班が ${escapeHtml(g)} なら、班を入力し直して読み込もう（クラスはそのまま）。いまの班（${escapeHtml(cur)}）の記録は、この端末に残ります。</div>`,
-        [{ label: '読み込まない', value: false }, { label: `班を ${escapeHtml(g.replace(/^\d組/, ''))} に入力し直して読み込む`, value: true, go: true }]);
+        `<div style="margin-top:10px;padding:8px 10px;background:#ecfeff;border-radius:10px;font-size:15px"><b>🔁 班替えのまえの、自分の記録なら</b>：「いまの班（${escapeHtml(cur)}）の自分の記録にする」を押そう。<br><span style="font-size:13px;color:#475569">ファイルを作った人のポイントだけが、いまの班の「自分」に入ります（前の班の人のポイントは入りません）。</span></div>` +
+        `<div style="margin-top:8px;font-size:13px;color:#475569">いまも ${escapeHtml(g)} の班員なら「班を入力し直して読み込む」（クラスはそのまま）。</div>`,
+        [{ label: '読み込まない', value: false }, { label: `班を ${escapeHtml(g.replace(/^\d組/, ''))} に入力し直して読み込む`, value: true }, { label: `いまの班（${escapeHtml(cur.replace(/^\d組/, ''))}）の自分の記録にする`, value: 'mine', go: true }]);
     }
     // 班を入れかえる（今の班を保存してから、その班の記録に。なければ空から）
     function switchToGroup(g) {
@@ -10545,7 +10581,7 @@ window.DroneQR = (function () {
     // ---- 次のファイル（配列編）へ進む ----
     //   同じフォルダに入れておいたファイルを開く。ファイル名は URL の ?next=ファイル名 で変えられる
     //   班・名前・ポイントは、同じ端末・同じブラウザなら、次のファイルでもそのまま使える（端末の記録を共有）
-    const NEXT_FILE = (() => { try { return new URLSearchParams(location.search).get('next') || (/^https?:$/.test(location.protocol) ? 'drone_array.html' : 'drone_array_問題5.html'); } catch (e) { return 'drone_array_問題5.html'; } })();
+    const NEXT_FILE = (() => { try { return new URLSearchParams(location.search).get('next') || 'drone_array.html'; } catch (e) { return 'drone_array.html'; } })();
     const NEXT_NAME = '配列ステージ';
     function goNextFile() {
       try { saveWs(); saveTeam(); } catch (e) { /* なし */ }

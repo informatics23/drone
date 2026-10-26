@@ -4933,6 +4933,8 @@ return $.__chunk_javascript;
     .invItem.sel .invNm { color: #fde047; }
     .invMsg { color: #fcd34d; font-size: 14px; }
     .itemGet.big { display: flex; align-items: center; gap: 14px; font-size: 18px; }
+    .itemGet.magic { background: linear-gradient(135deg, #4c1d95, #6d28d9); color: #f5f3ff; box-shadow: 0 0 18px rgba(167,139,250,.55); }
+    .itemGet.magic small { color: #ddd6fe; }
     .itemGet.big small { display: block; font-size: 13px; font-weight: 700; color: #bbf7d0; margin-top: 2px; }
     .igIc { font-size: 64px; line-height: 1; animation: igPop .6s ease-out; }
     @keyframes igPop { 0% { transform: scale(.2) rotate(-30deg); } 70% { transform: scale(1.25) rotate(8deg); } 100% { transform: scale(1); } }
@@ -4971,8 +4973,8 @@ return $.__chunk_javascript;
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつの おてがみ（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつのおてがみ\n（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
@@ -5396,7 +5398,7 @@ window.DroneQR = (function () {
       <div class="coverCard"><button type="button" onclick="openRecordFile(true)">📥 ポイント読込</button>
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-24（v45）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v56）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -8050,6 +8052,8 @@ window.DroneQR = (function () {
       const wasFresh = !team.group && team.names.every((n) => !n);
       const ownerMs = new Set();   // 読み込んだファイルを作った人（自分の機体の候補）
       const groupAns = {};   // ちがう班の記録を読むかどうか（班ごとに1回だけ聞く）
+      const mineOwner = {};  // 班替えまえの記録：その班のだれのファイルを「自分」として入れたか
+      let mineDone = false;
       let switched = '';
       if (!found.length) msgs.push('ポイントコード（DRONE-PT: で始まる文字）が見つかりません');
       for (const [, enc, sig] of found) {
@@ -8061,10 +8065,43 @@ window.DroneQR = (function () {
         // 前の形（問題の番号なし・問題1〜4）の記録も、そのまま読む（項目の名前は共通）
         let fresh = !team.group && team.names.every((n) => !n);
         const curG = (fromCover && coverGroup()) || team.group || '';
-        if (c.g && curG && c.g !== curG) {
+        // 汎用データ（u）：クラス・班にかかわらず、いまの班の「自分」に入れる（先生が配る、とちゅうまで進んだ記録）
+        if (c.u && !curG) { msgs.push('汎用データは、先にクラスと班を入れてから読み込もう'); continue; }
+        if (c.u || (c.g && curG && c.g !== curG)) {
           // ちがう班の記録：確認して、その班に入力し直して読み込む（読まないこともできる）
-          if (!(c.g in groupAns)) groupAns[c.g] = await askOtherGroup(c.g, curG, c.n);
-          if (!groupAns[c.g]) { msgs.push(`${c.g} の記録は、読み込みませんでした`); continue; }
+          if (!c.u && !(c.g in groupAns)) groupAns[c.g] = await askOtherGroup(c.g, curG, c.n);
+          if (!c.u && !groupAns[c.g]) { msgs.push(`${c.g} の記録は、読み込みませんでした`); continue; }
+          if (c.u || groupAns[c.g] === 'mine') {
+            // 班替えのまえの自分の記録：ファイルを作った人の行だけを、いまの班の「自分」に入れる
+            const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
+            if (own < 0) { msgs.push(`${c.g} のまとめ（だれの記録か分からない）は、読み込みませんでした`); continue; }
+            if (!c.u && c.g in mineOwner && mineOwner[c.g] !== own) { msgs.push(`${c.g} の ${c.n[own] || ((own + 1) + '号機')} の記録は、自分のではないので読み込みませんでした`); continue; }
+            if (team.group !== curG) {
+              if (!team.group && team.names.every((n) => !n)) team.group = curG; else switchToGroup(curG);
+              try { localStorage.setItem('droneGroupLock', curG); } catch (e) { /* なし */ }
+            }
+            // 表紙で入れた名前・自分を使う
+            if (fromCover) {
+              for (let k = 0; k < 4; k++) { const v = (document.getElementById('inName' + k) || {}).value; if (v && String(v).trim()) team.names[k] = String(v).trim(); }
+              const r = document.querySelector('input[name="inMe"]:checked');
+              if (r) team.me = Number(r.value);
+            }
+            if (!hasMe()) {
+              const k = await chooseMeFromCsv(team.names);
+              if (k === null) { msgs.push(`${c.g} の記録は、読み込みませんでした（自分をえらばなかった）`); continue; }
+              team.me = k;
+            }
+            if (!c.u) mineOwner[c.g] = own;
+            const me = team.me, L = ledgerOf(me);
+            Object.entries((c.l || {})[own] || {}).forEach(([u, p]) => { L[u] = Math.max(L[u] || 0, Number(p) || 0); });
+            (Array.isArray(c.x) ? c.x : []).forEach((x) => { const p = String(x).split(':'); if (Number(p[0]) === own && /^\w+$/.test(p[1] || '')) team.steps[`manual:${me}:${p[1]}`] = 1; });
+            if (!team.seen) team.seen = {};
+            team.seen[me] = 1;
+            mergeHubOrder(c.h);
+            mineDone = true;
+            msgs.push(c.u ? `汎用データ（${escapeHtml(String(c.lb || ''))}）を、${curG} の ${memberName(me)} に入れました` : `前の班（${c.g}）の ${c.n[own] || ((own + 1) + '号機')} の記録を、いまの班（${curG}）の ${memberName(me)} に入れました`);
+            continue;
+          }
           if (team.group !== c.g) {
             if (fresh) { team.group = c.g; try { localStorage.setItem('droneGroupLock', c.g); } catch (e) { /* なし */ } }
             else switchToGroup(c.g);
@@ -8093,7 +8130,7 @@ window.DroneQR = (function () {
       // はじめての端末で読み込んだときは、だれの画像かに関係なく「自分」はえらび直してもらう（班員の1枚を読み込んでも大丈夫なように）
       // はじめての端末で読み込んだとき：自分のファイル（作った人が1人だけ）なら、自分の機体ももどす。
       // 班員のファイルもまとめて読み込んだときは、だれが自分か分からないので、えらび直してもらう
-      if (fromCover && wasFresh && found.length) {
+      if (fromCover && wasFresh && found.length && !mineDone) {
         if (ownerMs.size === 1) { team.me = [...ownerMs][0]; msgs.push(`自分の機体：${memberName(team.me)}（ちがうときは選びなおしてね）`); }
         else { team.me = null; msgs.push('「自分」の機体をえらぼう'); }
       }
@@ -8258,8 +8295,9 @@ window.DroneQR = (function () {
       }
       return modalAsk(`<div style="font-weight:900;font-size:19px;margin-bottom:8px">⚠ ちがう班の記録です</div>` +
         `<div>えらんだファイルは <b style="color:#b45309">${escapeHtml(g)}</b>${who ? `（${escapeHtml(who)}）` : ''} の記録です。<br>いまの班は <b>${escapeHtml(cur)}</b> になっています。</div>` +
-        `<div style="margin-top:8px;font-size:14px;color:#475569">自分の班が ${escapeHtml(g)} なら、班を入力し直して読み込もう（クラスはそのまま）。いまの班（${escapeHtml(cur)}）の記録は、この端末に残ります。</div>`,
-        [{ label: '読み込まない', value: false }, { label: `班を ${escapeHtml(g.replace(/^\d組/, ''))} に入力し直して読み込む`, value: true, go: true }]);
+        `<div style="margin-top:10px;padding:8px 10px;background:#ecfeff;border-radius:10px;font-size:15px"><b>🔁 班替えのまえの、自分の記録なら</b>：「いまの班（${escapeHtml(cur)}）の自分の記録にする」を押そう。<br><span style="font-size:13px;color:#475569">ファイルを作った人のポイントだけが、いまの班の「自分」に入ります（前の班の人のポイントは入りません）。</span></div>` +
+        `<div style="margin-top:8px;font-size:13px;color:#475569">いまも ${escapeHtml(g)} の班員なら「班を入力し直して読み込む」（クラスはそのまま）。</div>`,
+        [{ label: '読み込まない', value: false }, { label: `班を ${escapeHtml(g.replace(/^\d組/, ''))} に入力し直して読み込む`, value: true }, { label: `いまの班（${escapeHtml(cur.replace(/^\d組/, ''))}）の自分の記録にする`, value: 'mine', go: true }]);
     }
     // 班を入れかえる（今の班を保存してから、その班の記録に。なければ空から）
     function switchToGroup(g) {
@@ -9002,6 +9040,14 @@ window.DroneQR = (function () {
       renderStep();
       updatePythonView();
       scheduleFit();
+      if (n === 2 && !team.steps['fn:gotFn']) { team.steps['fn:gotFn'] = 1; saveTeam(); showMagicFn(); }
+    }
+    // 部屋2に入るとき：まほう「関数」を手に入れる（配列ステージの「繰返」と同じように）
+    function showMagicFn() {
+      showEscModal('<div class="escTitle">🪄 サーバールームに入った</div>' +
+        '<div class="escSub">整備室の奥の扉では、「tmp に避難 → 上書き → もどす」の<b>同じ形の3行</b>を、3回も書いた（代入9個）。…サーバールームの端末に、その3行に<b>名前をつけてしまっておける</b>まほうが記されていた。</div>' +
+        '<div class="itemGet big magic"><span class="igIc">🪄</span><span>まほう「関数」を手に入れた！<small>何行かのブロックに名前をつけて、1つにまとめられる。「関数 swap(j) を作る」で3行をまとめておけば、「関数 swap( ) を呼ぶ」1個で何回でも使える。( ) に入れる数（引数）をかえると、入れかえる場所もかわる</small></span></div>' +
+        '<div class="escActions"><button class="go" onclick="closeEscModal()">部屋2へ →</button></div>', 'memoModal');
     }
     // 例示の見本（0：変数で ／ 1：配列で）
     function exIndex() { return (team.steps && team.steps['fn:ex']) === 1 ? 1 : 0; }
@@ -10317,12 +10363,12 @@ window.DroneQR = (function () {
       openQuiz(st, i, 'ブーッ！ まちがいがある。5秒たつと、別の問題が出る', true);
       setTimeout(() => { const m = document.getElementById('escModal'); if (m && !document.getElementById('escOverlay').classList.contains('viewHidden') && m.querySelector('.qzPanel')) openQuiz(st, i); }, 5100);
     }
-    // 電子ロック（論理回路）：オレンジの丸（入力 A・B・C、NOT の出口、1つ目のゲートの出口）に 0／1 を入れる。
+    // 電子ロック（論理回路）：左はしのオレンジの丸（入力 A・B・C）に 0／1 を入れる。NOT の出口・ゲートの出口は、入力で自動で決まる。
     //   ランプがつく入力の組み合わせで、とちゅうの値もすべて正しく入れると、ランプがついて開く
     let logicSel = {}, logicBusy = false;
     const inOff = (g) => g === 'AND' ? 0 : g === 'OR' ? 7 : 15;   // 入力の線を、ゲートの記号のふちまでのばす
-    // 丸の一覧：入力 A・B・C、NOT がある入力の NOT の出口 nA・nB・nC、1つ目のゲートの出口 g1
-    const logicNodes = (c) => ['A', 'B', 'C'].concat(['nA', 'nB', 'nC'].filter((k, j) => c.neg[j]), ['g1']);
+    // 入力する丸：A・B・C だけ（あとは入力で決まる）
+    const logicNodes = (c) => ['A', 'B', 'C'];
     function logicTruth(c, v) {      // v：入力 [A, B, C] → 各丸の正しい値
       const t = { A: v[0], B: v[1], C: v[2], nA: v[0] ^ 1, nB: v[1] ^ 1, nC: v[2] ^ 1 };
       const a = v[0] ^ c.neg[0], b = v[1] ^ c.neg[1], cc = v[2] ^ c.neg[2];
@@ -10332,6 +10378,12 @@ window.DroneQR = (function () {
     function circuitSvg(c, sel, lit, i) {
       const on = '#facc15', off = '#64748b';
       const col = (k) => sel[k] === 1 ? on : off;
+      // NOT の出口：前（A・B・C）の値で自動で決まる（クリックできない）
+      const notVal = (k) => sel[k] === undefined ? undefined : sel[k] ^ 1;
+      const inVal = (j) => c.neg[j] ? notVal(['A', 'B', 'C'][j]) : sel[['A', 'B', 'C'][j]];
+      const g1v = inVal(0) === undefined || inVal(1) === undefined ? undefined : GATE_FN[c.g1](inVal(0), inVal(1));
+      const auto = (v, x, y) => `<g style="pointer-events:none"><rect x="${x - 13}" y="${y - 13}" width="26" height="26" rx="6" fill="#334155" stroke="#94a3b8" stroke-width="2"/>` +
+        (v === undefined ? '' : `<text x="${x}" y="${y + 7}" text-anchor="middle" font-size="19" font-weight="900" fill="${v ? '#fde047' : '#e2e8f0'}" stroke="none">${v}</text>`) + '</g>';
       const gate = (type, x, y) => {
         const h = 24;
         if (type === 'AND') return `<path d="M${x} ${y - h} H${x + 30} A${h} ${h} 0 0 1 ${x + 30} ${y + h} H${x} Z"/>`;
@@ -10351,13 +10403,13 @@ window.DroneQR = (function () {
         nodes += node(k, 50, Y[j]);
         if (c.neg[j]) {
           p += `<path d="M66 ${Y[j]} H106" stroke="${col(k)}"/>` + `<g stroke="#e2e8f0" fill="#1e293b">${notg(106, Y[j])}</g>`;
-          p += `<path d="M136 ${Y[j]} H${endX - 24} V${endY} H${endX}" stroke="${col('n' + k)}" fill="none"/>`;
-          nodes += node('n' + k, 160, Y[j]);
+          p += `<path d="M136 ${Y[j]} H${endX - 24} V${endY} H${endX}" stroke="${notVal(k) === 1 ? on : off}" fill="none"/>`;
+          nodes += auto(notVal(k), 160, Y[j]);
         } else p += `<path d="M66 ${Y[j]} H${endX - 24} V${endY} H${endX}" stroke="${col(k)}" fill="none"/>`;
       }
       const g1x = c.g1 === 'AND' ? G1 + 54 : c.g1 === 'OR' ? G1 + 56 : G1 + 64;
-      p += `<path d="M${g1x} 80 H330 V118 H${G2 + inOff(c.g2)}" stroke="${col('g1')}" fill="none"/>`;
-      nodes += node('g1', 300, 80);
+      p += `<path d="M${g1x} 80 H330 V118 H${G2 + inOff(c.g2)}" stroke="${g1v === 1 ? on : off}" fill="none"/>`;
+      nodes += auto(g1v, 300, 80);
       const g2x = c.g2 === 'AND' ? G2 + 54 : c.g2 === 'OR' ? G2 + 56 : G2 + 64;
       p += `<path d="M${g2x} 130 H468" stroke="${lit ? on : off}" fill="none"/>`;
       p += `<g stroke="#e2e8f0" fill="#1e293b">${gate(c.g1, G1, 80)}${gate(c.g2, G2, 130)}</g>`;
@@ -10367,7 +10419,7 @@ window.DroneQR = (function () {
     function openLogic(st, i, note, first, lit, bad) {
       const o = escLayout(st).objs[i], info = OBJ_INFO[o.kind];
       showEscModal(`<div class="escTitle">🔌 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、電子ロックのついた引き出しがあった。' : ''}` +
-        'オレンジの丸をクリックして、0 か 1 を入れよう。回路の先のランプがつくように、入力 A・B・C と、とちゅうの値をすべて正しく入れると開く。</div>' +
+        '左はしのオレンジの丸（入力 A・B・C）をクリックして、0 か 1 を入れよう。回路の先のランプがつけば開く。<br><small>（灰色の四角の値は、入力によって決まる）</small></div>' +
         `<div class="cpanel${bad ? ' shake' : ''}">${circuitSvg(o.circ, logicSel, lit, i)}<div class="safeMsg${lit ? ' good' : ''}">${note || ''}</div></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
     }
@@ -10379,7 +10431,6 @@ window.DroneQR = (function () {
       if (keys.some((x) => logicSel[x] === undefined)) { openLogic(st, i); return; }
       const t = logicTruth(c, [logicSel.A, logicSel.B, logicSel.C]);
       if (!t.out) { openLogic(st, i, '…ランプはつかない'); return; }
-      if (keys.some((x) => logicSel[x] !== t[x])) { openLogic(st, i, 'ブーッ！ とちゅうの値にまちがいがある', false, false, true); return; }
       logicBusy = true;
       openLogic(st, i, 'ピッ！ ランプがついた', false, true);
       setTimeout(() => { logicBusy = false; logicSel = {}; escOpen(st, i); }, 900);
