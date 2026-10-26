@@ -5399,7 +5399,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v59）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v61）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -10857,8 +10857,22 @@ window.DroneQR = (function () {
         '<p style="font-weight:700">先に <b style="color:#fde68a">変数ステージ（ドローン基地からの脱出）</b> の部屋2までクリアしよう。<br>クリアした端末・ブラウザで開くと、ここに入れるようになる。</p>' +
         '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px">' +
         '<a href="drone_variable.html" style="background:#0ea5e9;color:#fff;border-radius:10px;padding:8px 18px;text-decoration:none;font-weight:800">🚪 変数ステージへ</a>' +
-        '<a href="index.html" style="background:#334155;color:#fff;border-radius:10px;padding:8px 18px;text-decoration:none;font-weight:800">📱 Tの端末へ</a></div></div>';
+        '<a href="index.html" style="background:#334155;color:#fff;border-radius:10px;padding:8px 18px;text-decoration:none;font-weight:800">📱 Tの端末へ</a></div>' +
+        '<div style="margin-top:14px;padding-top:12px;border-top:1px solid #334155;font-size:14px;color:#cbd5e1">前のステージをクリアした <b>ポイント情報のファイル</b>（または汎用データ）があれば<br>' +
+        '<button type="button" id="hubLockLoad" style="margin-top:6px;background:#16a34a;color:#fff;border:0;border-radius:10px;padding:8px 18px;font:800 15px system-ui,sans-serif;cursor:pointer">📥 ポイント読込で入る</button></div></div>';
       document.body.appendChild(d);
+      // ポイント読込で入る：表紙を見せて、表紙の「📥 ポイント読込」で読み込んでもらう。読み込んでクリアになれば「はじめる」で入れる
+      document.getElementById('hubLockLoad').onclick = function () {
+        d.style.display = 'none';
+        try { document.getElementById('coverCardMsg').textContent = '①クラス・班・自分を入れる（汎用データのとき）→ ②「📥 ポイント読込」でファイルを選ぶ → ③「はじめる」'; } catch (e) { /* なし */ }
+      };
+      var ok = function () { return DroneHub.isCleared('var'); };
+      var os = window.startTeam;
+      window.startTeam = function () {
+        if (!ok()) { d.style.display = 'flex'; return; }
+        d.remove();
+        return os.apply(this, arguments);
+      };
     } catch (e) { /* なし */ }
   })();
 </script>
@@ -11349,6 +11363,10 @@ window.DroneQR = (function () {
     try { updateTeamBox(); } catch (e) { /* なし */ }
     showToast('このステージを、最初から始めます（ポイントはそのまま）', false, 3500);
   }
+</script>
+<script>
+  // 「←」（もどる）で開いたとき、前の画面がそのまま出る（ブラウザが保存していた画面）ので、読み込み直して最新の記録を出す
+  window.addEventListener('pageshow', function (e) { if (e.persisted) location.reload(); });
 </script>
 </body>
 

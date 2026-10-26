@@ -5403,7 +5403,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">前の時間に送った「ポイント情報」のファイルを選ぶと、ポイントとクリア状況がもどります。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v59）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v61）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -10868,6 +10868,10 @@ window.DroneQR = (function () {
     try { updateTeamBox(); } catch (e) { /* なし */ }
     showToast('このステージを、最初から始めます（ポイントはそのまま）', false, 3500);
   }
+</script>
+<script>
+  // 「←」（もどる）で開いたとき、前の画面がそのまま出る（ブラウザが保存していた画面）ので、読み込み直して最新の記録を出す
+  window.addEventListener('pageshow', function (e) { if (e.persisted) location.reload(); });
 </script>
 </body>
 </html>
