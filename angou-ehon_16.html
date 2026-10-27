@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ひみつの おてがみ ― 暗号のおはなし</title>
+<style>
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    background: #222; margin: 0; height: 100vh; overflow: hidden;
+  }
+  #book { position: relative; width: 100vw; height: 100vh; background: #000; overflow: hidden; }
+  #spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 60px; margin-left: -30px;
+    background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,.1) 50%, rgba(0,0,0,0));
+    z-index: 100; pointer-events: none; }
+
+  .spread { position: absolute; inset: 0; display: none; }
+  .spread.active { display: block; animation: fadeIn .5s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .art { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 10; display: block; }
+
+
+  .overlay { position: absolute; inset: 0; display: flex; z-index: 50; pointer-events: none; }
+  .col { flex: 1 1 0; min-width: 0; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column;
+    font-size: 26px; line-height: 1.75; color: #333; font-weight: 800; text-align: center;
+    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
+                 2px 0 0 #fff, -2px 0 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff, 3px 3px 5px rgba(0,0,0,.2); }
+  .col.left { justify-content: flex-start; padding-top: 60px; }
+  .col.right { justify-content: flex-start; padding-top: 60px; }
+
+  /* 表紙 */
+  .cover { position: absolute; top: 26%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 60; text-align: center; width: 80%; }
+  .cover h1 { font-size: 72px; color: #5d4037; margin: 0;
+    text-shadow: 4px 4px 0 #fff, -4px -4px 0 #fff, 4px -4px 0 #fff, -4px 4px 0 #fff; }
+  .cover p { font-size: 24px; font-weight: bold; color: #5d4037; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff; }
+
+  /* 章タイトル */
+  /* 情報Ⅰの用語 */
+  .term { align-self: center; margin-top: 14px; text-shadow: none; max-width: 100%; box-sizing: border-box; white-space: normal !important;
+    background: rgba(255,255,255,.94); border: 3px solid #4a86c2; border-radius: 14px;
+    padding: 6px 16px; color: #2c4f78; font-size: 16px; font-weight: 800; white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0,0,0,.18); text-align: center; line-height: 1.5; }
+  .term b { display: inline-block; background: #4a86c2; color: #fff; border-radius: 8px; padding: 0 8px; margin-right: 8px; font-size: 14px; vertical-align: 2px; }
+  .term .w { font-size: 22px; color: #1f3d63; white-space: nowrap; }
+  .chapter { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 60;
+    background: rgba(93,64,55,.88); color: #fff; padding: 6px 22px; border-radius: 30px;
+    font-size: 18px; font-weight: bold; letter-spacing: .1em; white-space: nowrap; }
+
+  /* シーザー暗号の体験パネル */
+  .play { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); z-index: 70;
+    background: rgba(255,253,245,.96); border: 4px solid #8d6e63; border-radius: 20px;
+    padding: 18px 26px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,.3); width: 580px; }
+  .play .lbl { font-size: 15px; color: #6d4c41; font-weight: bold; }
+  .play .msg { font-size: 36px; font-weight: 900; letter-spacing: .1em; color: #3e2723; margin: 6px 0 10px; min-height: 1.3em; }
+  .play .msg.ok { color: #2e7d32; }
+  .play .row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .play button { width: 52px; height: 52px; border-radius: 50%; border: none; font-size: 26px; font-weight: bold;
+    background: #8bc34a; color: #fff; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,.25); }
+  .play button:hover { background: #7cb342; }
+  .play .num { width: 150px; font-size: 22px; font-weight: bold; color: #3e2723; }
+  .play .hint { font-size: 14px; color: #6d4c41; margin-top: 8px; min-height: 1.4em; }
+
+  /* 解説ページ */
+  .notes { position: absolute; inset: 40px 120px 90px 120px; z-index: 70; overflow-y: auto;
+    background: rgba(255,255,255,.95); border-radius: 18px; padding: 26px 34px; box-sizing: border-box;
+    color: #222; font-size: 16px; line-height: 1.75; box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+  .notes h2 { margin: 0 0 10px; font-size: 22px; color: #5d4037; }
+  .notes h3 { margin: 18px 0 4px; font-size: 17px; color: #33691e; }
+  .notes table { border-collapse: collapse; width: 100%; margin: 6px 0 4px; font-size: 15px; }
+  .notes th, .notes td { border: 1px solid #c8b99a; padding: 6px 10px; text-align: left; vertical-align: top; }
+  .notes th { background: #f3ead6; white-space: nowrap; }
+  .notes p { margin: 4px 0; }
+
+  /* ナビゲーション（ページによって位置が変わらないよう、全ページ共通で1組だけ固定配置） */
+  .nav { position: fixed; top: 50%; transform: translateY(-50%); width: 70px; height: 70px; padding: 0;
+    font-size: 36px; border: none; border-radius: 50%; cursor: pointer; z-index: 200;
+    background: rgba(139,195,74,.85); color: #fff; box-shadow: 0 4px 15px rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center; transition: background .2s, transform .2s; }
+  .nav:hover { background: #7cb342; transform: translateY(-50%) scale(1.1); }
+  .nav[aria-disabled="true"] { visibility: hidden; }
+  #prev { left: 30px; } #next { right: 30px; }
+
+  #pageNo { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 200;
+    background: rgba(0,0,0,.45); color: #fff; font-size: 14px; padding: 3px 14px; border-radius: 20px; }
+  #restart { position: fixed; bottom: 30px; right: 30px; z-index: 210; padding: 15px 30px; font-size: 18px;
+    font-weight: bold; border: none; border-radius: 50px; cursor: pointer; background: #5d4037; color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,.3); visibility: hidden; }
+  #restart:hover { background: #3e2723; }
+
+  @media (max-width: 800px) {
+    .col { font-size: 18px; padding: 20px; }
+    .cover h1 { font-size: 40px; } .cover p { font-size: 16px; }
+    .nav { width: 50px; height: 50px; font-size: 24px; } #prev { left: 10px; } #next { right: 10px; }
+    .play { width: 82%; padding: 12px; } .play .msg { font-size: 28px; }
+    .notes { inset: 20px 66px 70px 66px; font-size: 14px; padding: 16px; }
+    .chapter { font-size: 14px; }
+    .term { font-size: 12px; padding: 4px 10px; white-space: normal; } .term .w { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="book">
+  <div id="spine"></div>
+  <div id="pages"></div>
+  <button class="nav" id="prev" aria-label="まえのページ">◀</button>
+  <button class="nav" id="next" aria-label="つぎのページ">▶</button>
+  <button id="restart">さいしょへもどる 🔄</button>
+  <div id="pageNo"></div>
+</div>
+
+<script>
+/* ===== 絵の部品（すべてオリジナルのSVG） ===== */
+const INK = "#6e4a36";
+const C = {
+  sq: "#d9935f", sqL: "#e8ae7c", cream: "#fbecd3",
+  rb: "#f1e3d2", rbD: "#cdb393", pink: "#f4a7b3",
+  fx: "#f2793a", fxL: "#f3955a", white: "#fffaf2",
+  owl: "#b58a62", owlL: "#e2c7a2", owlD: "#8c6544",
+  bird: "#7fbff0", birdD: "#4a86c2", yel: "#f6d36b",
+  bear: "#b07e55", bearL: "#e2bf96", mouse: "#cfc8c2",
+  wood: "#c08348", woodD: "#8f5a2e", metal: "#a9b0bb", metalD: "#6f7682",
+  gold: "#f2c14e", goldD: "#b9862a", silver: "#d5dbe3", silverD: "#7d8693",
+  green: "#7cb85a", greenD: "#4f8f3a", hat: "#6e9a4a", red: "#d9534f",
+};
+const ln = (w = 2.8) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+const T = (x, y, s = 1, flip = false, rot = 0) =>
+  `transform="translate(${x} ${y}) rotate(${rot}) scale(${flip ? -s : s} ${s})"`;
+const G = (inner, x, y, s = 1, flip = false, rot = 0) => `<g ${T(x, y, s, flip, rot)}>${inner}</g>`;
+
+/* ---- かわいい顔（大きな目に ハイライト） ---- */
+function eyes(x1, x2, y, mood, r = 10) {
+  const big = (x) => `<ellipse cx="${x}" cy="${y}" rx="${r * 0.82}" ry="${r}" fill="#3a2a22"/>
+    <circle cx="${x + r * 0.28}" cy="${y - r * 0.42}" r="${r * 0.36}" fill="#fff"/>
+    <circle cx="${x - r * 0.3}" cy="${y + r * 0.38}" r="${r * 0.16}" fill="#fff"/>`;
+  const arc = (x, up) => up
+    ? `<path d="M${x - r * 0.9} ${y + 3} Q${x} ${y - r * 1.1} ${x + r * 0.9} ${y + 3}" fill="none" stroke="#3a2a22" stroke-width="4" stroke-linecap="round"/>`
+    : `<path d="M${x - r * 0.9} ${y - 2} Q${x} ${y + r * 0.9} ${x + r * 0.9} ${y - 2}" fill="none" stroke="#3a2a22" stroke-width="4" stroke-linecap="round"/>`;
+  switch (mood) {
+    case "joy": return arc(x1, true) + arc(x2, true);
+    case "tired": return arc(x1, false) + arc(x2, false);
+    case "sly": return big(x1) + big(x2) +
+      `<path d="M${x1 - r} ${y - r * 0.55} Q${x1} ${y - r * 0.9} ${x1 + r} ${y - r * 0.4} L${x1 + r} ${y - r * 1.3} L${x1 - r} ${y - r * 1.3} Z" fill="${C.fx}"/>
+       <path d="M${x2 - r} ${y - r * 0.4} Q${x2} ${y - r * 0.9} ${x2 + r} ${y - r * 0.55} L${x2 + r} ${y - r * 1.3} L${x2 - r} ${y - r * 1.3} Z" fill="${C.fx}"/>
+       <path d="M${x1 - r} ${y - r * 0.5} Q${x1} ${y - r * 0.85} ${x1 + r} ${y - r * 0.4} M${x2 - r} ${y - r * 0.4} Q${x2} ${y - r * 0.85} ${x2 + r} ${y - r * 0.5}" fill="none" stroke="#3a2a22" stroke-width="3" stroke-linecap="round"/>`;
+    case "surprised": return `<circle cx="${x1}" cy="${y}" r="${r * 0.75}" fill="#3a2a22"/><circle cx="${x1 + 2}" cy="${y - 3}" r="${r * 0.28}" fill="#fff"/>
+      <circle cx="${x2}" cy="${y}" r="${r * 0.75}" fill="#3a2a22"/><circle cx="${x2 + 2}" cy="${y - 3}" r="${r * 0.28}" fill="#fff"/>`;
+    case "sad": return big(x1) + big(x2) +
+      `<path d="M${x1 - r} ${y - r * 1.5} Q${x1} ${y - r * 1.9} ${x1 + r} ${y - r * 1.8} M${x2 - r} ${y - r * 1.8} Q${x2} ${y - r * 1.9} ${x2 + r} ${y - r * 1.5}" fill="none" stroke="#3a2a22" stroke-width="3" stroke-linecap="round"/>
+       <path d="M${x1 - r * 0.2} ${y + r * 1.1} q-4 8 0 12 q4 -4 0 -12 Z" fill="#9fd0f5"/>`;
+    default: return big(x1) + big(x2);
+  }
+}
+function mouth(x, y, mood, w = 8) {
+  switch (mood) {
+    case "joy": return `<path d="M${x - w} ${y - 1} Q${x} ${y + w * 1.5} ${x + w} ${y - 1} Z" fill="#e2747a" stroke="#3a2a22" stroke-width="2.5" stroke-linejoin="round"/>`;
+    case "sad": return `<path d="M${x - w * 0.6} ${y + 4} Q${x} ${y - 2} ${x + w * 0.6} ${y + 4}" fill="none" stroke="#3a2a22" stroke-width="2.8" stroke-linecap="round"/>`;
+    case "tired": return `<path d="M${x - w * 0.8} ${y + 2} q${w * 0.4} -4 ${w * 0.8} 0 t${w * 0.8} 0" fill="none" stroke="#3a2a22" stroke-width="2.8" stroke-linecap="round"/>`;
+    case "surprised": return `<ellipse cx="${x}" cy="${y + 3}" rx="${w * 0.4}" ry="${w * 0.55}" fill="#e2747a" stroke="#3a2a22" stroke-width="2.5"/>`;
+    case "sly": return `<path d="M${x - w} ${y} Q${x + w * 0.3} ${y + w * 0.9} ${x + w * 1.1} ${y - w * 0.4}" fill="none" stroke="#3a2a22" stroke-width="2.8" stroke-linecap="round"/>`;
+    default: return `<path d="M${x - w} ${y - 1} q${w / 2} ${w * 0.7} ${w} 0 q${w / 2} ${w * 0.7} ${w} 0" fill="none" stroke="#3a2a22" stroke-width="2.8" stroke-linecap="round"/>`;
+  }
+}
+const cheeks = (x1, x2, y, r = 12) =>
+  `<ellipse cx="${x1}" cy="${y}" rx="${r}" ry="${r * 0.6}" fill="#ff9fb0" opacity=".7"/><ellipse cx="${x2}" cy="${y}" rx="${r}" ry="${r * 0.6}" fill="#ff9fb0" opacity=".7"/>`;
+function holding(item, hy) { return item ? `<g transform="translate(0 ${hy})">${item}</g>` : ""; }
+/* 小さな まるい手 */
+function arms(col, hy, hw = 22, up = false) {
+  const paw = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="10" fill="${col}" ${ln(2.5)}/>
+    <path d="M${x - 4} ${y - 8} v5 M${x + 4} ${y - 8} v5" stroke="#6e4a36" stroke-width="1.8" stroke-linecap="round"/>`;
+  return up ? paw(-hw, hy + 4) + paw(46, hy - 50) : paw(-hw, hy + 4) + paw(hw, hy + 4);
+}
+/* からだ（あたま大きめ）の共通部分 */
+function chibi(o) {
+  const hy = -150, hr = o.hr || 64;
+  return `
+  ${o.back || ""}
+  <ellipse cx="-18" cy="-6" rx="17" ry="9" fill="${o.foot || o.col}" ${ln(2.5)}/><ellipse cx="18" cy="-6" rx="17" ry="9" fill="${o.foot || o.col}" ${ln(2.5)}/>
+  <ellipse cx="0" cy="-48" rx="${o.bw || 40}" ry="44" fill="${o.col}" ${ln(2.8)}/>
+  <ellipse cx="0" cy="-42" rx="${(o.bw || 40) * 0.6}" ry="30" fill="${o.belly}"/>
+  ${o.neck || ""}
+  ${o.ears || ""}
+  <ellipse cx="0" cy="${hy}" rx="${hr + 4}" ry="${hr}" fill="${o.col}" ${ln(2.8)}/>
+  ${o.face || ""}
+  ${eyes(-24, 24, hy + 2, o.mood, 11)}
+  ${cheeks(-40, 40, hy + 22)}
+  ${o.nose || `<ellipse cx="0" cy="${hy + 16}" rx="5" ry="3.8" fill="#5a3a2e"/>`}
+  ${mouth(0, hy + 25, o.mood, 7)}
+  ${o.top || ""}
+  ${holding(o.hold, -60)}
+  ${o.noArms ? "" : arms(o.col, -62, o.hw ?? 22, o.armUp)}`;
+}
+
+/* ---- リスさん（きいろの スカーフ） ---- */
+function squirrel(o = {}) {
+  return `<g>${chibi({
+    ...o, mood: o.mood || "happy", col: C.sq, belly: C.cream,
+    back: `<path d="M-20 -30 C-90 -10 -128 -90 -100 -150 C-80 -196 -20 -196 -26 -150 C-30 -122 -70 -128 -66 -96 C-62 -70 -44 -56 -24 -60 Z" fill="${C.sqL}" ${ln(2.8)}/>
+           <path d="M-88 -150 C-74 -176 -44 -178 -40 -156" fill="none" stroke="#fff3df" stroke-width="7" stroke-linecap="round" opacity=".8"/>`,
+    ears: `<path d="M-58 -184 Q-76 -262 -28 -206 Z" fill="${C.sq}" ${ln(2.8)}/><path d="M58 -184 Q76 -262 28 -206 Z" fill="${C.sq}" ${ln(2.8)}/>
+           <path d="M-52 -196 Q-64 -240 -36 -208 Z M52 -196 Q64 -240 36 -208 Z" fill="#ffc6a8"/>
+           <path d="M-64 -232 l-8 -10 M-64 -232 l0 -14 M64 -232 l8 -10 M64 -232 l0 -14" ${ln(2.4)}/>`,
+    face: `<ellipse cx="0" cy="-128" rx="34" ry="22" fill="${C.cream}"/>`,
+    neck: `<path d="M-34 -88 Q0 -72 34 -88 L32 -76 Q0 -62 -32 -76 Z" fill="#f6cf4f" ${ln(2.5)}/><path d="M18 -78 l10 22 l10 -6 Z" fill="#f6cf4f" ${ln(2.2)}/>`,
+  })}</g>`;
+}
+/* ---- ウサギさん（あおい リボン） ---- */
+function rabbit(o = {}) {
+  const droop = o.mood === "sad" || o.mood === "tired";
+  const ear = (x, r) => `<g transform="rotate(${r} ${x} -200)"><ellipse cx="${x}" cy="-252" rx="19" ry="50" fill="${C.rb}" ${ln(2.8)}/><ellipse cx="${x}" cy="-248" rx="9" ry="36" fill="#ffc2cc"/></g>`;
+  return `<g>${chibi({
+    ...o, mood: o.mood || "happy", col: C.rb, belly: "#fffaf3",
+    back: `<circle cx="-40" cy="-30" r="14" fill="#fff" ${ln(2.5)}/>`,
+    ears: ear(-24, droop ? -40 : -10) + ear(24, droop ? 40 : 10),
+    face: `<ellipse cx="0" cy="-130" rx="30" ry="20" fill="#fffaf3"/>`,
+    nose: `<path d="M-5 -136 L5 -136 L0 -130 Z" fill="#f48a9c" stroke="#3a2a22" stroke-width="1.6"/>`,
+    top: `<g transform="translate(34 -206)"><path d="M0 0 L-20 -12 L-20 12 Z M0 0 L20 -12 L20 12 Z" fill="#7fb6e8" ${ln(2.2)}/><circle cx="0" cy="0" r="6" fill="#7fb6e8" ${ln(2.2)}/></g>`,
+  })}</g>`;
+}
+/* ---- キツネさん（みどりの ぼうし） ---- */
+function fox(o = {}) {
+  return `<g>${chibi({
+    ...o, mood: o.mood || "sly", col: C.fx, belly: C.white, foot: "#6b4535",
+    back: `<path d="M-22 -30 C-80 -24 -138 -60 -136 -116 C-116 -100 -88 -94 -70 -98 C-56 -76 -40 -64 -22 -62 Z" fill="${C.fx}" ${ln(2.8)}/>
+           <path d="M-136 -116 C-128 -100 -112 -94 -96 -96 C-106 -110 -120 -116 -136 -116 Z" fill="${C.white}"/>`,
+    ears: `<path d="M-56 -184 L-62 -240 L-20 -206 Z" fill="${C.fx}" ${ln(2.8)}/><path d="M56 -184 L62 -240 L20 -206 Z" fill="${C.fx}" ${ln(2.8)}/>
+           <path d="M-52 -194 L-56 -226 L-30 -206 Z M52 -194 L56 -226 L30 -206 Z" fill="#6b4535"/>`,
+    face: `<path d="M-64 -146 Q-34 -126 0 -132 Q34 -126 64 -146 Q56 -96 0 -92 Q-56 -96 -64 -146 Z" fill="${C.white}"/>`,
+    top: o.noHat ? "" : `<path d="M-40 -204 Q-38 -240 0 -242 Q38 -240 40 -204 Z" fill="${C.hat}" ${ln(2.8)}/>
+       <ellipse cx="0" cy="-204" rx="58" ry="12" fill="${C.hat}" ${ln(2.8)}/><path d="M14 -236 q12 -14 22 -4 q-10 2 -22 4 Z" fill="#a7d26a" ${ln(2)}/>`,
+  })}</g>`;
+}
+/* ---- フクロウはかせ ---- */
+function owl(o = {}) {
+  const m = o.mood || "happy";
+  const wingR = o.wingUp
+    ? `<path d="M56 -130 C96 -150 112 -200 100 -224 C80 -206 64 -180 50 -162 Z" fill="${C.owlD}" ${ln(2.8)}/>`
+    : `<path d="M60 -140 C90 -120 92 -70 72 -48 C64 -84 58 -110 54 -128 Z" fill="${C.owlD}" ${ln(2.8)}/>`;
+  return `<g>
+  <path d="M-24 -4 l-7 7 M-24 -4 l0 9 M-24 -4 l7 7 M24 -4 l-7 7 M24 -4 l0 9 M24 -4 l7 7" stroke="#e8a046" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="0" cy="-104" rx="76" ry="100" fill="${C.owl}" ${ln(2.8)}/>
+  <ellipse cx="0" cy="-70" rx="46" ry="56" fill="${C.owlL}"/>
+  <path d="M-26 -84 q7 7 14 0 q7 7 14 0 q7 7 14 0 M-32 -58 q7 7 14 0 q7 7 14 0 q7 7 14 0 q7 7 14 0" fill="none" stroke="${C.owlD}" stroke-width="2.5" opacity=".5"/>
+  <path d="M-60 -140 C-90 -120 -92 -70 -72 -48 C-64 -84 -58 -110 -54 -128 Z" fill="${C.owlD}" ${ln(2.8)}/>
+  ${wingR}
+  <path d="M-56 -186 L-66 -222 L-30 -196 Z M56 -186 L66 -222 L30 -196 Z" fill="${C.owl}" ${ln(2.8)}/>
+  <circle cx="-28" cy="-150" r="27" fill="#fff8ea"/><circle cx="28" cy="-150" r="27" fill="#fff8ea"/>
+  ${eyes(-28, 28, -150, m, 12)}
+  <circle cx="-28" cy="-150" r="24" fill="none" stroke="#4a4a52" stroke-width="3.5"/><circle cx="28" cy="-150" r="24" fill="none" stroke="#4a4a52" stroke-width="3.5"/>
+  <path d="M-4 -150 L4 -150" stroke="#4a4a52" stroke-width="3.5"/>
+  ${cheeks(-50, 50, -122, 10)}
+  <path d="M-8 -128 L8 -128 L0 -114 Z" fill="#f0a640" stroke="#3a2a22" stroke-width="2"/>
+  <path d="M-14 -96 L0 -89 L14 -96 L14 -82 L0 -89 L-14 -82 Z" fill="${C.red}" ${ln(2)}/>
+  <path d="M-46 -206 L0 -224 L46 -206 L0 -190 Z" fill="#4a4c58" ${ln(2.8)}/><rect x="-20" y="-206" width="40" height="12" fill="#4a4c58"/>
+  <path d="M0 -208 L36 -200 L38 -178" fill="none" stroke="#f2c14e" stroke-width="3"/><circle cx="38" cy="-176" r="5" fill="#f2c14e"/>
+  ${holding(o.hold, -82)}
+  ${o.wingHold ? `<g transform="translate(104 -232)">${o.wingHold}</g>` : ""}
+  </g>`;
+}
+/* ---- ことりさん（まんまる） ---- */
+function bird(o = {}) {
+  const wing = o.wingDown
+    ? `<path d="M-8 -2 C-30 12 -36 34 -20 40 C-8 28 4 12 4 0 Z" fill="${C.birdD}" ${ln(2.4)}/>`
+    : `<path d="M-8 -8 C-30 -36 -28 -66 -10 -72 C0 -52 8 -30 6 -10 Z" fill="${C.birdD}" ${ln(2.4)}/>`;
+  return `<g>
+  <path d="M-30 6 L-50 -4 L-48 16 Z" fill="${C.birdD}" ${ln(2.4)}/>
+  <circle cx="0" cy="0" r="34" fill="${C.bird}" ${ln(2.6)}/>
+  <ellipse cx="6" cy="12" rx="20" ry="15" fill="${C.yel}"/>
+  <path d="M30 -4 L46 2 L30 8 Z" fill="#f0a640" stroke="#3a2a22" stroke-width="2"/>
+  <ellipse cx="16" cy="-8" rx="5.5" ry="7" fill="#3a2a22"/><circle cx="18" cy="-11" r="2.4" fill="#fff"/>
+  <ellipse cx="12" cy="6" rx="7" ry="4" fill="#ff9fb0" opacity=".8"/>
+  <path d="M-4 -32 q4 -12 10 -4 q2 -10 8 -2" fill="none" ${ln(2.2)}/>
+  ${wing}
+  ${o.beak ? `<g transform="translate(46 3)">${o.beak}</g>` : ""}
+  ${o.carry ? `<g transform="translate(0 30)">${o.carry}</g>` : ""}
+  </g>`;
+}
+/* ---- クマさん ---- */
+function bear(o = {}) {
+  return `<g>${chibi({
+    ...o, mood: o.mood || "happy", col: C.bear, belly: C.bearL, hr: 70, bw: 48,
+    ears: `<circle cx="-56" cy="-206" r="20" fill="${C.bear}" ${ln(2.8)}/><circle cx="56" cy="-206" r="20" fill="${C.bear}" ${ln(2.8)}/>
+           <circle cx="-56" cy="-206" r="10" fill="${C.bearL}"/><circle cx="56" cy="-206" r="10" fill="${C.bearL}"/>`,
+    face: `<ellipse cx="0" cy="-128" rx="28" ry="20" fill="${C.bearL}"/>`,
+  })}</g>`;
+}
+/* ---- ネズミさん ---- */
+function mouse(o = {}) {
+  return `<g>${chibi({
+    ...o, mood: o.mood || "happy", col: C.mouse, belly: "#f3eeea", hr: 58, bw: 34,
+    back: `<path d="M-26 -20 C-66 -10 -84 -40 -70 -64" fill="none" stroke="#3a2a22" stroke-width="3.5" stroke-linecap="round"/>`,
+    ears: `<circle cx="-52" cy="-196" r="28" fill="${C.mouse}" ${ln(2.8)}/><circle cx="52" cy="-196" r="28" fill="${C.mouse}" ${ln(2.8)}/>
+           <circle cx="-52" cy="-196" r="16" fill="#ffc2cc"/><circle cx="52" cy="-196" r="16" fill="#ffc2cc"/>`,
+    nose: `<circle cx="0" cy="-134" r="5" fill="#f48a9c" stroke="#3a2a22" stroke-width="1.6"/>`,
+  })}</g>`;
+}
+
+/* ===== 小物 ===== */
+/* 手紙（中心が原点） */
+function letter(s = 1, opt = {}) {
+  return G(`<rect x="-36" y="-24" width="72" height="48" rx="4" fill="#fffdf6" ${ln(2.5)}/>
+    <path d="M-36 -24 L0 4 L36 -24" fill="none" ${ln(2.5)}/>
+    ${opt.noHeart ? "" : `<path d="M0 10 C-10 2 -10 -6 -4 -6 C-1 -6 0 -3 0 -2 C0 -3 1 -6 4 -6 C10 -6 10 2 0 10 Z" fill="${C.red}"/>`}
+    ${opt.text ? `<text x="0" y="17" font-size="11" font-weight="900" fill="#3c3478" text-anchor="middle">${opt.text}</text>` : ""}`, 0, 0, s);
+}
+/* 南京錠＝しめるカギ（下の真ん中＝くぐらせる位置が原点の上） */
+function padlock(s = 1, open = false) {
+  const sh = open
+    ? `<path d="M-16 -2 V-40 A17 17 0 0 1 18 -40 V-30" fill="none" stroke="${C.silverD}" stroke-width="11" stroke-linecap="round"/>
+       <path d="M-16 -2 V-40 A17 17 0 0 1 18 -40 V-30" fill="none" stroke="${C.silver}" stroke-width="6" stroke-linecap="round"/>`
+    : `<path d="M-17 2 V-22 A17 17 0 0 1 17 -22 V2" fill="none" stroke="${C.silverD}" stroke-width="11"/>
+       <path d="M-17 2 V-22 A17 17 0 0 1 17 -22 V2" fill="none" stroke="${C.silver}" stroke-width="6"/>`;
+  return G(`${sh}
+    <rect x="-30" y="0" width="60" height="50" rx="12" fill="url(#gSilver)" ${ln(3)}/>
+    <path d="M-20 12 q6 -6 10 0 q-4 6 -8 2 M10 36 q6 -6 10 0 q-4 6 -8 2" fill="none" stroke="${C.silverD}" stroke-width="2"/>
+    <circle cx="0" cy="22" r="6" fill="#3b3f48"/><path d="M-3 24 L3 24 L5 38 L-5 38 Z" fill="#3b3f48"/>`, 0, 0, s);
+}
+/* 金のカギ＝あけるカギ（横向き、左が持ち手） */
+function goldKey(s = 1, rot = 0) {
+  return G(`<path d="M-58 -22 l6 -14 l6 14 l15 0 l-12 9 l5 15 l-14 -9 l-14 9 l5 -15 l-12 -9 Z" fill="url(#gGold)" ${ln(2.5)}/>
+    <circle cx="-52" cy="0" r="17" fill="url(#gGold)" ${ln(3)}/><circle cx="-52" cy="0" r="7" fill="#fff6dc" ${ln(2)}/>
+    <rect x="-36" y="-5" width="80" height="10" rx="3" fill="url(#gGold)" ${ln(2.5)}/>
+    <path d="M26 5 V22 H34 V12 H40 V22 H46 V5" fill="url(#gGold)" ${ln(2.5)}/>`, 0, 0, s, false, rot);
+}
+/* 銀のカギ＝おなじカギ（共通鍵） */
+function silverKey(s = 1, rot = 0) {
+  return G(`<circle cx="-46" cy="0" r="18" fill="url(#gSilver)" ${ln(3)}/><circle cx="-46" cy="0" r="7" fill="#f3f6fa" ${ln(2)}/>
+    <rect x="-30" y="-5" width="72" height="10" rx="3" fill="url(#gSilver)" ${ln(2.5)}/>
+    <path d="M24 5 V20 H31 V11 H37 V20 H42 V5" fill="url(#gSilver)" ${ln(2.5)}/>`, 0, 0, s, false, rot);
+}
+/* 宝箱（下の真ん中が原点） lock:"padlock"|"padlockOpen"|"hole" */
+function chest(s = 1, o = {}) {
+  const lid = o.open
+    ? `<path d="M-84 -84 L-72 -164 Q0 -180 72 -164 L84 -84 Z" fill="${C.metal}" ${ln()}/>
+       <path d="M-74 -88 L-64 -154 Q0 -168 64 -154 L74 -88 Z" fill="#6e4424"/>
+       <path d="M-70 -112 H70 M-66 -136 H66" stroke="#55331a" stroke-width="2.5"/>
+       <path d="M-84 -84 Q0 -104 84 -84 L84 -78 L-84 -78 Z" fill="#3e2412" ${ln(2)}/>
+       ${o.content || ""}`
+    : `<path d="M-84 -80 Q-84 -132 0 -134 Q84 -132 84 -80 Z" fill="${C.wood}" ${ln()}/>
+       <path d="M-84 -80 Q-84 -132 0 -134 Q84 -132 84 -80" fill="none" stroke="${C.metal}" stroke-width="7"/>
+       <path d="M-50 -82 Q-50 -122 -30 -128 M30 -128 Q50 -122 50 -82" fill="none" stroke="${C.woodD}" stroke-width="2.5"/>`;
+  let lock = "";
+  if (o.lock === "padlock" || o.lock === "padlockOpen" || o.lock === "hasp") {
+    lock = `<rect x="-12" y="-96" width="24" height="30" rx="4" fill="${C.metal}" ${ln(2.5)}/>
+      <rect x="-6" y="-72" width="12" height="16" rx="5" fill="none" stroke="${C.metalD}" stroke-width="4"/>`;
+    if (o.lock === "padlock") lock += G(padlock(1), 0, -60, 0.62);
+  } else if (o.lock === "hole") {
+    lock = `<rect x="-14" y="-98" width="28" height="36" rx="5" fill="${C.metal}" ${ln(2.5)}/>
+      <circle cx="0" cy="-84" r="5" fill="#3b3f48"/><path d="M-3 -82 L3 -82 L4 -70 L-4 -70 Z" fill="#3b3f48"/>`;
+  }
+  return G(`<ellipse cx="0" cy="2" rx="96" ry="10" fill="#3e5a2a" opacity=".18"/>
+    ${o.open ? lid : ""}
+    <rect x="-84" y="-84" width="168" height="84" rx="6" fill="${C.wood}" ${ln()}/>
+    <path d="M-84 -56 H84 M-84 -28 H84" stroke="${C.woodD}" stroke-width="2.5"/>
+    <rect x="-84" y="-84" width="14" height="84" fill="${C.metal}" ${ln(2.5)}/><rect x="70" y="-84" width="14" height="84" fill="${C.metal}" ${ln(2.5)}/>
+    ${o.open ? "" : lid}${lock}`, 0, 0, s);
+}
+/* はんこ（持つ道具） と おした しるし */
+function hanko(s = 1) {
+  return G(`<ellipse cx="0" cy="-70" rx="16" ry="14" fill="#8a5a36" ${ln(2.5)}/>
+    <rect x="-9" y="-62" width="18" height="44" rx="5" fill="#a36b40" ${ln(2.5)}/>
+    <rect x="-22" y="-20" width="44" height="22" rx="5" fill="${C.red}" ${ln(2.5)}/>`, 0, 0, s);
+}
+function stampMark(s = 1, fake = false) {
+  return fake
+    ? G(`<rect x="-26" y="-22" width="52" height="44" rx="4" fill="none" stroke="${C.red}" stroke-width="4"/>
+        <text x="0" y="9" font-size="22" font-weight="900" fill="${C.red}" text-anchor="middle">リス</text>`, 0, 0, s, false, -8)
+    : G(`<circle cx="0" cy="0" r="26" fill="none" stroke="${C.red}" stroke-width="4.5"/>
+        <text x="0" y="8" font-size="21" font-weight="900" fill="${C.red}" text-anchor="middle">リス</text>`, 0, 0, s);
+}
+/* ルーペ＝リスさんの はんこを しらべる めがね（みんなに くばる） */
+function loupe(s = 1, rot = -30) {
+  return G(`<rect x="22" y="-8" width="62" height="16" rx="8" fill="#e98fa6" ${ln(2.6)}/>
+    <circle cx="0" cy="0" r="30" fill="#d8f0ff" fill-opacity=".55" stroke="#f2c14e" stroke-width="9"/>
+    <circle cx="0" cy="0" r="30" fill="none" ${ln(2.4)}/><circle cx="0" cy="0" r="21" fill="none" ${ln(1.6)}/>
+    <path d="M-14 -12 q6 -8 14 -8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>`, 0, 0, s, false, rot);
+}
+/* ルーペで のぞいた しるし：ほんものは キラキラ ひかって リスの マーク、にせものは なにも でない */
+function stampLook(s = 1, real = true) {
+  const inner = real
+    ? `<circle cx="0" cy="0" r="40" fill="url(#gGlow)"/>` + stampMark(1) +
+      [[-34, -30], [34, -26], [30, 32], [-32, 30]].map(([x, y]) => sparkle(x, y, .55)).join("")
+    : stampMark(1, true) + `<text x="34" y="-28" font-size="26" font-weight="900" fill="#7d8fc0">？</text>`;
+  return G(inner, 0, 0, s);
+}
+/* 紙（中心が原点） */
+function paper(w, h, inner, rot = 0, fill = "#fffbee") {
+  return `<g transform="rotate(${rot})"><rect x="${-w / 2 + 6}" y="${-h / 2 + 8}" width="${w}" height="${h}" rx="8" fill="#000" opacity=".12"/>
+    <rect x="${-w / 2}" y="${-h / 2}" width="${w}" height="${h}" rx="8" fill="${fill}" ${ln(3)}/>${inner}</g>`;
+}
+/* ふきだし */
+function bubble(x, y, w, h, tx, ty, inner, think = true) {
+  const a = Math.atan2(ty - y, tx - x), sx = x + Math.cos(a) * w / 2, sy = y + Math.sin(a) * h / 2;
+  let tail = "";
+  if (think) for (let i = 1; i <= 3; i++) {
+    const t = i / 3.6, r = 15 - i * 3.5;
+    tail += `<circle cx="${sx + (tx - sx) * t}" cy="${sy + (ty - sy) * t}" r="${r}" fill="#fff" ${ln(3)}/>`;
+  } else {
+    const p = a + Math.PI / 2, d = 14;
+    tail = `<path d="M${sx + Math.cos(p) * d} ${sy + Math.sin(p) * d} L${tx} ${ty} L${sx - Math.cos(p) * d} ${sy - Math.sin(p) * d} Z" fill="#fff" ${ln(3)}/>`;
+  }
+  return `<g>${think ? "" : tail}<ellipse cx="${x}" cy="${y}" rx="${w / 2}" ry="${h / 2}" fill="#fff" ${ln(3)}/>${think ? tail : `<ellipse cx="${x}" cy="${y}" rx="${w / 2 - 3}" ry="${h / 2 - 3}" fill="#fff"/>`}
+    <g transform="translate(${x} ${y})">${inner}</g></g>`;
+}
+const txt = (x, y, s, size = 30, col = INK, w = 900) =>
+  `<text x="${x}" y="${y}" font-size="${size}" font-weight="${w}" fill="${col}" text-anchor="middle" dominant-baseline="middle">${s}</text>`;
+function sparkle(x, y, s = 1, col = "#f6c445") {
+  return G(`<path d="M0 -16 Q3 -3 16 0 Q3 3 0 16 Q-3 3 -16 0 Q-3 -3 0 -16 Z" fill="${col}"/>`, x, y, s);
+}
+function sweat(x, y, s = 1) {
+  return G(`<path d="M0 -14 Q10 2 6 8 Q0 14 -6 8 Q-10 2 0 -14 Z" fill="#9fd0f5" ${ln(2)}/>`, x, y, s);
+}
+function gloom(x, y) {
+  return `<path d="M${x} ${y} v26 M${x + 14} ${y - 4} v30 M${x + 28} ${y} v26" stroke="#7d8fc0" stroke-width="4" stroke-linecap="round"/>`;
+}
+function qmark(x, y, s = 1, col = INK) { return txt(x, y, "？", 52 * s, col); }
+
+/* ===== 背景 ===== */
+function defs() {
+  return `<defs>
+  <filter id="wc" x="-3%" y="-3%" width="106%" height="106%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="wash" x="-5%" y="-5%" width="110%" height="110%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" seed="2" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feGaussianBlur in="d" stdDeviation="1.2"/>
+  </filter>
+  <filter id="paperTex" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="11"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0.5 0"/>
+  </filter>
+  <filter id="blot" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="5"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -1.2 0.9"/>
+  </filter>
+  <linearGradient id="gSilver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset=".55" stop-color="#c9d0da"/><stop offset="1" stop-color="#9aa3b0"/></linearGradient>
+  <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b0"/><stop offset=".5" stop-color="#f2c14e"/><stop offset="1" stop-color="#c8922e"/></linearGradient>
+  <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0f4"/><stop offset="1" stop-color="#f4f6e6"/></linearGradient>
+  <linearGradient id="gSunset" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3a68f"/><stop offset=".55" stop-color="#f9d29a"/><stop offset="1" stop-color="#f8e8c0"/></linearGradient>
+  <linearGradient id="gForest" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcebc4"/><stop offset="1" stop-color="#f3f1d8"/></linearGradient>
+  <linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9da8a"/><stop offset="1" stop-color="#93c46a"/></linearGradient>
+  <radialGradient id="gGlow"><stop offset="0" stop-color="#fff6c8" stop-opacity=".95"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+  </defs>`;
+}
+let _seed = 1;
+const rnd = () => { _seed = (_seed * 9301 + 49297) % 233280; return _seed / 233280; };
+function canopy(cx, cy, r, col, n = 8) {
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const a = rnd() * 6.28, d = rnd() * r * 0.6, rr = r * (0.45 + rnd() * 0.3);
+    s += `<circle cx="${cx + Math.cos(a) * d}" cy="${cy + Math.sin(a) * d * 0.6}" r="${rr}"/>`;
+  }
+  return `<g fill="${col}" opacity=".9" filter="url(#wash)">${s}</g>`;
+}
+function tree(x, groundY, h, w, col = "#9b6a43", leaf = "#86bd5f", seed = 1) {
+  _seed = seed;
+  return `<path d="M${x - w / 2} ${groundY} Q${x - w * 0.3} ${groundY - h * 0.5} ${x - w * 0.35} ${groundY - h} L${x + w * 0.35} ${groundY - h} Q${x + w * 0.3} ${groundY - h * 0.5} ${x + w / 2} ${groundY} Z" fill="${col}" ${ln(3)} filter="url(#wc)"/>
+    <path d="M${x - w * 0.1} ${groundY - h * 0.25} q4 -30 -2 -60 M${x + w * 0.15} ${groundY - h * 0.5} q-3 -25 2 -50" stroke="#6e4628" stroke-width="2.5" fill="none" opacity=".6"/>
+    ${canopy(x, groundY - h - 10, Math.min(w * 1.5, 170), leaf, 9)}${canopy(x - w * 0.4, groundY - h + 40, Math.min(w, 110), "#9fcd72", 6)}`;
+}
+function flowers(n, y0, y1, seed = 3, x0 = 30, x1 = 1346) {
+  _seed = seed; let s = "";
+  const cols = ["#f28aa0", "#f7c948", "#8fb3f0", "#d79be3", "#f59b6c", "#fff"];
+  for (let i = 0; i < n; i++) {
+    const x = x0 + rnd() * (x1 - x0), y = y0 + rnd() * (y1 - y0), r = 7 + rnd() * 6, c = cols[Math.floor(rnd() * cols.length)];
+    let p = "";
+    for (let k = 0; k < 5; k++) { const a = k * 1.2566; p += `<circle cx="${x + Math.cos(a) * r}" cy="${y + Math.sin(a) * r}" r="${r * 0.7}"/>`; }
+    s += `<path d="M${x} ${y} q${(rnd() - .5) * 8} 16 0 30" stroke="#5f9a45" stroke-width="3" fill="none"/>
+      <g fill="${c}" stroke="${INK}" stroke-width="1.5" stroke-opacity=".5">${p}</g><circle cx="${x}" cy="${y}" r="${r * 0.45}" fill="#f6d34a"/>`;
+  }
+  return s;
+}
+function grass(n, y0, y1, seed = 9) {
+  _seed = seed; let s = "";
+  for (let i = 0; i < n; i++) {
+    const x = rnd() * 1376, y = y0 + rnd() * (y1 - y0);
+    s += `<path d="M${x} ${y} q-3 -14 -8 -20 M${x} ${y} q1 -16 2 -24 M${x} ${y} q4 -12 10 -18" stroke="#5f9a45" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  }
+  return s;
+}
+function mushroom(x, y, s = 1) {
+  return G(`<rect x="-8" y="-22" width="16" height="24" rx="6" fill="#f8efdd" ${ln(2.5)}/>
+    <path d="M-28 -18 Q-26 -46 0 -48 Q26 -46 28 -18 Z" fill="#e0675a" ${ln(2.5)}/>
+    <circle cx="-12" cy="-32" r="4.5" fill="#fff"/><circle cx="6" cy="-38" r="4" fill="#fff"/><circle cx="14" cy="-26" r="3.5" fill="#fff"/>`, x, y, s);
+}
+function sun(x, y, r = 50) {
+  let rays = "";
+  for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; rays += `<path d="M${x + Math.cos(a) * (r + 10)} ${y + Math.sin(a) * (r + 10)} L${x + Math.cos(a) * (r + 26)} ${y + Math.sin(a) * (r + 26)}" stroke="#f3c64a" stroke-width="5" stroke-linecap="round"/>`; }
+  return `<circle cx="${x}" cy="${y}" r="${r + 40}" fill="url(#gGlow)"/>${rays}<circle cx="${x}" cy="${y}" r="${r}" fill="#fbe07a" ${ln(2.5)}/>
+    <path d="M${x - 18} ${y - 6} q5 -6 10 0 M${x + 8} ${y - 6} q5 -6 10 0" fill="none" ${ln(3)}/><path d="M${x - 14} ${y + 10} q14 14 28 0" fill="none" ${ln(3)}/>
+    <ellipse cx="${x - 26}" cy="${y + 8}" rx="8" ry="5" fill="${C.pink}" opacity=".7"/><ellipse cx="${x + 26}" cy="${y + 8}" rx="8" ry="5" fill="${C.pink}" opacity=".7"/>`;
+}
+function cloud(x, y, s = 1) {
+  return G(`<g fill="#fff" opacity=".85" filter="url(#wash)"><ellipse cx="0" cy="0" rx="70" ry="28"/><circle cx="-30" cy="-16" r="30"/><circle cx="20" cy="-24" r="36"/></g>`, x, y, s);
+}
+function paperOverlay() {
+  return `<rect width="1376" height="768" filter="url(#paperTex)" opacity=".22" style="mix-blend-mode:multiply"/>
+          <rect width="1376" height="768" filter="url(#blot)" opacity=".18"/>`;
+}
+/* 背景の種類 */
+function bg(kind, o = {}) {
+  let s = "";
+  if (kind === "meadow" || kind === "home" || kind === "base" || kind === "pond") {
+    s += `<rect width="1376" height="768" fill="url(#gSky)"/>`;
+    s += o.noSun ? "" : sun(1180, 110);
+    s += cloud(300, 120, 1) + cloud(760, 80, .8);
+    s += `<path d="M0 430 Q300 360 620 420 T1376 400 V768 H0 Z" fill="#cfe5a8" filter="url(#wash)"/>`;
+    s += `<path d="M0 470 Q400 430 800 470 T1376 455 V768 H0 Z" fill="url(#gGround)" filter="url(#wash)"/>`;
+    if (kind === "home") {
+      s += tree(220, 520, 330, 150, "#a06c44", "#86bd5f", 4);
+      s += `<g filter="url(#wc)"><path d="M180 520 V430 Q220 380 260 430 V520 Z" fill="#d9534f" ${ln(3)}/><circle cx="246" cy="478" r="5" fill="#f2c14e"/>
+        <rect x="190" y="330" width="56" height="50" rx="24" fill="#cfe9f7" ${ln(3)}/><path d="M218 330 V380 M190 355 H246" ${ln(2.5)}/>
+        <path d="M168 520 h104 l-6 14 h-92 Z" fill="#b98656" ${ln(2.5)}/></g>`;
+      s += tree(1290, 500, 300, 90, "#9b6a43", "#8cc366", 6);
+    }
+    if (kind === "base") {
+      _seed = 8;
+      s += `<g filter="url(#wc)">
+        <path d="M600 600 Q640 560 660 470 Q670 300 650 120 L950 120 Q930 300 940 470 Q960 560 1010 600 Q930 590 900 575 Q800 560 700 578 Q650 590 600 600 Z" fill="#9b6a43" ${ln(3)}/>
+        <path d="M700 380 q8 -60 -4 -120 M880 330 q-6 -50 4 -100 M760 250 q10 -30 0 -60" stroke="#6e4628" stroke-width="3" fill="none" opacity=".6"/>
+        <path d="M718 580 Q716 452 800 440 Q884 452 882 580 Z" fill="#3e2716" ${ln(3)}/>
+        <path d="M730 578 Q730 470 800 460 Q870 470 870 578" fill="none" stroke="#5a3a22" stroke-width="4"/></g>`;
+      s += canopy(800, 90, 260, "#86bd5f", 12) + canopy(640, 150, 150, "#9fcd72", 7) + canopy(980, 150, 150, "#9fcd72", 7);
+      s += tree(130, 520, 300, 100, "#9b6a43", "#8cc366", 3) + tree(1270, 510, 300, 100, "#9b6a43", "#8cc366", 9);
+    }
+    if (kind === "pond") {
+      s += `<ellipse cx="560" cy="600" rx="330" ry="80" fill="#9fd0ee" ${ln(3)} filter="url(#wash)"/>
+        <path d="M380 590 q20 -8 40 0 M600 620 q24 -8 48 0 M700 580 q18 -6 36 0" stroke="#fff" stroke-width="4" fill="none"/>
+        <g fill="#6aa857" ${ln(2)}><ellipse cx="460" cy="560" rx="30" ry="10"/><ellipse cx="700" cy="640" rx="26" ry="9"/></g>`;
+      s += tree(1180, 520, 330, 130, "#9b6a43", "#86bd5f", 12) + tree(120, 520, 280, 90, "#9b6a43", "#8cc366", 13);
+    }
+    if (kind === "meadow" && !o.noTrees) s += tree(110, 520, 300, 100, "#9b6a43", "#86bd5f", 2) + tree(1280, 510, 320, 110, "#9b6a43", "#8cc366", 5);
+    s += grass(60, 520, 760) + (o.noFlowers ? "" : flowers(22, 640, 750, o.seed || 3));
+    s += mushroom(70, 700, 1) + mushroom(1320, 710, .9);
+  } else if (kind === "forest") {
+    s += `<rect width="1376" height="768" fill="url(#gForest)"/>`;
+    s += `<circle cx="688" cy="250" r="380" fill="url(#gGlow)" opacity=".8"/>`;
+    _seed = 20;
+    for (let i = 0; i < 7; i++) { const x = 80 + i * 205 + rnd() * 40; s += `<rect x="${x}" y="0" width="${26 + rnd() * 16}" height="560" fill="#c9b190" opacity=".45" filter="url(#wash)"/>`; }
+    for (let i = 0; i < 9; i++) s += canopy(i * 170, 30, 170, i % 2 ? "#a9cf7f" : "#8fbf68", 7);
+    s += `<path d="M0 500 Q350 470 700 500 T1376 490 V768 H0 Z" fill="url(#gGround)" filter="url(#wash)"/>`;
+    _seed = 30;
+    for (let i = 0; i < 8; i++) s += `<ellipse cx="${i * 190 + rnd() * 60}" cy="${505 + rnd() * 20}" rx="${100 + rnd() * 40}" ry="${45 + rnd() * 15}" fill="${i % 2 ? "#9cc873" : "#86b95e"}" filter="url(#wash)"/>`;
+    s += tree(90, 600, 560, 120, "#9b6a43", "#86bd5f", 21) + tree(1290, 610, 580, 130, "#9b6a43", "#8cc366", 22);
+    s += grass(50, 560, 760, 4) + flowers(16, 660, 750, o.seed || 7) + mushroom(220, 690, 1) + mushroom(1150, 700, 1.1);
+  } else if (kind === "sunset") {
+    s += `<rect width="1376" height="768" fill="url(#gSunset)"/><circle cx="688" cy="470" r="110" fill="#fff1c8" opacity=".9"/><circle cx="688" cy="470" r="260" fill="url(#gGlow)"/>`;
+    s += cloud(320, 140, 1.1) + cloud(1050, 110, .9);
+    s += `<path d="M0 480 Q400 440 800 480 T1376 470 V768 H0 Z" fill="#c9cf86" filter="url(#wash)"/>`;
+    s += tree(120, 520, 320, 110, "#8a5e3c", "#a2b563", 41) + tree(1260, 520, 330, 120, "#8a5e3c", "#a2b563", 42);
+    s += grass(50, 540, 760, 6) + flowers(18, 650, 750, 8);
+  } else if (kind === "paper") {
+    s += `<rect width="1376" height="768" fill="#fbf4e2"/><ellipse cx="688" cy="384" rx="560" ry="280" fill="#f6dfae" opacity=".7" filter="url(#wash)"/>`;
+  } else if (kind === "sky") {
+    s += `<rect width="1376" height="768" fill="url(#gSky)"/>` + cloud(250, 160, 1.2) + cloud(1100, 220, 1) + cloud(800, 620, 1.3);
+    s += `<path d="M0 640 Q400 600 800 640 T1376 630 V768 H0 Z" fill="#b9da8a" filter="url(#wash)"/>`;
+  }
+  return s;
+}
+/* キャラを置く（足もとが x,y） */
+const CHAR_SCALE = 1.15;
+const put = (fn, x, y, s = 1, o = {}, flip = false) => `<g filter="url(#wc)">${G(fn(o), x, y, s * CHAR_SCALE, flip)}</g>`;
+const prop = (svg) => `<g filter="url(#wc)">${svg}</g>`;
+function scene(inner) {
+  return `<svg viewBox="0 0 1376 768" preserveAspectRatio="xMidYMid slice" class="art" xmlns="http://www.w3.org/2000/svg">${inner}${paperOverlay()}</svg>`;
+}
+
+/* ===== 各ページの絵 ===== */
+function mailbox(x, y, s = 1, open = false, inside = false) {
+  return prop(G(`<rect x="-12" y="-110" width="24" height="110" fill="#c08348" ${ln()}/>
+    <rect x="-56" y="-190" width="112" height="84" rx="18" fill="#e86f6f" ${ln()}/>
+    ${inside ? G(letter(.6), 0, -150) : ""}
+    ${open ? `<path d="M-56 -190 L-56 -238 Q0 -258 56 -238 L56 -190" fill="#f08c8c" ${ln()}/>`
+           : `<rect x="-34" y="-168" width="68" height="10" rx="4" fill="#7a3a3a"/>`}
+    <text x="0" y="-122" font-size="18" font-weight="900" fill="#fff" text-anchor="middle">ウサギ</text>`, x, y, s));
+}
+
+const heldChest = (o, s = 0.55) => G(chest(s, o), 0, 44);
+const trunk = (x, y0 = 0, y1 = 620, w = 120) =>
+  `<g filter="url(#wc)"><path d="M${x - w / 2} ${y1} Q${x - w * 0.35} ${y1 / 2} ${x - w * 0.4} ${y0} L${x + w * 0.4} ${y0} Q${x + w * 0.35} ${y1 / 2} ${x + w / 2} ${y1} Z" fill="#9b6a43" ${ln(3)}/>
+   <path d="M${x - 10} ${y1 - 140} q6 -50 -4 -100 M${x + 18} ${y1 - 320} q-5 -40 3 -80" stroke="#6e4628" stroke-width="3" fill="none"/></g>`;
+const cipherPaper = (x, y, rot = 4) => prop(G(paper(520, 250,
+  txt(-170, -82, "ウサギさんへ", 26, INK, 700) +
+  txt(0, 2, "ほもなことへ こふそて", 44, "#3c3478") +
+  `<path d="M-230 56 H230" stroke="#d8c9a8" stroke-width="2"/>` +
+  txt(180, 92, "リスより", 24, INK, 700), rot), x, y));
+const memo = (x, y) => prop(G(paper(250, 110,
+  txt(0, -20, "ひ→ほ　み→も", 26, INK, 700) + txt(0, 26, "3つ ずらす", 26, "#c8503c"), -6, "#fff3c4"), x, y));
+
+const SCENES = {
+  cover: () => bg("meadow", { seed: 11 }) +
+    put(squirrel, 430, 700, 1.05, { hw: 36, mood: "joy", hold: letter(1) }) +
+    put(rabbit, 950, 700, 1.05, { hw: 36, mood: "joy", hold: letter(1) }) +
+    put(bird, 690, 610, 0.95, { beak: silverKey(0.55) }) +
+    sparkle(580, 560, 1) + sparkle(820, 540, .8),
+
+  intro: () => bg("home", { seed: 4 }) +
+    put(squirrel, 720, 690, 1.05, { hw: 36, hold: letter(1) }) +
+    put(rabbit, 960, 690, 1.05, { mood: "joy" }),
+
+  cipher: () => bg("home", { seed: 4 }) +
+    put(squirrel, 1080, 690, 1.05, { hw: 36, hold: letter(1) }) +
+    cipherPaper(600, 450) + memo(380, 640),
+
+  play: () => bg("home", { seed: 4 }) + put(squirrel, 1080, 690, 1.05, { hw: 36, hold: letter(1) }),
+
+  peek: () => bg("meadow", { seed: 25 }) +
+    mailbox(820, 700, 1.15, true) +
+    put(fox, 600, 710, 1.05, { mood: "sly", armUp: true, hold: "" }) +
+    prop(G(letter(1), 700, 420, 1, false, -12)) +
+    txt(470, 420, "きょろ きょろ…", 26, "#8c6544", 700) +
+    put(bird, 1060, 300, .8, {}) +
+    `<g stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"><path d="M990 300 h-70 M995 330 h-90"/></g>` +
+    txt(1060, 390, "とどけたよ～", 22, "#4a86c2", 700),
+
+  decode: () => bg("forest", { seed: 5 }) +
+    put(fox, 560, 700, 1.15, { hw: 65, mood: "sly", hold: prop(G(paper(130, 70, txt(0, 0, "ほもな…", 24, "#3c3478")), 0, 0)) }) +
+    bubble(1080, 400, 340, 170, 800, 460, txt(0, -32, "1つ？ 2つ？", 40, INK, 700) + txt(0, 34, "3つ！", 58, "#c8503c")) +
+    prop(G(paper(330, 130, txt(0, -26, "ひみつきちは", 36, "#3c3478") + txt(0, 26, "きのした", 36, "#3c3478"), -5), 1110, 610)),
+
+  putBack: () => bg("sunset") +
+    mailbox(820, 710, 1.15, true, true) +
+    put(fox, 590, 715, 1.05, { mood: "sly", armUp: true, hold: "" }) +
+    txt(430, 470, "そーっと…", 28, "#8c6544", 700) +
+    `<path d="M700 360 q40 -30 90 10" fill="none" stroke="#c8503c" stroke-width="4" stroke-dasharray="8 7"/><path d="M780 362 L792 372 L776 378" fill="none" stroke="#c8503c" stroke-width="4"/>` +
+    txt(1130, 560, "もとどおり", 26, "#8c6544", 700),
+
+  base: () => bg("base", { seed: 6 }) +
+    put(fox, 800, 590, 0.58, { mood: "joy" }) +
+    /* つたと しげみで かくれた いりぐち */
+    `<g filter="url(#wash)" opacity=".95">
+      <ellipse cx="690" cy="575" rx="95" ry="60" fill="#79b257"/><ellipse cx="910" cy="575" rx="95" ry="60" fill="#79b257"/>
+      <ellipse cx="640" cy="545" rx="60" ry="45" fill="#8fc46a"/><ellipse cx="960" cy="545" rx="60" ry="45" fill="#8fc46a"/></g>` +
+    `<g stroke="#5f9a45" stroke-width="4" fill="none" stroke-linecap="round">
+      <path d="M722 440 q-10 40 6 80 q-8 30 4 50"/><path d="M878 440 q10 40 -6 80 q8 30 -4 50"/></g>` +
+    [[722, 470], [728, 510], [730, 548], [878, 470], [872, 510], [876, 548]].map(([x, y], k) =>
+      `<ellipse cx="${x + (k % 2 ? 9 : -9)}" cy="${y}" rx="12" ry="7" fill="#7fb85a" stroke="#4f8f3a" stroke-width="2" transform="rotate(${k % 2 ? 30 : -30} ${x} ${y})"/>`).join("") +
+    bubble(1110, 400, 290, 120, 900, 480, txt(0, -22, "いい ところ", 32, INK, 700) + txt(0, 24, "みーつけた♪", 32, INK, 700), false) +
+    put(squirrel, 230, 715, 0.95, { mood: "sad" }) + put(rabbit, 410, 715, 0.95, { mood: "sad" }) +
+    gloom(205, 405) + gloom(390, 360),
+
+  sameKey: () => bg("meadow", { seed: 7 }) +
+    put(squirrel, 700, 700, 1.25, { hw: 50, mood: "joy", hold: heldChest({ lock: "hole" }, 0.6) }) +
+    prop(G(silverKey(1.1, -30), 360, 380) + G(silverKey(1.1, -20), 450, 480)) +
+    sparkle(300, 320) + sparkle(520, 400, .8) + txt(405, 560, "おなじ カギ が 2ほん", 26, INK, 700),
+
+  sendKey: () => bg("forest", { seed: 8 }) +
+    put(bird, 470, 330, 1.2, { beak: silverKey(0.6) }) +
+    `<path d="M300 360 q-40 -10 -80 0 M310 390 q-50 -6 -100 6" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>` +
+    put(fox, 1010, 690, 1.0, { mood: "sly" }) + trunk(1100, 0, 700, 150),
+
+  copyKey: () => bg("forest", { seed: 9 }) +
+    put(fox, 520, 710, 1.1, { mood: "sly", armUp: true, hold: "" }) +
+    prop(G(silverKey(1.0, -35), 640, 450)) + sparkle(600, 390) + sparkle(720, 470, .8) +
+    prop(G(paper(200, 120, G(silverKey(.9, 0), 0, 6) + txt(0, -38, "カギの かたち", 18, INK, 700), -6), 300, 520)) +
+    bubble(900, 330, 280, 110, 730, 420, txt(0, -20, "おなじ カギ", 28, INK, 700) + txt(0, 20, "できた♪", 28, INK, 700), false) +
+    put(squirrel, 1130, 715, 0.85, { hw: 46, mood: "happy", hold: heldChest({ lock: "hole" }, 0.55) }) +
+    txt(1130, 430, "（なにも しらない リスさん）", 20, "#8c6544", 700),
+
+  stolen: () => bg("home", { seed: 9 }) +
+    prop(G(chest(.9, { open: true, lock: "hole" }), 380, 660)) +
+    prop(G(silverKey(.6, 0), 400, 582)) + txt(330, 712, "ウサギさんの いえの まえ", 20, INK, 700) +
+    put(fox, 620, 680, 1.0, { hw: 40, mood: "sly", hold: letter(1.1) }) +
+    put(squirrel, 1010, 715, 0.9, { mood: "surprised" }) + put(rabbit, 1180, 715, 0.9, { mood: "surprised" }) +
+    txt(1100, 400, "あっ！", 40, "#c8503c"),
+
+  owlCome: () => bg("forest", { seed: 10 }) +
+    put(squirrel, 300, 710, 0.95, { mood: "surprised" }) + put(rabbit, 470, 710, 0.95, { mood: "surprised" }) +
+    put(owl, 930, 710, 1.25, { wingUp: true, wingHold: padlock(0.9, true), hold: goldKey(0.7) }),
+
+  padlocks: () => bg("paper") +
+    [[440, 300], [688, 290], [936, 300], [440, 540], [688, 530], [936, 540]].map(([x, y], i) =>
+      prop(G(padlock(1.6, true), x, y, 1, false, i % 2 ? 5 : -5))).join("") +
+    sparkle(300, 200) + sparkle(1100, 380) + sparkle(560, 620, .8),
+
+  goldKeyPage: () => bg("sky") +
+    `<circle cx="420" cy="400" r="200" fill="url(#gGlow)"/>` + prop(G(goldKey(3.2, -60), 420, 400)) +
+    sparkle(300, 250) + sparkle(560, 300, .7) + sparkle(520, 560, .9) +
+    prop(G(chest(1.7, { lock: "padlock" }), 980, 640)),
+
+  share: () => bg("meadow", { seed: 12 }) +
+    put(rabbit, 220, 710, 1.0, { hw: 21, mood: "joy", armUp: true, hold: prop(G(padlock(.7, true), 0, -10)) }) +
+`<g filter="url(#wc)" transform="translate(340 690)"><path d="M-46 -40 Q0 -100 46 -40" fill="none" stroke="#8f5a2e" stroke-width="6"/>
+      ${G(padlock(.5, true), -18, -66)}${G(padlock(.5, true), 16, -62)}
+      <path d="M-52 -42 H52 L42 10 H-42 Z" fill="#d9a066" ${ln(3)}/><path d="M-48 -24 H48 M-45 -6 H45" stroke="#a8743f" stroke-width="2.5"/></g>` +
+    put(bear, 520, 710, 0.95, { hw: 22, mood: "joy", hold: padlock(.75, true) }) +
+    put(mouse, 720, 710, 1.0, { hw: 18, hold: padlock(.6, true) }) +
+    put(squirrel, 900, 710, 0.95, { hw: 21, hold: padlock(.7, true) }) +
+    put(fox, 1120, 710, 0.95, { hw: 21, mood: "happy", hold: padlock(.7, true) }) +
+    put(bird, 1000, 330, 0.9, { beak: G(padlock(.45, true), 10, 0) }),
+
+  lockUp: () => bg("meadow", { seed: 13 }) +
+    put(squirrel, 430, 700, 1.25, { hw: 27, mood: "happy", hold: G(padlock(.9, true), 0, -10) }) +
+    prop(G(chest(1.45, { open: true, lock: "hasp", content: G(letter(1.3), 0, -96) }), 820, 700)) +
+    txt(600, 390, "パチン！", 40, "#c8503c"),
+
+  carry: () => bg("forest", { seed: 14 }) +
+    put(bird, 520, 300, 1.15, { carry: G(chest(.6, { lock: "padlock" }), 0, 80) }) +
+    sweat(590, 240) +
+    put(fox, 1000, 700, 1.05, { mood: "sad" }) + qmark(1080, 420, 1.1),
+
+  open: () => bg("meadow", { seed: 15 }) +
+    prop(G(chest(1.4, { open: true, lock: "hasp", content: "" }), 470, 700)) +
+    prop(G(padlock(.9, true), 640, 650)) +
+    put(rabbit, 880, 700, 1.2, { hw: 40, mood: "joy", armUp: true, hold: letter(1.1) }) +
+    prop(G(goldKey(.9, 20), 740, 470)) + sparkle(820, 330) + sparkle(1000, 380, .8) + sparkle(620, 420, .7),
+
+  /* ---- その4 なりすまし ---- */
+  fake: () => bg("forest", { seed: 16 }) +
+    put(fox, 420, 700, 1.15, { hw: 43, mood: "sly", hold: letter(1.2, { noHeart: true, text: "リスより" }) }) +
+    prop(G(chest(1.1, { open: true, lock: "hasp", content: "" }), 760, 700)) +
+    prop(G(padlock(1.0, true), 1040, 640)) + txt(1060, 560, "ウサギさんの しめる カギ", 20, INK, 700) +
+    bubble(760, 340, 320, 140, 540, 430, txt(0, -20, "おれも", 32, INK, 700) + txt(0, 24, "おくれるぞ", 32, INK, 700)),
+
+  wait: () => bg("pond", { seed: 17 }) +
+    put(rabbit, 520, 700, 1.1, { hw: 36, mood: "sad", hold: letter(1) }) +
+    bubble(330, 350, 220, 110, 450, 440, txt(0, 0, "まだかな…", 30, INK, 700)) +
+    put(fox, 1100, 700, 0.95, { mood: "joy" }) + trunk(1180, 0, 720, 170) +
+    txt(990, 380, "クスクス", 28, "#c8503c"),
+
+  who: () => bg("forest", { seed: 18 }) +
+    put(rabbit, 280, 710, 0.95, { hw: 36, mood: "sad", hold: letter(1, { noHeart: true, text: "リスより" }) }) +
+    put(squirrel, 470, 710, 0.95, { mood: "surprised" }) + qmark(470, 430) +
+    put(owl, 960, 710, 1.15, {}) +
+    prop(G(chest(.8, { lock: "padlock" }), 700, 700)) + txt(700, 560, "だれが しめた？", 22, INK, 700),
+
+  hankoPage: () => bg("forest", { seed: 19 }) +
+    put(squirrel, 310, 710, 1.0, { hw: 20, mood: "joy", hold: G(hanko(.8), 0, 30) }) +
+    txt(320, 375, "リスさんだけの はんこ", 22, "#b5413b", 700) +
+    prop(G(stampLook(1.7, true), 640, 400) + G(loupe(2.2, -25), 640, 400)) + sparkle(560, 320, 1.1) + sparkle(720, 310, .9) + sparkle(550, 470, .8) +
+    txt(640, 540, "ルーペで のぞくと キラキラ", 24, INK, 700) +
+    put(owl, 1080, 710, 1.05, { wingUp: true, wingHold: loupe(1, -20) }),
+
+  shareLoupe: () => bg("meadow", { seed: 27 }) +
+    put(squirrel, 230, 710, 1.0, { mood: "joy", armUp: true, hold: G(loupe(.6, -20), 0, 0) }) +
+`<g filter="url(#wc)" transform="translate(360 690)"><path d="M-46 -40 Q0 -100 46 -40" fill="none" stroke="#8f5a2e" stroke-width="6"/>
+      ${G(loupe(.4, -20), -18, -66)}${G(loupe(.4, -20), 16, -62)}
+      <path d="M-52 -42 H52 L42 10 H-42 Z" fill="#d9a066" ${ln(3)}/><path d="M-48 -24 H48 M-45 -6 H45" stroke="#a8743f" stroke-width="2.5"/></g>` +
+    put(rabbit, 520, 710, 0.95, { mood: "joy", hold: G(loupe(.55, -20), 0, 0) }) +
+    put(bear, 740, 710, 0.9, { mood: "joy", hold: G(loupe(.6, -20), 0, 0) }) +
+    put(mouse, 930, 710, 0.95, { hold: G(loupe(.5, -20), 0, 0) }) +
+    put(fox, 1140, 710, 0.95, { mood: "sad", hold: G(loupe(.55, -20), 0, 0) }) +
+    bubble(960, 350, 300, 110, 1100, 440, txt(0, -18, "ルーペじゃ", 26, INK, 700) + txt(0, 18, "はんこは つくれない…", 22, INK, 700)),
+
+  check: () => bg("meadow", { seed: 20 }) +
+    put(fox, 190, 715, 0.85, { mood: "sad" }) +
+    prop(G(paper(240, 150, `<path d="M-90 -36 H80 M-90 -6 H40" stroke="#d8c9a8" stroke-width="3"/>` + G(stampLook(.8, true), 64, 32)), 540, 300)) +
+    prop(G(loupe(1.45, -30), 604, 332)) + sparkle(560, 270, 1) + sparkle(670, 290, .8) + sparkle(560, 390, .7) +
+    prop(G(paper(240, 150, `<path d="M-90 -36 H80 M-90 -6 H40" stroke="#d8c9a8" stroke-width="3"/>` + G(stampLook(.8, false), 64, 32)), 540, 520)) +
+    prop(G(loupe(1.45, -30), 604, 552)) +
+    `<circle cx="790" cy="300" r="40" fill="none" stroke="#4caf6a" stroke-width="12"/>
+     <path d="M755 485 L825 555 M825 485 L755 555" stroke="#d9534f" stroke-width="12" stroke-linecap="round"/>` +
+    txt(790, 365, "キラキラ！", 24, "#3f8f55", 700) + txt(790, 590, "ひからない…", 24, "#b5413b", 700) +
+    put(rabbit, 1060, 715, 1.05, { mood: "joy", armUp: true, hold: G(loupe(.6, -20), 6, 0) }),
+
+  /* ---- その5 いいとこどり ---- */
+  tired: () => bg("home", { seed: 21 }) +
+    put(rabbit, 620, 700, 1.15, { mood: "tired", hold: G(goldKey(.7, 0), -8, 0) }) +
+    prop(G(chest(1, { lock: "padlock" }), 860, 700)) +
+    sweat(570, 440) + sweat(680, 420, .8) +
+    `<path d="M780 560 a40 40 0 1 1 30 40" fill="none" stroke="#c8503c" stroke-width="5" stroke-dasharray="10 7"/>` +
+    txt(840, 500, "くる くる…", 26, "#c8503c") +
+    [[1060, 700], [1150, 700], [1240, 700], [1105, 640], [1195, 640], [1150, 580]].map(([x, y]) => prop(G(chest(.42, { lock: "padlock" }), x, y))).join("") +
+    bubble(1060, 360, 330, 120, 760, 430, txt(0, 0, "100かいも まわすの…", 28, INK, 700)),
+
+  idea: () => bg("forest", { seed: 22 }) +
+    put(owl, 1040, 710, 1.1, { wingUp: true, wingHold: sparkle(0, 0, 1.5) }) +
+    put(squirrel, 520, 710, 1.25, { hw: 50, mood: "happy", hold: heldChest({ open: true, lock: "hasp", content: G(silverKey(1.2, -15), 0, -100) }, 0.6) }) +
+    prop(G(padlock(1, true), 760, 520)) + txt(760, 450, "しめる カギ", 22, INK, 700) +
+    prop(G(silverKey(1.1, 0), 300, 420)) + `<path d="M300 450 Q330 500 420 520" fill="none" stroke="#c8503c" stroke-width="5" stroke-dasharray="10 7"/><path d="M405 505 L425 522 L400 532" fill="none" stroke="#c8503c" stroke-width="5"/>` +
+    txt(300, 370, "おなじ カギ", 24, INK, 700),
+
+  arrive: () => bg("forest", { seed: 23 }) +
+    prop(G(chest(.9, { open: true, lock: "hasp", content: "" }), 470, 700)) + prop(G(padlock(.7, true), 590, 680)) +
+    put(rabbit, 760, 700, 1.15, { mood: "joy", armUp: true }) +
+    prop(G(silverKey(1.3, -30), 820, 300)) + sparkle(740, 260) + sparkle(900, 330, .8) +
+    put(fox, 1160, 700, 0.95, { mood: "sad" }),
+
+  fast: () => bg("meadow", { seed: 24 }) +
+    put(squirrel, 300, 700, 1.1, { mood: "joy", hold: G(silverKey(.85), -12, -4) }) +
+    put(rabbit, 1076, 700, 1.1, { mood: "joy", hold: G(silverKey(.85), -12, -4) }) +
+    put(bird, 690, 330, 1.05, { carry: G(chest(.42, { lock: "hole" }), 0, 60) }) +
+    `<g stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"><path d="M560 300 h-80 M570 340 h-110 M560 380 h-70"/></g>` +
+    letterTrail(),
+
+  ending: () => bg("sunset") +
+    put(fox, 200, 710, 0.85, { hw: 32, mood: "joy", hold: letter(.9) }) +
+    put(bear, 400, 715, 0.85, { hw: 36, mood: "joy", hold: letter(1) }) +
+    put(squirrel, 600, 715, 0.85, { hw: 32, mood: "joy", hold: letter(.9) }) +
+    put(rabbit, 780, 715, 0.85, { hw: 32, mood: "joy", hold: letter(.9) }) +
+    put(mouse, 950, 715, 0.9, { hw: 25, mood: "joy", hold: letter(.7) }) +
+    put(owl, 1150, 715, 0.85, { hold: letter(1) }) +
+    put(bird, 690, 330, 0.9, { beak: letter(.6) }),
+
+  notes: () => bg("paper"),
+};
+function letterTrail() {
+  return [[620, 470], [760, 500], [900, 470]].map(([x, y], i) => prop(G(letter(.55), x, y, 1, false, i * 10 - 10))).join("");
+}
+
+</script>
+<script>
+document.body.insertAdjacentHTML("afterbegin", '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + defs() + "</svg>");
+/* ===== ページデータ =====
+   scene : 絵（下の SCENES の名前）
+   ch    : 章タイトル（その章の最初のページだけ）
+*/
+const PAGES = [
+  { type: "cover", scene: "cover" },
+
+  // ---- その1 もじを ずらす あんごう ----
+  { scene: "intro", ch: "その1　もじを ずらす あんごう",
+    left: "もりに リスさんと ウサギさんが<br>すんでいました。",
+    right: "ふたりは とっても なかよし。<br>「ひみつの おてがみを おくりたいな」" },
+  { scene: "cipher", term: "もじを ずらす あんごう ＝ <span class=\"w\">シーザー暗号</span>",
+    left: "リスさんは、もじを 3つずつ<br>うしろへ ずらして かきました。<br>「ひ」→「ほ」、「み」→「も」…",
+    right: "ウサギさんは「3つ もどす」と<br>しっているので よめます。" },
+  { scene: "play", play: true,
+    left: "きみも よんでみよう！<br>もじを ずらして もとに もどしてね。",
+    right: "" },
+  { scene: "peek",
+    left: "リスさんの てがみは、ことりさんが<br>ウサギさんの ポストに とどけました。",
+    right: "それを みていた キツネさん。<br>だれも いない すきに、<br>こっそり ポストを あけました。" },
+  { scene: "decode",
+    left: "「ほもなことへ…？ へんな てがみ」<br>キツネさんは かんがえました。<br>「もじを ずらして あるのかな？」",
+    right: "「1つ、2つ… 3つで よめたぞ！<br>ひみつきちは きのした、だって」<br>ずらしかたは ぜんぶで すこししか<br>ないから、ためせば わかっちゃう。" },
+  { scene: "putBack",
+    left: "よみおわると、てがみを もとどおりに<br>たたんで、そーっと ポストに<br>もどしました。",
+    right: "つぎの あさ、ウサギさんは<br>なにも しらずに てがみを<br>うけとりました。よまれた ことには<br>だれも きづきません。" },
+  { scene: "base",
+    left: "てがみの とおりに<br>ふたりが ひみつきちに いくと…<br>キツネさんが さきに きていました。",
+    right: "「ひみつきちが<br>ひみつじゃ なくなっちゃった…」<br>ずらしかたが すくないと、<br>すぐに ばれちゃうんだね。" },
+
+  // ---- その2 おなじ カギ ----
+  { scene: "sameKey", term: "しめるのも あけるのも おなじ カギ ＝ <span class=\"w\">共通鍵</span>", ch: "その2　おなじ カギを つかう",
+    left: "リスさんは かんがえました。<br>「たからばこに いれて、<br>カギを かければ いいんだ！」",
+    right: "おなじ カギが 2ほん ある<br>たからばこを つくりました。" },
+  { scene: "sendKey",
+    left: "「カギを ウサギさんに わたさないと…」<br>ことりさんに カギを<br>はこんで もらいました。",
+    right: "でも、とちゅうで<br>キツネさんが みていました！" },
+  { scene: "copyKey",
+    left: "キツネさんは カギの かたちを おぼえて、<br>おなじ カギを つくって しまいました。",
+    right: "リスさんは そんな ことは しらずに、<br>てがみを いれた たからばこを<br>ウサギさんの いえの まえに おきました。" },
+  { scene: "stolen",
+    left: "そこへ やってきた キツネさん。<br>コピーした カギで たからばこを あけて、<br>てがみを よんで しまいました。",
+    right: "それを みつけた ふたりは がっかり。<br>「カギを はこぶ とちゅうで みられたら、<br>やっぱり だめだ…」" },
+
+  // ---- その3 しめる カギ と あける カギ ----
+  { scene: "owlCome", ch: "その3　しめる カギ と あける カギ",
+    left: "こまっている ふたりの ところに、<br>フクロウはかせが やってきました。",
+    right: "「ほっほっほ、いい ほうほうが あるぞ」<br>「カギを 2しゅるい つかうんじゃ」" },
+  { scene: "padlocks", term: "みんなに くばる しめる カギ ＝ <span class=\"w\">公開鍵</span>",
+    left: "「1つめは『しめる カギ』。<br>パチンと しめる ことしか できん」",
+    right: "「これは みんなに<br>くばっても いいぞ」" },
+  { scene: "goldKeyPage", term: "じぶんだけが もつ あける カギ ＝ <span class=\"w\">秘密鍵</span>",
+    left: "「2つめは『あける カギ』。<br>じぶんだけが もつ<br>とくべつな カギじゃ」",
+    right: "「『しめる カギ』で しめた はこは、<br>『あける カギ』でしか<br>あけられないんじゃよ」" },
+  { scene: "share",
+    left: "ウサギさんは じぶんの<br>「しめる カギ」を たくさん つくって、<br>もりの みんなに くばりました。",
+    right: "「あける カギ」は<br>ウサギさんが だいじに しまって おきます。" },
+  { scene: "lockUp",
+    left: "リスさんは さっそく やってみました。<br>おてがみを たからばこに いれて、",
+    right: "ウサギさんの「しめる カギ」で<br>パチンと しめました。" },
+  { scene: "carry",
+    left: "とちゅうで キツネさんが また<br>みていましたが、<br>こんどは なにも できません！",
+    right: "だって、「あける カギ」は<br>ウサギさんしか もっていないから。" },
+  { scene: "open",
+    left: "ウサギさんは じぶんだけの<br>「あける カギ」で<br>はこを あけました。",
+    right: "ぶじに おてがみを よめました！<br>「やったー！」" },
+
+  // ---- その4 ほんものの しるし ----
+  { scene: "fake", term: "ほかの ひとの ふりを する ＝ <span class=\"w\">なりすまし</span>", ch: "その4　ほんものの しるし",
+    left: "ある日、キツネさんは<br>おもいつきました。<br>「しめる カギは みんな もってる…」",
+    right: "「あした いけで まってるね<br>リスより」と うその てがみを かいて、<br>ウサギさんの しめる カギで しめました。" },
+  { scene: "wait",
+    left: "ウサギさんは てがみを しんじて、<br>いけで まっていました。",
+    right: "でも、だれも きません。<br>キツネさんは きの かげで クスクス…" },
+  { scene: "who",
+    left: "「そんな てがみ、かいてないよ？」<br>と リスさん。",
+    right: "フクロウはかせ<br>「はこは だれでも しめられる。<br>だから、だれが おくったか<br>わからんのじゃ」" },
+  { scene: "hankoPage", term: "はんこ（<span class=\"w\">秘密鍵</span>）と ルーペ（<span class=\"w\">公開鍵</span>）で たしかめる ＝ <span class=\"w\">デジタル署名</span>",
+    left: "「てがみには、リスさんだけが もつ<br>ふしぎな はんこを おそう。<br>この はんこは まねできん」",
+    right: "「この はんこには、セットの<br>ルーペが ついておる。ルーペで のぞくと、<br>リスさんの はんこだけが<br>キラキラ ひかるんじゃ」" },
+  { scene: "shareLoupe",
+    left: "リスさんは ルーペを たくさん つくって、<br>もりの みんなに くばりました。",
+    right: "ルーペは はんこを たしかめる だけ。<br>ルーペで はんこは つくれないから、<br>だれが もっていても だいじょうぶ。" },
+  { scene: "check",
+    left: "ウサギさんが ルーペで のぞくと…<br>ほんものの てがみは キラキラ！",
+    right: "キツネさんの にせものは<br>ひかりません。<br>「これは リスさんじゃ ないね！」" },
+
+  // ---- その5 いいとこどり ----
+  { scene: "tired", ch: "その5　いいとこどり",
+    left: "まいにち たくさん<br>おてがみが とどきます。<br>でも「あける カギ」は とても ふくざつ。",
+    right: "100かいも まわさないと<br>あきません。<br>ウサギさんは へとへと…" },
+  { scene: "idea",
+    left: "フクロウはかせ<br>「はじめの 1かいだけ、しめる カギの<br>はこで『おなじ カギ』を おくれば よい」",
+    right: "リスさんは『おなじ カギ』を<br>はこに いれて、ウサギさんの<br>しめる カギで しめました。" },
+  { scene: "arrive",
+    left: "この はこは ウサギさんにしか<br>あけられません。<br>キツネさんは くやしそう。",
+    right: "こうして『おなじ カギ』が<br>ぶじに ウサギさんに とどきました！" },
+  { scene: "fast",
+    left: "あとは『おなじ カギ』の かるい はこで、<br>すばやく やりとり できます。",
+    right: "いいところを くみあわせたんだね！" },
+
+  { scene: "ending",
+    left: "リスさんと ウサギさんは、これからも<br>あんぜんに おてがみを おくりあいました。",
+    right: "もりの みんなも<br>しあわせに くらしました。<br><br>おしまい" },
+
+  { type: "notes", scene: "notes" }
+];
+
+/* ===== シーザー暗号（五十音を3つずらす） ===== */
+const KANA = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+const PLAIN = "ひみつきちは きのした";
+const KEY = 3;
+const shift = (s, n) => [...s].map(c => {
+  const i = KANA.indexOf(c);
+  return i < 0 ? c : KANA[(i + n + KANA.length * 10) % KANA.length];
+}).join("");
+const CIPHER = shift(PLAIN, KEY);
+
+/* ===== 解説（保護者・先生向け） ===== */
+const NOTES = `
+<h2>【解説】この絵本で紹介した暗号の仕組み</h2>
+<table>
+<tr><th>絵本のことば</th><th>情報の用語</th></tr>
+<tr><td>もじを 3つ ずらす</td><td>シーザー暗号（換字式暗号）。「3」が鍵</td></tr>
+<tr><td>ぜんぶ ためす</td><td>総当たり（全数探索）。鍵の種類が少ないとすぐ解読される</td></tr>
+<tr><td>こっそり よんで もどす</td><td>盗聴（途中で読まれても、受け取った側は気づけない）</td></tr>
+<tr><td>ひみつきちが ばれる</td><td>情報漏えい（機密性が失われる）</td></tr>
+<tr><td>おなじ カギ</td><td>共通鍵（暗号化と復号に同じ鍵を使う）</td></tr>
+<tr><td>しめる カギ</td><td>公開鍵（誰に配ってもよい。暗号化に使う）</td></tr>
+<tr><td>あける カギ</td><td>秘密鍵（本人だけが持つ。復号に使う）</td></tr>
+<tr><td>うその「リスより」</td><td>なりすまし（だれが送ったかを偽る）</td></tr>
+<tr><td>はこは だれでも しめられる</td><td>公開鍵は誰でも使えるので、暗号化だけでは送信者を確かめられない</td></tr>
+<tr><td>リスさんだけの はんこ</td><td>デジタル署名に使う秘密鍵（本人だけが持つ）</td></tr>
+<tr><td>リスさんが くばる ルーペ</td><td>署名を確かめる公開鍵（誰でも持てる）。本物の署名だけが「正しい」と確認できる</td></tr>
+<tr><td>100かいも まわす</td><td>公開鍵暗号は計算に時間がかかる</td></tr>
+<tr><td>いいとこどり</td><td>ハイブリッド暗号方式（共通鍵を公開鍵暗号で送る）</td></tr>
+</table>
+
+<h3>● シーザー暗号（換字式暗号）</h3>
+<p>文字を決まった数だけずらして置き換える、最も古い暗号の一つです。ずらす数（鍵）の候補が少ないため、すべて試せばすぐに解読されてしまいます。暗号の強さは「鍵の候補の多さ」に大きく左右されます。</p>
+
+<h3>● 共通鍵暗号方式</h3>
+<p>送信者と受信者が同じ鍵を使います。処理が速いのが長所ですが、鍵そのものを相手に安全に届ける方法が問題になります（鍵配送問題）。また、通信相手ごとに別の鍵が必要になります。</p>
+
+<h3>● 公開鍵暗号方式</h3>
+<p>暗号化用の「公開鍵」と、復号用の「秘密鍵」をペアで使います。公開鍵は誰に知られても問題ないため、鍵配送問題を解決できます。一方で、共通鍵暗号に比べて処理に時間がかかります。</p>
+
+<h3>● デジタル署名</h3>
+<p>送信者が自分の秘密鍵で署名を付け、受信者は送信者の公開鍵で検証します。これにより「本人が送ったこと（なりすましでないこと）」と「途中で書き換えられていないこと（改ざんされていないこと）」を確かめられます。暗号化のときとは鍵の使い方が逆になる点に注目です。絵本では「はんこ」が秘密鍵、「ルーペ」が公開鍵にあたります。</p>
+
+<h3>● ハイブリッド暗号方式</h3>
+<p>やりとりに使う共通鍵だけを公開鍵暗号で安全に届け、その後の大量のデータは高速な共通鍵暗号でやりとりします。Webサイトの通信を守る SSL/TLS（URLが https で始まるもの）は、この仕組みとデジタル署名を組み合わせて使っています。</p>
+
+<p style="margin-top:16px;">子どもたちが将来、安全にインターネットを使えるようになるための第一歩として、この物語が「情報の守り方」を考えるきっかけになれば幸いです。</p>
+`;
+
+/* ===== ページ生成 ===== */
+const root = document.getElementById("pages");
+
+function bgHTML(p) { return scene(SCENES[p.scene]()); }
+
+PAGES.forEach((p, i) => {
+  const d = document.createElement("div");
+  d.className = "spread";
+  d.id = "spread-" + i;
+  let html = bgHTML(p);
+  if (p.type === "cover") {
+    html += `
+      <div class="cover"><h1>ひみつの おてがみ</h1>
+      <p>～ リスさんと ウサギさんの 暗号のおはなし ～</p></div>`;
+  } else if (p.type === "notes") {
+    html += `<div class="notes">${NOTES}</div>`;
+  } else {
+    if (p.ch) html += `<div class="chapter">${p.ch}</div>`;
+    html += `<div class="overlay"><div class="col left"><div>${p.left || ""}</div>${p.term ? `<div class="term"><b>じょうほうの ことば</b>${p.term}</div>` : ""}</div>
+             <div class="col right">${p.right || ""}</div></div>`;
+    if (p.play) html += `<div class="play">
+        <div class="lbl">リスさんの おてがみ</div>
+        <div class="msg" id="cMsg"></div>
+        <div class="row">
+          <button id="cMinus" aria-label="1つ もどす">－</button>
+          <div class="num" id="cNum"></div>
+          <button id="cPlus" aria-label="1つ すすめる">＋</button>
+        </div>
+        <div class="hint" id="cHint"></div>
+      </div>`;
+  }
+  d.innerHTML = html;
+  root.appendChild(d);
+});
+
+/* シーザー体験の動き */
+let back = 0;
+function drawCaesar() {
+  const msg = document.getElementById("cMsg");
+  msg.textContent = shift(CIPHER, -back);
+  msg.classList.toggle("ok", back === KEY);
+  document.getElementById("cNum").textContent = `${back}つ もどす`;
+  document.getElementById("cHint").textContent =
+    back === KEY ? "よめた！「ひみつきちは きのした」だね。" : back === 0 ? "－ と ＋ で ずらしてみよう" : "";
+}
+document.getElementById("cMinus").onclick = () => { back = (back + KANA.length - 1) % KANA.length; drawCaesar(); };
+document.getElementById("cPlus").onclick  = () => { back = (back + 1) % KANA.length; drawCaesar(); };
+drawCaesar();
+
+/* ===== ページめくり ===== */
+let cur = 0;
+const total = PAGES.length;
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const restartBtn = document.getElementById("restart");
+
+function show(n) {
+  document.getElementById("spread-" + cur).classList.remove("active");
+  cur = n;
+  document.getElementById("spread-" + cur).classList.add("active");
+  prevBtn.setAttribute("aria-disabled", cur === 0);
+  nextBtn.setAttribute("aria-disabled", cur === total - 1);
+  restartBtn.style.visibility = cur === total - 1 ? "visible" : "hidden";
+  document.getElementById("pageNo").textContent = `${cur + 1} / ${total}`;
+}
+function go(dir) { const n = cur + dir; if (n >= 0 && n < total) show(n); }
+prevBtn.onclick = () => go(-1);
+nextBtn.onclick = () => go(1);
+restartBtn.onclick = () => { back = 0; drawCaesar(); show(0); };
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") go(1);
+  if (e.key === "ArrowLeft") go(-1);
+});
+show(0);
+</script>
+<script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
+/* =====================================================================
+   Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
+   ・項目の一覧と、クラスごとの表示は hub_config.js に書く（そちらを直す）
+   ・hub_config.js が読めないとき（zip を展開せずに開いたなど）は、下の DEF_ITEMS を使う
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var DEF_ITEMS = [
+    // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
+    { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
+    { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
+    { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
+    { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
+    { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: 'ひみつのおてがみ\n（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
+    { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
+    { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
+  ];
+  var CFG = window.HUB_CONFIG || {};
+  var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
+  var SHOW = CFG.show || {};
+
+  // 班PCにつくもの。type：hard（ハード）・soft（ソフト）・cable（ケーブル）。can：できるようになること
+  var GEAR = {
+    board:   { type: 'hard',  name: 'マザーボード', can: 'ぶひんをつなぐ土台ができた' },
+    cpu:     { type: 'hard',  name: 'CPU',         can: 'プログラムの命令を実行できるようになった' },
+    mem:     { type: 'hard',  name: 'メモリ',       can: '作業中のデータを、一時的におぼえておけるようになった' },
+    psu:     { type: 'hard',  name: '電源ユニット', can: 'コンセントの電気を、班PCで使える電気に変えられるようになった' },
+    hdd:     { type: 'hard',  name: 'HDD',         can: 'データを保存できるようになった（でも読み書きは少しおそい）' },
+    ssd:     { type: 'hard',  name: 'SSD',         can: 'データを保存できるようになった（HDDより速く読み書きできる）' },
+    disp:    { type: 'hard',  name: 'ディスプレイ', can: '結果を画面に映せるようになった' },
+    kbd:     { type: 'hard',  name: 'キーボード',   can: '文字を入力できるようになった' },
+    mouse:   { type: 'hard',  name: 'マウス',       can: '画面の中を指して、操作できるようになった' },
+    router:  { type: 'hard',  name: 'ルータ',       can: '班PCのネットワークと、インターネットを中継できるようになった' },
+    spk:     { type: 'hard',  name: 'スピーカー',   can: '音を出せるようになった' },
+    cam:     { type: 'hard',  name: 'Webカメラ',    can: '映像を取りこめるようになった' },
+    os:      { type: 'soft',  name: 'OS',          can: 'ハードウェアとアプリの仲立ちをする、基本のソフトが入った' },
+    browser: { type: 'soft',  name: 'Webブラウザ', can: 'Webページを見られるようになった（HTTPで通信）' },
+    doc:     { type: 'soft',  name: '文書アプリ',   can: '文章を書いて、保存できるようになった' },
+    sheet:   { type: 'soft',  name: '表計算アプリ', can: '表やグラフを作れるようになった' },
+    tcpip:   { type: 'soft',  name: 'TCP/IP',      can: 'インターネットの通信のきまり（プロトコル）で、データをやりとりできるようになった' },
+    mail:    { type: 'soft',  name: 'メールアプリ', can: 'メールサーバとやりとりして、メールを送ったり受け取ったりできるようになった' },
+    sec:     { type: 'soft',  name: '暗号化（HTTPS）', can: '通信を暗号にして、安全にやりとりできるようになった' },
+    pwr:     { type: 'cable', name: '電源コード',   can: 'コンセントから、班PCに電気が来るようになった' },
+    hdmi:    { type: 'cable', name: 'HDMIケーブル', can: '本体とディスプレイがつながった' },
+    usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
+    lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
+  };
+  var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
+
+  // 絵（viewBox 0 0 360 250）
+  var PART_SVG = {
+    disp:  '<rect x="16" y="18" width="178" height="118" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="3"/><rect class="pcScreen" x="26" y="28" width="158" height="96" rx="3" fill="#0ea5e9"/><rect x="92" y="136" width="26" height="16" fill="#334155"/><rect x="70" y="150" width="70" height="8" rx="3" fill="#475569"/>',
+    cam:   '<rect x="95" y="8" width="20" height="10" rx="4" fill="#334155"/><circle cx="105" cy="13" r="3" fill="#38bdf8"/>',
+    spk:   '<rect x="200" y="96" width="22" height="58" rx="5" fill="#475569"/><circle cx="211" cy="112" r="6" fill="#1e293b"/><circle cx="211" cy="137" r="8" fill="#1e293b"/>',
+    router:'<rect x="198" y="44" width="34" height="16" rx="3" fill="#334155"/><g fill="#4ade80"><circle cx="205" cy="52" r="1.6"/><circle cx="211" cy="52" r="1.6"/><circle cx="217" cy="52" r="1.6"/></g><line x1="204" y1="44" x2="201" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/><line x1="226" y1="44" x2="229" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
+    kbd:   '<rect x="22" y="172" width="160" height="30" rx="5" fill="#cbd5e1"/><g fill="#94a3b8"><rect x="30" y="178" width="144" height="5" rx="1"/><rect x="30" y="186" width="144" height="5" rx="1"/><rect x="60" y="194" width="84" height="4" rx="1"/></g>',
+    mouse: '<ellipse cx="204" cy="188" rx="10" ry="15" fill="#cbd5e1"/><line x1="204" y1="174" x2="204" y2="184" stroke="#94a3b8" stroke-width="2"/>',
+    board: '<rect x="244" y="34" width="90" height="120" rx="3" fill="#15803d"/><g stroke="#4ade80" stroke-width="1.2" opacity=".7"><path d="M250 44 h30 v20 M326 44 v40 h-20 M252 140 h40 v-12 M320 146 h-16"/></g>',
+    cpu:   '<rect x="266" y="54" width="30" height="30" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/><rect x="273" y="61" width="16" height="16" rx="2" fill="#334155"/>',
+    mem:   '<rect x="306" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><rect x="317" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><g fill="#facc15"><rect x="307" y="96" width="5" height="6"/><rect x="318" y="96" width="5" height="6"/></g>',
+    ssd:   '<rect x="248" y="162" width="34" height="14" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/><rect x="253" y="166" width="14" height="6" fill="#38bdf8"/>',
+    hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
+    psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
+    // ソフト（左下の棚。ディスクの形）
+    os:      '<circle cx="34" cy="232" r="11" fill="#e2e8f0"/><circle cx="34" cy="232" r="3" fill="#94a3b8"/><text x="50" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="84" cy="232" r="11" fill="#38bdf8"/><circle cx="84" cy="232" r="3" fill="#0369a1"/><text x="100" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="140" cy="232" r="11" fill="#60a5fa"/><circle cx="140" cy="232" r="3" fill="#1d4ed8"/><text x="156" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="194" cy="232" r="11" fill="#4ade80"/><circle cx="194" cy="232" r="3" fill="#15803d"/><text x="210" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    // ケーブル
+    pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
+    hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
+    usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
+    lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
+  };
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'pwr', 'hdmi', 'usb', 'lan'];
+  var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
+  var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
+
+  var KEY = 'droneHub_v1';
+  var TEAM_KEY = 'droneLessonTeam_set5';   // 脱出ゲームの記録（班・名前・ポイント）
+
+  function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function rec() { var r = read(KEY); if (!r || typeof r !== 'object') r = {}; if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = []; return r; }
+  function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できない環境 */ } }
+  function item(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
+
+  // 脱出ゲームの「自分」の記録（部屋2のクリア）
+  function ledgerCleared(key) {
+    var t = read(TEAM_KEY);
+    if (!t || t.me === null || t.me === undefined || !t.ledger) return false;
+    var l = t.ledger[t.me] || {};
+    return !!l[key];
+  }
+  function rawCleared(r, it) { return !!(r.cleared[it.id] || (it.ledger && ledgerCleared(it.ledger))); }
+  // クリアした順（ぶひんの順）を記録にそろえる
+  function sync() {
+    var r = rec(), changed = false;
+    ITEMS.forEach(function (it) { if (rawCleared(r, it) && r.order.indexOf(it.id) < 0) { r.order.push(it.id); changed = true; } });
+    if (changed) save(r);
+    return r;
+  }
+  function isCleared(id) { var it = item(id); return !!it && rawCleared(rec(), it); }
+  function clear(id) {
+    var r = rec();
+    if (!r.cleared[id]) r.cleared[id] = Date.now();
+    if (r.order.indexOf(id) < 0) r.order.push(id);
+    save(r);
+  }
+  function isOpen(id) {
+    var it = item(id); if (!it || !it.file) return false;
+    return (it.needs || []).every(isCleared);
+  }
+  function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
+  // 手に入ったもの（手に入れた順）
+  function parts() {
+    var got = {};   // 同じぶひんを2つの項目でもらえるとき（えほんかクイズのどちらか）は、1つだけ数える
+    return sync().order.map(item).filter(function (it) { if (!it || !GEAR[it.gives] || got[it.gives]) return false; got[it.gives] = 1; return true; }).map(function (it) {
+      var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
+    });
+  }
+  // その項目で手に入ったもの（まだなら null）
+  function part(id) {
+    var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
+    if (!x && it && it.gives && isCleared(id)) x = ps.filter(function (p) { return p.id === it.gives; })[0];   // ほかの項目で、もう手に入れている
+    return x ? x.part : null;
+  }
+  // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
+  var LOCK = 'droneGroupLock';
+  function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
+  function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
+  function team() {
+    var t = read(TEAM_KEY) || {};
+    var g = lockedGroup() || t.group || '';
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
+  }
+  // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
+  function visible(id) {
+    var c = team().cls, list = (c && SHOW[c]) || SHOW['default'];
+    if (!list || list === 'all') return true;
+    return list.indexOf(id) >= 0;
+  }
+
+  // 班PCの絵：手に入れたものは色つき、まだのものは点線。hi のものは光らせる
+  // 実際のパソコンと同じように、そろったもので動き方が決まる
+  //   電源（電源ユニット＋電源コード）→ マザーボード・CPU・メモリ で動き出す → SSD（OS）で起動
+  //   → ディスプレイ＋HDMIケーブル で画面に映る → キーボード・マウス＋USBケーブル で操作できる
+  function owned() { var own = {}; parts().forEach(function (p) { own[p.id] = 1; }); return own; }
+  function pcState(own) {
+    own = own || owned();
+    var store = own.ssd || own.hdd;
+    var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
+    var shown = boot && own.disp && own.hdmi, usable = shown && own.kbd && own.mouse && own.usb;
+    var net = usable && own.lan && own.router && own.tcpip;
+    var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
+    var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
+    if (!Object.keys(own).length) return m(0, 'まだ ぶひん がない');
+    if (!own.psu) return m(1, '電源が入らない（電源ユニットがない）');
+    if (!own.pwr) return m(1, 'コンセントにつながっていないので、電気が来ない（電源コードがない）');
+    if (!own.board) return m(1, 'ぶひんをつなぐ土台がないので、動かない（マザーボードがない）');
+    if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので起動できない（メモリがない）');
+    if (!store) return m(2, '動き出したが、データをしまう場所がない（SSD か HDD がない）');
+    if (!own.os) return m(2, '動き出したが、OS が入っていないので起動できない（OS がない）');
+    var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
+    if (!own.disp) return m(3, '起動したが、画面がないので何も見えない（ディスプレイがない）' + slow);
+    if (!own.hdmi) return m(3, '起動したが、ディスプレイにつながっていないので映らない（HDMIケーブルがない）');
+    if (!own.kbd || !own.mouse) return m(4, '画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
+    if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
+    return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
+  }
+  function pcSvg(hi, cls) {
+    var own = owned(), st = pcState(own);
+    var order = DRAW_ORDER;
+    var g = order.map(function (k) {
+      var has = !!own[k];
+      return '<g class="' + (has ? 'pcHas' : 'pcGhost') + (k === hi ? ' pcHi' : '') + '">' + PART_SVG[k] + '</g>';
+    }).join('');
+    return '<svg class="' + (cls || 'pcSvg') + '" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班PCの完成状況">' +
+      '<style>.pcGhost *{fill:none!important;stroke:#64748b!important;stroke-width:1.3!important;stroke-dasharray:4 3}.pcGhost{opacity:.55}.pcGhost text{fill:#64748b!important;stroke:none!important}' +
+      '.pcHi{animation:pcHi 1.2s ease-in-out infinite}.pcHi path{stroke-width:5!important}@keyframes pcHi{0%,100%{filter:drop-shadow(0 0 0 #facc15)}50%{filter:drop-shadow(0 0 6px #facc15)}}' +
+      (st.shown ? '' : '.pcHas .pcScreen{fill:#020617!important}') + '@media (prefers-reduced-motion:reduce){.pcHi{animation:none;filter:drop-shadow(0 0 4px #facc15)}}</style>' +
+      OUTLETS + CASE_SVG + g +
+      (own.disp && own.hdmi && st.post && !st.boot ? '<text x="34" y="46" font-size="9" font-weight="700" fill="#e2e8f0" font-family="ui-monospace,Consolas,monospace">No bootable device.</text><text x="34" y="60" font-size="9" fill="#94a3b8" font-family="ui-monospace,Consolas,monospace">Insert boot disk_</text>' : '') +
+      (st.shown ? '<g font-family="system-ui,sans-serif"><text x="105" y="80" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">' + (st.usable ? '班PC Ready!' : 'Hello!') + '</text><g fill="#e0f2fe" opacity=".85"><rect x="34" y="34" width="14" height="12" rx="2"/><rect x="34" y="52" width="14" height="12" rx="2"/><rect x="34" y="70" width="14" height="12" rx="2"/></g><rect x="26" y="114" width="158" height="10" fill="#0369a1"/></g>' : '') +
+      (st.power && own.board ? '<circle cx="330" cy="30" r="3" fill="' + (st.post ? '#4ade80' : '#f59e0b') + '"/>' : '') + (st.shown && st.web ? '<text x="180" y="121" text-anchor="end" font-size="9" fill="#fff" font-family="system-ui,sans-serif">🌐</text>' : '') + (st.shown ? '<text x="30" y="121" font-size="7" fill="#e0f2fe" font-family="system-ui,sans-serif">' + (st.fast ? 'SSD' : 'HDD') + '</text>' : '') +
+      '</svg>';
+  }
+
+  // ぶひんのカード（どのページのデザインにも合うよう、スタイルは中に書く）
+  function partCard(id, opt) {
+    var p = part(id); if (!p) return '';
+    opt = opt || {};
+    var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
+    return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
+      '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
+      '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
+      '<div style="margin-top:6px;font-size:13px;color:#94a3b8">いまの班PC：' + pcState().msg + '</div>' +
+      (opt.link === false ? '' : '<a href="index.html" style="display:inline-block;margin-top:8px;background:#0ea5e9;color:#fff;border-radius:10px;padding:6px 16px;text-decoration:none">📱 Tの端末にもどる</a>') +
+      '</div>';
+  }
+
+  // えほん：確認クイズを見張って、全問正解ならぶひんを出す。まちがいがあれば「もう一度」
+  function autoQuiz(id) {
+    function setup() {
+      var score = document.getElementById('score');
+      if (!score) return;
+      var box = document.createElement('div');
+      box.id = 'hubBox';
+      var host = score.closest ? score.closest('.qhead') : null;
+      (host && host.parentNode ? host.parentNode : score.parentNode).insertBefore(box, host ? host.nextSibling : score.nextSibling);
+      var page = score.parentNode && score.parentNode.closest ? score.parentNode.closest('[id]') : null;
+      function retry() {
+        location.hash = page ? page.id : '';
+        location.reload();
+      }
+      var note = function (t) { return '<div style="margin:10px auto;max-width:560px;text-align:center;font:700 14px/1.6 system-ui,sans-serif;color:#64748b">' + t + '</div>'; };
+      function update() {
+        var t = score.textContent || '';
+        if (t.indexOf('全問正解') >= 0) { clear(id); box.innerHTML = partCard(id); return; }
+        if (/問正解。/.test(t)) {
+          box.innerHTML = '<div style="margin:12px auto;max-width:560px;text-align:center;font:700 15px/1.7 system-ui,sans-serif;color:#475569">全問正解で、班PCの ぶひん が手に入る。' +
+            '<br><button type="button" id="hubRetryBtn" style="margin-top:6px;font:inherit;background:#0ea5e9;color:#fff;border:0;border-radius:10px;padding:6px 18px;cursor:pointer">🔁 もう一度ちょうせんする</button></div>';
+          var b = document.getElementById('hubRetryBtn'); if (b) b.onclick = retry;
+          return;
+        }
+        var p = part(id);
+        box.innerHTML = p ? note('✓ クリアずみ（ぶひん：' + p.name + '）') : note('🔧 全問正解すると、班PCの ぶひん が手に入る');
+      }
+      new MutationObserver(update).observe(score, { childList: true, characterData: true, subtree: true });
+      update();
+      // Tの端末へもどるボタン（右下）
+      var a = document.createElement('a');
+      a.href = 'index.html'; a.textContent = '📱 Tの端末';
+      a.setAttribute('style', 'position:fixed;right:12px;bottom:12px;z-index:9999;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:6px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+      document.body.appendChild(a);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  }
+
+  window.DroneHub = {
+    ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
+    part: part, parts: parts, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
+  };
+})();
+
+/* ==== HUB END ==== */</script>
+<script>
+  // ==== Tの端末：さいごのページまで読んだら「よんだ」の印をつける ====
+  (function () {
+    var ID = 'cryptoEhon';
+    var a = document.createElement('a');
+    a.href = 'index.html'; a.textContent = '📱 Tの端末';
+    a.setAttribute('style', 'position:fixed;right:12px;top:12px;z-index:300;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:5px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+    document.body.appendChild(a);
+    var note = document.createElement('div');
+    note.setAttribute('style', 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:300;background:#14532d;color:#dcfce7;border:2px solid #4ade80;border-radius:12px;padding:6px 16px;font:800 15px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.35);display:none');
+    note.textContent = '📖 さいごまで よんだ！ Tの端末に「よんだ」の しるしが ついたよ';
+    document.body.appendChild(note);
+    var pn = document.getElementById('pageNo');
+    function check() {
+      var m = String(pn && pn.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
+      if (m && m[1] === m[2] && window.DroneHub) {
+        var first = !DroneHub.isCleared(ID);
+        var had = DroneHub.parts().some(function (p) { return p.id === 'sec'; });   // 暗号のクイズで、もう手に入れている
+        DroneHub.clear(ID);
+        if (first) {
+          var pt = DroneHub.part(ID);
+          note.textContent = '📖 さいごまで よんだ！' + (pt ? (had ? ' ぶひん「' + pt.name + '」は、クイズでもう手に入れているよ' : ' 班PCの ぶひん「' + pt.name + '」を手に入れた！') : '');
+          note.style.display = 'block'; setTimeout(function () { note.style.display = 'none'; }, 6000);
+        }
+      }
+    }
+    if (pn) new MutationObserver(check).observe(pn, { childList: true, characterData: true, subtree: true });
+    check();
+  })();
+</script>
+</body>
+</html>
