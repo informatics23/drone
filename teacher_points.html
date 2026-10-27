@@ -295,10 +295,13 @@ window.DroneQR = (function () {
   function download(bytes, name, type) {
     var url = URL.createObjectURL(new Blob([bytes], { type: type }));
     var a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    return url;
+    return url;   // あとの「ここをクリックして保存」でも使うので、消さない
   }
 
+  function saveLink(url, name, label) {
+    return '<a href="' + url + '" download="' + name.replace(/"/g, '') + '" style="display:inline-block;margin-top:6px;background:#16a34a;color:#fff;border-radius:9px;padding:5px 14px;text-decoration:none;font-weight:800">' + label + '</a>' +
+      '<div class="note" style="font-weight:600">保存先：ふつうは「ダウンロード」フォルダ（Edge・Chrome は Ctrl＋J で、保存したファイルの一覧が出る）</div>';
+  }
   // ---- zip（無圧縮・ファイル名は UTF-8） ----
   function makeZip(files) {
     var enc = new TextEncoder(), parts = [], central = [], off = 0, d = new Date();
@@ -335,7 +338,7 @@ window.DroneQR = (function () {
     if (!names[me]) { $('sMsg').className = 'msg err'; $('sMsg').textContent = '○ をつけた人の名前を入れよう'; return; }
     var r = await makePng($('sCls').value, $('sHan').value, names, me, level, $('sManual').checked);
     var url = download(r.png, r.name, 'image/png');
-    $('sMsg').className = 'msg'; $('sMsg').textContent = '✅ 保存しました：' + r.name;
+    $('sMsg').className = 'msg'; $('sMsg').innerHTML = '✅ 保存しました：' + r.name.replace(/[&<>]/g, '') + '<br>' + saveLink(url, r.name, '⬇ 見つからないときは、ここをクリックして保存');
     $('preview').innerHTML = '<img alt="作成した画像" src="' + URL.createObjectURL(new Blob([r.png], { type: 'image/png' })) + '">';
   });
 
@@ -366,9 +369,9 @@ window.DroneQR = (function () {
       list.push('<tr><td>' + f.rec.o.g + '</td><td>' + (r.me + 1) + '号機</td><td>' + f.who.replace(/[&<>]/g, '') + '</td><td>' + LEVELS[r.lv].st + '（' + LEVELS[r.lv].name + '）まで</td></tr>');
     }
     var d = new Date(), stamp = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2) + '_' + ('0' + d.getHours()).slice(-2) + ('0' + d.getMinutes()).slice(-2);
-    download(makeZip(files), 'ポイント情報_先生作成_' + stamp + '.zip', 'application/zip');
+    var zname = 'ポイント情報_先生作成_' + stamp + '.zip', zurl = download(makeZip(files), zname, 'application/zip');
     msg.className = pr.bad.length ? 'msg err' : 'msg';
-    msg.textContent = '✅ ' + files.length + '人分を zip で保存しました' + (pr.bad.length ? '\n⚠ 読めなかった行（とばしました）：' + pr.bad.join('・') + '行目' : '');
+    msg.innerHTML = '✅ ' + files.length + '人分を zip で保存しました：' + zname + (pr.bad.length ? '<br>⚠ 読めなかった行（とばしました）：' + pr.bad.join('・') + '行目' : '') + '<br>' + saveLink(zurl, zname, '⬇ 見つからないときは、ここをクリックして保存');
     $('bList').innerHTML = '<table class="list"><tr><th>クラス・班</th><th>機体</th><th>名前</th><th>クリア</th></tr>' + list.join('') + '</table>';
   });
 })();
