@@ -1050,15 +1050,17 @@ show(0);
     { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
     { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'protocolEhon', kind: 'note', title: 'プロトコルのえほん', sub: 'よみもの', file: 'protocol-ehon.html', gives: 'tcpip' },
     { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
-    { id: 'cryptoEhon', kind: 'note', title: 'ひみつのおてがみ\n（暗号のえほん）', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: '暗号のえほん', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
-    { id: 'app',  kind: 'escape', title: '応用ステージ', sub: '並べ替え・探索など',     rooms: '保管庫 → 倉庫 → 通信塔', file: '', gives: 'lan', needs: ['func'] }
+    { id: 'lin',  kind: 'escape', title: '応用ステージ\n（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
+    { id: 'bin',  kind: 'escape', title: '応用ステージ\n（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
   ];
   var CFG = window.HUB_CONFIG || {};
   var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
