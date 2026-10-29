@@ -5409,7 +5409,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v73）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v76）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -5583,7 +5583,7 @@ window.DroneQR = (function () {
         <button class="smHelp" onclick="document.getElementById('saveHelp').classList.toggle('viewHidden')">😢 保存できない</button>
         <button class="smGroup" onclick="mergeAndSubmit()" title="班員のポイント情報ファイルを選んで、班全員分の1枚を作る">📊 班のポイントをまとめる（班全員分の1枚を作る）</button>
         <button id="submitNextBtn" class="smNext" onclick="goSecondStage()">部屋2へ →</button>
-        <button id="nextFileBtn" class="smNext" onclick="goNextFile()">🚀 次の項目へ進む →</button>
+        <button id="nextFileBtn" class="smNext" onclick="goNextFile()">🚀 整備室へ（関数ステージ）→</button>
         <button class="smClose" onclick="closeSubmitGuide()">✕ とじる</button>
       </div>
     </div>
@@ -8007,7 +8007,11 @@ window.DroneQR = (function () {
     function mergeProg(c) {
       let n = 0;
       const over = progNewestT && Number(c.t) === progNewestT;
-      if (c.w && typeof c.w === 'object') Object.keys(c.w).forEach((k) => { if (progUnitOf(k) && typeof c.w[k] === 'string' && (over || !team.ws[k])) { if (team.ws[k] !== c.w[k]) n++; team.ws[k] = c.w[k]; } });
+      // クリアした部屋のプログラム（ファイルを作った人がクリアした部屋）は、この端末に組みかけ・はじめの並びがあっても、ファイルのほう（クリアしたときの形）にする
+      const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
+      const fileL = own >= 0 && c.l && c.l[own] ? c.l[own] : {};
+      const roomCleared = (k) => { const m = String(k).match(/^(\w+):pz(2|1b)?$/); return !!m && Number(fileL[m[1] + (m[2] === '2' ? '2' : '')]) > 0; };
+      if (c.w && typeof c.w === 'object') Object.keys(c.w).forEach((k) => { if (progUnitOf(k) && typeof c.w[k] === 'string' && (over || !team.ws[k] || roomCleared(k))) { if (team.ws[k] !== c.w[k]) n++; team.ws[k] = c.w[k]; } });
       if (c.st && typeof c.st === 'object') Object.keys(c.st).forEach((k) => {
         if (!(progUnitOf(k) || PROG_UNITS.includes(k))) return;
         const v = c.st[k], cur = team.steps[k];
@@ -8134,7 +8138,8 @@ window.DroneQR = (function () {
       saveTeam();
       try { lastLoadMsgs = msgs; } catch (e) { /* なし */ }
       try { if (window.applyGroupLock) window.applyGroupLock(); } catch (e) { /* なし */ }
-      if ((switched || progLoaded) && !fromCover) { try { curWsKey = null; setUnit(currentUnit); } catch (e) { /* なし */ } }
+      // 表紙で読み込んだとき：うしろの画面のブロック（読み込むまえの形）で、もどしたプログラムを上書きしないように（「はじめる」の saveWs）
+      if (switched || progLoaded) { try { curWsKey = null; if (!fromCover) setUnit(currentUnit); } catch (e) { /* なし */ } }
       if (fromCover) {
         fillTeamForm();
         document.getElementById('coverCardMsg').textContent = msgs.join(' ／ ');
@@ -10783,7 +10788,7 @@ window.DroneQR = (function () {
     }
     function nextFileHtml(u) {
       if (u !== 'array' || !myCleared('array2') || !NEXT_FILE) return '';
-      return `<span class="nextNote">${NEXT_NAME}のファイル（${escapeHtml(NEXT_FILE)}）を、このファイルと同じフォルダに入れておこう</span><button class="go" onclick="goNextFile()">🚀 ${NEXT_NAME}へ進む →</button>`;
+      return (/^https?:$/.test(location.protocol) ? '' : `<span class="nextNote">${NEXT_NAME}のファイル（${escapeHtml(NEXT_FILE)}）を、このファイルと同じフォルダに入れておこう</span>`) + `<button class="go" onclick="goNextFile()">🚀 整備室へ（関数ステージ）→</button>`;
     }
     // ポイント登録の画面：部屋2を脱出したとき（_2nd_）だけ「配列編へ進む」を出す
     {
