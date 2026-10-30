@@ -71,17 +71,20 @@
     hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
     psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
     // ソフト（左下の棚。ディスクの形）
-    os:      '<circle cx="34" cy="232" r="11" fill="#e2e8f0"/><circle cx="34" cy="232" r="3" fill="#94a3b8"/><text x="50" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
-    browser: '<circle cx="84" cy="232" r="11" fill="#38bdf8"/><circle cx="84" cy="232" r="3" fill="#0369a1"/><text x="100" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
-    doc:     '<circle cx="140" cy="232" r="11" fill="#60a5fa"/><circle cx="140" cy="232" r="3" fill="#1d4ed8"/><text x="156" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
-    sheet:   '<circle cx="194" cy="232" r="11" fill="#4ade80"/><circle cx="194" cy="232" r="3" fill="#15803d"/><text x="210" y="236" font-size="10" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    os:      '<circle cx="12" cy="232" r="9" fill="#e2e8f0"/><circle cx="12" cy="232" r="2.5" fill="#94a3b8"/><text x="24" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="48" cy="232" r="9" fill="#38bdf8"/><circle cx="48" cy="232" r="2.5" fill="#0369a1"/><text x="60" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="90" cy="232" r="9" fill="#60a5fa"/><circle cx="90" cy="232" r="2.5" fill="#1d4ed8"/><text x="102" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="132" cy="232" r="9" fill="#4ade80"/><circle cx="132" cy="232" r="2.5" fill="#15803d"/><text x="144" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    tcpip:   '<circle cx="183" cy="232" r="9" fill="#a78bfa"/><circle cx="183" cy="232" r="2.5" fill="#6d28d9"/><text x="195" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">TCP/IP</text>',
+    mail:    '<circle cx="237" cy="232" r="9" fill="#fbbf24"/><circle cx="237" cy="232" r="2.5" fill="#b45309"/><text x="249" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">メール</text>',
+    sec:     '<circle cx="288" cy="232" r="9" fill="#f472b6"/><circle cx="288" cy="232" r="2.5" fill="#be185d"/><text x="300" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">暗号化</text>',
     // ケーブル
     pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
     hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
     usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
     lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
   };
-  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'pwr', 'hdmi', 'usb', 'lan'];
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'tcpip', 'mail', 'sec', 'pwr', 'hdmi', 'usb', 'lan'];
   var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
   var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
 
