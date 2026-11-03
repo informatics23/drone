@@ -1438,7 +1438,8 @@ show((location.hash||'').slice(1));
   function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
   function team() {
     var t = read(TEAM_KEY) || {};
-    var g = lockedGroup() || t.group || '';
+    var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
+    var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
     return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部

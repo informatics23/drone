@@ -4111,6 +4111,8 @@ return $.__chunk_javascript;
       color: #ffffff;
     }
     /* 実行中のブロックを光らせる */
+    .blockHintBad > .blocklyPath { stroke: #ef4444 !important; stroke-width: 4px !important; animation: hintBad 1s ease-in-out infinite; }
+    @keyframes hintBad { 0%, 100% { filter: drop-shadow(0 0 2px #ef4444); } 50% { filter: drop-shadow(0 0 10px #ef4444); } }
     .blockRunning > .blocklyPath {
       stroke: #ffffff !important;
       stroke-width: 3px !important;
@@ -4950,6 +4952,56 @@ return $.__chunk_javascript;
     .qzOpt { padding: 6px 12px; font-size: 14px; font-weight: 700; background: #334155; color: #e2e8f0; border: 2px solid #475569; border-radius: 8px; text-align: left; }
     .qzOpt.sel { background: #0c4a6e; border-color: #38bdf8; color: #fff; }
     .qzOpt:disabled { opacity: .5; }
+    .qzMatch { display: grid; gap: 6px; }
+    .qzRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: space-between; background: #0f172a; border-radius: 8px; padding: 5px 8px; font-weight: 700; font-size: 14px; color: #e2e8f0; }
+    .qzRow select { font: 700 14px system-ui, sans-serif; padding: 4px 6px; border-radius: 7px; background: #334155; color: #fff; border: 2px solid #475569; }
+    .qzIn { font: 800 18px ui-monospace, Consolas, monospace; padding: 6px 10px; border-radius: 8px; border: 2px solid #475569; background: #020617; color: #fef3c7; width: 14em; max-width: 100%; }
+    .qzUnit { align-self: center; font-weight: 800; color: #e2e8f0; }
+    .qzCode { font-family: ui-monospace, Consolas, monospace; color: #fde68a; letter-spacing: .08em; }
+    .qzPkt { display: inline-block; margin: 4px 2px; padding: 3px 8px; border: 2px solid #38bdf8; border-radius: 7px; font-weight: 900; color: #e0f2fe; }
+    .qzPkt small { display: block; font-size: 10px; color: #7dd3fc; }
+    .qzNo { display: inline-block; min-width: 1.4em; margin-right: 6px; border-radius: 999px; background: #facc15; color: #713f12; text-align: center; }
+    .qzRe { background: #1e293b !important; }
+    .qzProg { background: #020617; border: 2px solid #334155; border-radius: 8px; padding: 6px 10px; font: 700 15px/1.55 ui-monospace, Consolas, monospace; color: #e2e8f0; }
+    .qzLine { white-space: pre; }
+    .qzLine.ins { background: #facc15; color: #422006; border-radius: 4px; cursor: pointer; }
+    .qzX { float: right; font-size: 12px; opacity: .7; padding-right: 4px; }
+    .qzSlot2 { cursor: pointer; line-height: 1; height: 14px; color: #38bdf8; font-size: 12px; }
+    .qzSlot2 span { display: inline-block; border: 1px dashed #38bdf8; border-radius: 4px; padding: 0 6px; background: rgba(56,189,248,.08); }
+    .qzSlot2:hover span { background: rgba(56,189,248,.3); }
+    .qzOut { margin-top: 6px; font-weight: 800; color: #e2e8f0; }
+    .qzOut b { font-family: ui-monospace, Consolas, monospace; color: #86efac; font-size: 18px; }
+    .qzOut small { color: #fde68a; margin-left: 8px; }
+    .qzSign { background: #fef3c7; color: #422006; border: 3px solid #a16207; border-radius: 8px; padding: 6px 12px; margin: 4px 0 8px; font-weight: 800; font-size: 14px; line-height: 1.6; display: block; width: fit-content; }
+    .qzSignT { font-weight: 900; border-bottom: 2px dashed #a16207; margin-bottom: 2px; }
+    .qzDisp { display: flex; gap: 4px; align-items: center; margin: 4px 0 6px; flex-wrap: wrap; }
+    .qzSlot { width: 30px; height: 36px; border: 2px solid #64748b; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font: 900 20px ui-monospace, monospace; color: #e2e8f0; background: #0f172a; }
+    .qzSlot.one { background: #facc15; color: #422006; border-color: #facc15; }
+    .qzNum { min-width: 5em; padding: 4px 10px; border: 2px solid #64748b; border-radius: 6px; font: 900 22px ui-monospace, monospace; color: #fef3c7; background: #020617; text-align: right; }
+    .qzKeys { display: flex; flex-wrap: wrap; gap: 6px; }
+    .qzKey { min-width: 42px; padding: 7px 12px; font: 900 16px system-ui, sans-serif; background: #334155; color: #fff; border: 2px solid #475569; border-radius: 9px; }
+    .qzKeys.big .qzKey { min-width: 64px; font-size: 20px; }
+    .qzKey.del { background: #7f1d1d; border-color: #991b1b; }
+    .qzKey.tog { background: #0c4a6e; border-color: #38bdf8; }
+    .qzView { margin: 4px 0 8px; }
+    .qzLamps { display: flex; gap: 5px; flex-wrap: wrap; }
+    .qzLamp { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font: 900 14px ui-monospace, monospace; background: #1e293b; color: #64748b; border: 2px solid #475569; }
+    .qzLamp.on { background: #facc15; color: #422006; box-shadow: 0 0 10px #facc15; }
+    .qzLamp.par { border: 3px dashed #38bdf8; margin-left: 10px; }
+    .qzMix { display: flex; align-items: center; gap: 12px; color: #cbd5e1; }
+    .qzBulb { width: 54px; height: 54px; border-radius: 50%; border: 3px solid #94a3b8; box-shadow: 0 0 14px rgba(255,255,255,.25); }
+    .qzRows { display: grid; gap: 4px; color: #cbd5e1; }
+    .qzRows small { display: inline-block; width: 4em; }
+    .qzPx { display: inline-block; width: 16px; height: 16px; border: 1px solid #64748b; vertical-align: middle; }
+    .qzPx.W { background: #f8fafc; } .qzPx.B { background: #0f172a; }
+    .qzChart { display: flex; gap: 6px; align-items: flex-start; }
+    .qzAxis { display: flex; flex-direction: column; justify-content: space-between; height: 88px; margin-top: -6px; font: 700 11px ui-monospace, monospace; color: #94a3b8; text-align: right; }
+    .qzBars { display: flex; gap: 22px; align-items: flex-end; height: 80px; padding: 0 14px; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; background: repeating-linear-gradient(to top, rgba(148,163,184,.3) 0 1px, transparent 1px 16px); }
+    .qzBar { width: 34px; background: #38bdf8; border-radius: 4px 4px 0 0; transition: height .2s; }
+    .qzBarLab { display: flex; gap: 22px; padding: 2px 14px; }
+    .qzBarLab span { width: 34px; text-align: center; color: #e2e8f0; font-weight: 800; font-size: 13px; }
+    .qzSpot { background: #0f172a; border-radius: 10px; padding: 8px; }
+    .qzCount { text-align: center; font-weight: 800; color: #fde68a; margin-top: 4px; }
     .qzGo { align-self: center; padding: 8px 28px; font-size: 16px; font-weight: 900; background: #f59e0b; color: #1f2937; border-radius: 10px; }
     .qzGo:disabled { opacity: .4; }
     /* ===== 配列編 ===== */
@@ -5103,7 +5155,8 @@ return $.__chunk_javascript;
   function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
   function team() {
     var t = read(TEAM_KEY) || {};
-    var g = lockedGroup() || t.group || '';
+    var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
+    var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
     return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
@@ -5412,7 +5465,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v77）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v83）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -5736,7 +5789,7 @@ window.DroneQR = (function () {
       const canon = R2_CANON(codes);
       const CAND = [[1, 'V', ['0']], [2, 'N', ['1']], [3, 'N', [String(NBOX - 2)]], [5, 'E', ['LOW']], [9, 'E', ['mid', 'mid-1']], [10, 'E', ['mid', 'mid+1']]];
       for (let tries = 0; tries < 200; tries++) {
-        const p = canon.map((b) => ({ type: b.type, f: Object.assign({}, b.f) }));
+        const p = canon.map((b) => ({ type: b.type, f: Object.assign({}, b.f), ok: Object.assign({}, b.f) }));
         const c = CAND[rndInt(CAND.length)];
         p[c[0]].f[c[1]] = c[2][rndInt(c[2].length)];
         if (presetSolves(2, init, codes, p)) continue;
@@ -5761,7 +5814,7 @@ window.DroneQR = (function () {
         d = { bsEx: ex, bsExT: [ex[6], ex[1], absentOf(ex)], bsStages: stages, bsInit: ex.slice() };
       } finally { RAND = prev; }
       const old = (typeof team !== 'undefined' && team && team.data && team.data.seed === (seed || '') && (team.data.round || 0) === (Number(round) || 0)) ? team.data : {};
-      return Object.assign({}, old, d, { seed: seed || '', round: Number(round) || 0, bsVer: 3 });
+      return Object.assign({}, old, d, { seed: seed || '', round: Number(round) || 0, bsVer: 4 });
     }
 
     // ==================== 端末に保存する記録（全項目のファイルで共通） ====================
@@ -5783,7 +5836,7 @@ window.DroneQR = (function () {
         if (other && Array.isArray(other.names)) { team.group = other.group || ''; team.names = other.names.slice(0, 4); team.me = other.me; }
       }
     }
-    if (!team.data || team.data.seed !== team.group || !team.data.bsStages || team.data.bsVer !== 3 || (team.data.round || 0) !== (team.round || 0)) team.data = makePuzzleData(team.group, team.round);
+    if (!team.data || team.data.seed !== team.group || !team.data.bsStages || team.data.bsVer !== 4 || (team.data.round || 0) !== (team.round || 0)) team.data = makePuzzleData(team.group, team.round);
     // 班ごとの記録（同じ端末を別の班が使っても、クラス・班を選べばその班の名前・ポイントが出る）
     function loadGroups() { return readJson(STORE_GROUPS) || {}; }
     // その班の記録。この問題のファイルでまだなければ、ほかの問題のファイルで入れた名前・自分の機体だけを使う
@@ -5809,12 +5862,14 @@ window.DroneQR = (function () {
         Object.keys(a).forEach((u) => { m[u] = Math.max(Number(a[u]) || 0, Number(b[u]) || 0); });
         if (Object.keys(m).length) ledger[k] = m;
       });
-      const pick = (x, y) => {
+      // 読み込んだファイルで入れた分（ほかの項目の部屋のプログラム・進み具合）は、保存されている方で上書きしない
+      const forced = window.progForcedKeys || new Set();
+      const pick = (x, y, p) => {
         const out = Object.assign({}, x || {});
-        Object.keys(y || {}).forEach((k) => { if (!ownUnit(k)) out[k] = y[k]; });   // ほかの項目の分は、保存されている方を使う
+        Object.keys(y || {}).forEach((k) => { if (!ownUnit(k) && !forced.has(p + k)) out[k] = y[k]; });   // ほかの項目の分は、保存されている方を使う
         return out;
       };
-      return Object.assign({}, mine, { ledger, steps: pick(mine.steps, other.steps), ws: pick(mine.ws, other.ws), seen: Object.assign({}, other.seen || {}, mine.seen || {}) });
+      return Object.assign({}, mine, { ledger, steps: pick(mine.steps, other.steps, 'st:'), ws: pick(mine.ws, other.ws, 'ws:'), seen: Object.assign({}, other.seen || {}, mine.seen || {}) });
     }
     function saveTeam(replace) {
       try {
@@ -6472,12 +6527,138 @@ window.DroneQR = (function () {
         (pre.clientWidth - 28) / (maxChars * 0.62 * fWs),                    // Pythonの一番長い行
         (viewW - WS_PAD * 2) / (noteChars * fWs * 1.05)                      // 説明の一番長い行
       ];
-      const scale = Math.max(WS_MIN_SCALE, Math.min(...bounds));
+      // ブロックが多いときは、小さくしすぎない（READ_MIN より小さくなるなら、その大きさでスクロールにする）
+      // プログラムエリアの文字の大きさは、どの部屋でも同じ（変数ステージの部屋と同じ大きさ。ブロックの数では変えない）
+      //   上の説明9行＋ブロック3行・Python 32文字・ブロックの幅 330 が入る大きさ（画面の大きさだけで決まる）。入りきらないときはスクロール
+      const scaleNow = Math.max(WS_MIN_SCALE, Math.min(
+        WS_MAX_SCALE,
+        (viewW - WS_PAD * 2) / WS_REF.w,
+        (viewH - ROW_PAD * 2) / ((WS_REF.head + 2) * BLOCK_ROW_WS + WS_REF.h),
+        (pre.clientWidth - 28) / (WS_REF.chars * 0.62 * fWs),
+        (viewW - WS_PAD * 2) / (WS_REF.note * fWs * 1.05)));
+      // 例示などで上の説明が長く、エリアが低くなっても、③問題の部屋と同じ大きさを使う（同じ画面の大きさなら）
+      const sKey = window.innerWidth + 'x' + window.innerHeight;
+      if (curStep() === 3 || WS_REF.key !== sKey) { WS_REF.key = sKey; WS_REF.scale = scaleNow; }
+      const scale = WS_REF.scale;
+      wsScroll.on = !!box && bounds[2] < scale;
       workspace.setScale(scale);
-      if (box) workspace.translate(WS_PAD - box.left * scale, ROW_PAD + pyHeadRows() * BLOCK_ROW_WS * scale - box.top * scale);
-      else workspace.translate(0, 0);
+      if (box) {
+        const topY = ROW_PAD + pyHeadRows() * BLOCK_ROW_WS * scale;
+        const bottomY = Math.min(viewH - ROW_PAD - BLOCK_ROW_WS * scale * 2.6, wsScroll.zoneBottom || 1e9);   // 下の「close」の行の分をあける
+        wsScroll.baseX = WS_PAD - box.left * scale;
+        wsScroll.baseY = topY - box.top * scale;
+        wsScroll.max = wsScroll.on ? Math.max(0, h * scale + BLOCK_ROW_WS * scale - (bottomY - topY)) : 0;
+        // ブロックを動かしたあとも、見ている所がとばないように（今の位置をなるべく保つ）
+        const vkey = currentUnit + ':' + curStep() + ':' + varStage() + ':' + (typeof r1sub === 'function' ? r1sub() : 0);
+        if (wsScroll.on && wsScroll.key === vkey && wsScroll.curY !== null) wsScroll.y = wsScroll.baseY - wsScroll.curY;
+        else if (wsScroll.key !== vkey) wsScroll.y = 0;
+        wsScroll.key = vkey;
+        wsScroll.y = Math.max(0, Math.min(wsScroll.max, wsScroll.y || 0));
+        if (!wsScroll.on) wsScroll.y = 0;
+        wsScroll.curY = wsScroll.baseY - wsScroll.y;
+        workspace.translate(wsScroll.baseX, wsScroll.curY);
+      } else { workspace.translate(0, 0); wsScroll.on = false; wsScroll.y = 0; wsScroll.curY = null; }
+      wsClip();
       updatePythonView();
     }
+    // ---- ブロックが多いときのスクロール（上の配列 box などは同じ大きさのまま） ----
+    const WS_REF = { h: 100, w: 330, chars: 32, note: 24, head: 9 };   // どの部屋・どの段階でも同じ大きさにするための目安（上の説明9行＋ブロック3行は見える）
+    const wsScroll = { on: false, y: 0, max: 0, baseX: 0, baseY: 0, curY: null, key: '' };
+    function wsScrollBy(dy, extra) {
+      if (!wsScroll.on) return 0;
+      const max = wsScroll.max + (extra || 0), y0 = wsScroll.y;
+      wsScroll.y = Math.max(0, Math.min(max, wsScroll.y + dy));
+      const d = wsScroll.y - y0;
+      if (d) { wsScroll.curY = wsScroll.baseY - wsScroll.y; workspace.translate(wsScroll.baseX, wsScroll.curY); wsClip(); updatePythonView(); }
+      return d;
+    }
+    // ブロックの場所（上の説明と下の close の行のあいだ）の外は見せない。スクロールバーも出す
+    function wsClip() {
+      const div = document.getElementById('blocklyDiv');
+      let bar = document.getElementById('wsBar');
+      if (!bar) {
+        bar = document.createElement('div'); bar.id = 'wsBar';
+        bar.innerHTML = '<div id="wsThumb"></div>';
+        div.parentNode.appendChild(bar);
+        const st = document.createElement('style');
+        st.textContent = '#wsBar{position:absolute;right:3px;width:12px;z-index:4;background:rgba(148,163,184,.18);border-radius:6px;touch-action:none}#wsThumb{position:absolute;left:1px;right:1px;background:#facc15;border-radius:5px;opacity:.85;cursor:grab}' +
+          '#wsScrollHint{position:absolute;right:20px;z-index:4;font:800 11px system-ui,sans-serif;line-height:1.35;color:#fde68a;background:rgba(15,23,42,.85);border-radius:6px;padding:1px 6px;pointer-events:none}';
+        document.head.appendChild(st);
+        const hint = document.createElement('div'); hint.id = 'wsScrollHint'; div.parentNode.appendChild(hint);
+        let drag = null;
+        bar.addEventListener('pointerdown', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const th = document.getElementById('wsThumb').getBoundingClientRect(), r = bar.getBoundingClientRect();
+          if (e.clientY < th.top || e.clientY > th.bottom) wsScrollBy((e.clientY - (th.top + th.height / 2)) * (wsScroll.max + barView()) / r.height);
+          drag = { y: e.clientY }; bar.setPointerCapture(e.pointerId);
+        });
+        bar.addEventListener('pointermove', (e) => { if (!drag) return; const r = bar.getBoundingClientRect(); wsScrollBy((e.clientY - drag.y) * (wsScroll.max + barView()) / r.height); drag.y = e.clientY; });
+        bar.addEventListener('pointerup', () => { drag = null; });
+        bar.addEventListener('pointercancel', () => { drag = null; });
+      }
+      const P = BLOCK_ROW_WS * workspace.scale, viewH = div.clientHeight;
+      const top = ROW_PAD + pyHeadRows() * P - 3, bottom = wsScroll.zoneBottom || (viewH - ROW_PAD - P * 2.6);
+      div.style.clipPath = wsScroll.on ? `inset(${top.toFixed(0)}px 0 ${Math.max(0, viewH - bottom).toFixed(0)}px 0)` : '';
+      const hint = document.getElementById('wsScrollHint');
+      bar.style.display = hint.style.display = wsScroll.on ? 'block' : 'none';
+      if (!wsScroll.on) return;
+      bar.style.top = (div.offsetTop + top + 4) + 'px'; bar.style.height = Math.max(20, bottom - top - 8) + 'px';
+      const vis = barView(), all = wsScroll.max + vis, th = document.getElementById('wsThumb');
+      th.style.height = Math.max(24, (bottom - top - 8) * vis / all) + 'px';
+      th.style.top = ((bottom - top - 8 - parseFloat(th.style.height)) * (wsScroll.max ? wsScroll.y / wsScroll.max : 0)) + 'px';
+      // 「下にもブロックがある」は、上のルール（部屋を調べて…）と同じ文字の大きさ
+      const pr = document.querySelector('#progNotes .progRule .prIn') || document.querySelector('#progNotes .progRule');
+      if (pr) hint.style.fontSize = getComputedStyle(pr).fontSize;
+      hint.style.top = (div.offsetTop + bottom + 3) + 'px';
+      hint.textContent = wsScroll.y < wsScroll.max - 2 ? '▼ 下にもブロックがある（スクロール）' : wsScroll.y > 2 ? '▲ 上にもブロックがある' : '';
+      hint.style.display = hint.textContent ? 'block' : 'none';
+    }
+    function barView() { const div = document.getElementById('blocklyDiv'), P = BLOCK_ROW_WS * workspace.scale; return Math.max(1, (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD - P * 2.6)) - (ROW_PAD + pyHeadRows() * P)); }
+    // マウスのホイール・トラックパッド
+    document.getElementById('blocklyDiv').addEventListener('wheel', (e) => { if (!wsScroll.on) return; e.preventDefault(); wsScrollBy(e.deltaY); }, { passive: false });
+    // 何もない所をドラッグ（指でも）すると、スクロール
+    (function () {
+      let pan = null;
+      const div = document.getElementById('blocklyDiv');
+      div.addEventListener('pointerdown', (e) => {
+        if (!wsScroll.on || !e.target.classList || !e.target.classList.contains('blocklyMainBackground')) return;
+        pan = { y: e.clientY, id: e.pointerId };
+      }, true);
+      document.addEventListener('pointermove', (e) => { if (pan && e.pointerId === pan.id) { wsScrollBy(pan.y - e.clientY); pan.y = e.clientY; } });
+      document.addEventListener('pointerup', () => { pan = null; });
+      document.addEventListener('pointercancel', () => { pan = null; });
+    })();
+    // ブロックをつまんで上下のはしに近づけると、自動でスクロール（つまんだブロックは指についてくる）
+    (function () {
+      const D = Blockly.dragging && Blockly.dragging.Dragger;
+      if (!D) return;
+      let s0 = 0, last = null, raf = 0;
+      const oStart = D.prototype.onDragStart, oDrag = D.prototype.onDrag, oEnd = D.prototype.onDragEnd;
+      D.prototype.onDragStart = function (e) { s0 = wsScroll.y; this.__ws = true; loop(); return oStart.apply(this, arguments); };
+      D.prototype.onDrag = function (e, delta) {
+        if (e && e.clientY !== undefined) last = e;
+        const d = wsScroll.y - s0;
+        return oDrag.call(this, e, d ? new Blockly.utils.Coordinate(delta.x, delta.y + d) : delta);
+      };
+      D.prototype.onDragEnd = function () { cancelAnimationFrame(raf); raf = 0; last = null; return oEnd.apply(this, arguments); };
+      function loop() {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(function step() {
+          if (!workspace.isDragging()) { raf = 0; return; }
+          if (last && wsScroll.on) {
+            const div = document.getElementById('blocklyDiv'), r = div.getBoundingClientRect(), P = BLOCK_ROW_WS * workspace.scale;
+            const top = r.top + ROW_PAD + pyHeadRows() * P, bottom = r.top + (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD - P * 2.6)), edge = 36;
+            let v = 0;
+            if (last.clientY < top + edge) v = -Math.min(14, (top + edge - last.clientY) / 3 + 2);
+            else if (last.clientY > bottom - edge) v = Math.min(14, (last.clientY - (bottom - edge)) / 3 + 2);
+            if (v && wsScrollBy(v, 240)) {
+              try { document.dispatchEvent(new PointerEvent('pointermove', { clientX: last.clientX, clientY: last.clientY, pointerId: last.pointerId, pointerType: last.pointerType, isPrimary: true, bubbles: true, buttons: 1 })); } catch (err) { /* なし */ }
+            }
+          }
+          raf = requestAnimationFrame(step);
+        });
+      }
+    })();
     let fitPending = false;
     function scheduleFit() {
       if (fitPending) return;
@@ -7050,7 +7231,7 @@ window.DroneQR = (function () {
         let y;
         if (l.kind === 'head') y = ROW_PAD + (i + 0.5) * P;
         else if (l.kind === 'empty') y = ROW_PAD + (pyHeadRows() + 0.5) * P;
-        else if (l.kind === 'close') y = Math.max(prev + P * 1.56, pre.clientHeight - ROW_PAD - P / 2 - P * 1.5);   // 下端から少し上に固定
+        else if (l.kind === 'close') y = (typeof wsScroll !== 'undefined' && wsScroll.on) ? pre.clientHeight - ROW_PAD - P / 2 - P * 1.5 : Math.max(prev + P * 1.56, pre.clientHeight - ROW_PAD - P / 2 - P * 1.5);   // 下端から少し上に固定
         else {
           const blk = l.owner ? workspace.getBlockById(l.owner) : null;
           if ((l.kind === 'main' || l.kind === 'ghost') && blk) y = labelCenterY(blk, 0) - preTop;
@@ -7065,8 +7246,11 @@ window.DroneQR = (function () {
 
       const style = (i) => `top:${(ys[i] - lineH / 2).toFixed(1)}px;height:${lineH.toFixed(1)}px;line-height:${lineH.toFixed(1)}px`;
       pre.style.fontSize = fontPx.toFixed(2) + 'px';
+      const scrollOn = typeof wsScroll !== 'undefined' && wsScroll.on, zTop = ROW_PAD + pyHeadRows() * P - 3, cIdx = lines.findIndex((l) => l.kind === 'close');
       pre.innerHTML = lines.map((l, i) => {
         if (!l.text) return '';
+        // スクロール中は、ブロックの場所の外（上の説明・下の close の行と重なる所）の行は出さない
+        if (scrollOn && l.kind !== 'head' && l.kind !== 'close' && (ys[i] < zTop + lineH * 0.4 || ys[i] > (wsScroll.zoneBottom || (cIdx >= 0 ? ys[cIdx] - lineH * 0.8 : 1e9)) - lineH * 0.4)) return '';
         let cls = 'pyline';
         if (run) {
           // 繰返・もし は、先頭の for / if の行だけを強調する
@@ -7083,7 +7267,10 @@ window.DroneQR = (function () {
       const zoneTop = ROW_PAD + pyHeadRows() * P - 3;
       const connectBottom = ys[3] + lineH / 2;                       // 「ドローンと接続する」の下端
       const zoneGap = (ROW_PAD + PY_BASE_ROWS * P - 3) - connectBottom;   // 上の説明が増えても、枠の下の隙間は同じ                        // 上側の隙間 = 下側の隙間（等距離）
-      const zoneH = Math.max(0, (ys[closeIdx] - lineH / 2) - zoneGap - zoneTop);
+      let zoneH = Math.max(0, (ys[closeIdx] - lineH / 2) - zoneGap - zoneTop);
+      // スクロールするとき、下の close の行（Python・説明）がなければ、ブロックの場所を下まで広げる（下のはしに「下にもブロックがある」の分だけあける）
+      if (typeof wsScroll !== 'undefined' && wsScroll.on && closeIdx >= 0 && !lines[closeIdx].text && !currentNotes().close) zoneH = Math.max(0, pre.clientHeight - ROW_PAD - Math.max(30, fontPx * 2) - zoneTop);
+      if (typeof wsScroll !== 'undefined') { const zb = zoneTop + zoneH; if (Math.abs((wsScroll.zoneBottom || 0) - zb) > 0.5) { wsScroll.zoneBottom = zb; setTimeout(wsClip, 0); } }
       const zone = `<div class="progZone" style="top:${zoneTop.toFixed(1)}px;height:${zoneH.toFixed(1)}px"><span class="progZoneHint">${currentUnit === 'bs' ? 'ブロックをつなげよう' : 'ここにブロックをドラッグ＆ドロップ'}</span></div>`;
       notes.style.fontSize = fontPx.toFixed(2) + 'px';
       notes.innerHTML = zone + lines.map((l, i) => {
@@ -8392,16 +8579,18 @@ window.DroneQR = (function () {
     // 読み込んだ記録のプログラム・進み具合を、この端末に入れる（この端末にまだない所だけ）
     let progNewestT = 0;   // 「続きから」：いちばん新しいファイルの時刻（そのファイルは、この端末の記録より優先する）
     function mergeProg(c) {
+      const forcedKeys = window.progForcedKeys || (window.progForcedKeys = new Set());
       let n = 0;
       const over = progNewestT && Number(c.t) === progNewestT;
       // クリアした部屋のプログラム（ファイルを作った人がクリアした部屋）は、この端末に組みかけ・はじめの並びがあっても、ファイルのほう（クリアしたときの形）にする
       const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
       const fileL = own >= 0 && c.l && c.l[own] ? c.l[own] : {};
       const roomCleared = (k) => { const m = String(k).match(/^(\w+):pz(2|1b)?$/); return !!m && Number(fileL[m[1] + (m[2] === '2' ? '2' : '')]) > 0; };
-      if (c.w && typeof c.w === 'object') Object.keys(c.w).forEach((k) => { if (progUnitOf(k) && typeof c.w[k] === 'string' && (over || !team.ws[k] || roomCleared(k))) { if (team.ws[k] !== c.w[k]) n++; team.ws[k] = c.w[k]; } });
+      if (c.w && typeof c.w === 'object') Object.keys(c.w).forEach((k) => { if (progUnitOf(k) && typeof c.w[k] === 'string' && (over || !team.ws[k] || roomCleared(k))) { if (team.ws[k] !== c.w[k]) n++; team.ws[k] = c.w[k]; forcedKeys.add('ws:' + k); } });
       if (c.st && typeof c.st === 'object') Object.keys(c.st).forEach((k) => {
         if (!(progUnitOf(k) || PROG_UNITS.includes(k))) return;
         const v = c.st[k], cur = team.steps[k];
+        forcedKeys.add('st:' + k);
         if (over || cur === undefined || cur === null) team.steps[k] = v;
         else if (typeof v === 'number' && typeof cur === 'number') {
           if (/:(o|it|u|d|r|bx)\d$/.test(k)) team.steps[k] = cur | v;        // 開けた物・持ち物・暗号：まぜる
@@ -9083,7 +9272,7 @@ window.DroneQR = (function () {
     // 部屋1は、まちがいの所（m）だけ鍵なしで変えられる。変わってよいパラメータの数
     const openCount = (st) => st === 1 ? presetOf(1).reduce((n, b) => n + (b.m ? b.m.length : 0), 0) : 0;
     const diffAllow = (st) => st === 1 ? openCount(1) : escHints(st);
-    // ブロックのパラメータ（変えるには鍵がいる所）
+    // ブロックのパラメータ（変えるには謎を解く所）
     const PARAM_NAMES = { bs_set: ['N'], bs_mid: ['E'], bs_step: ['E'], ls_ans: ['V'], ls_if_var: ['X', 'A'], ls_if_arr: ['I', 'A'], ls_call: ['N'], fa_assign: ['L', 'R'], fs_call: ['ARG'], rv_copy: ['X', 'Y'], ra_assign: ['L', 'R'], ra_for: ['FROM', 'TO', 'DIR'], custom_repeat: ['TIMES'] };
     function blockFields(b) { const f = {}; (PARAM_NAMES[b.type] || []).forEach((n) => { f[n] = b.getFieldValue(n); }); return f; }
     // 用意したブロックから、いくつのパラメータが変わっているか（並べ方は関係ない）
@@ -9179,7 +9368,7 @@ window.DroneQR = (function () {
             : inv.rest.length
               ? `ブロックが ${inv.rest.length} 個足りません。<small>「全消」で、ブロックを最初の並びにもどそう</small>`
               : `つながっていないブロックがあります（${loose} かたまり）。<small>一番上のブロックからつながっている所までしか実行されないよ。ぜんぶ1本につなげよう（「関数 find(target) を作る」は別のかたまりでよい）</small>`;
-        } else if (presetDiff(st) > diffAllow(st)) msg = '鍵を使わずに変わっているパラメータがあります。<small>「全消」で、ブロックを用意されたものにもどそう</small>';
+        } else if (presetDiff(st) > diffAllow(st)) msg = '謎を解かずに変わっているパラメータがあります。<small>「全消」で、ブロックを用意されたものにもどそう</small>';
         else if (st === 1) {
           const t = varState.target, k = codes.indexOf(t), a = varState.ans;
           if (t === null) msg = 'target に数が入っていません。<small>「代入 target ← 数」を、もしのブロックより上につなげよう</small>';
@@ -9253,7 +9442,7 @@ window.DroneQR = (function () {
       updateTeamBox();
       if (stage) { try { await escapeDoorAnim(stage); } catch (e) { if (e === CANCELLED) return; console.warn(e); } }
       const head = `<span class="tHead">${stage ? `🚪 ${roomName(stage)} 脱出成功！` : '🎉 ミッションクリア！'}</span>` +
-        (stage ? `<small>⏱ ${fmtMS(escClearTime(stage))}　🗝 鍵 ${escHints(stage)}本　<span style="color:#facc15">${escStars(stage)}</span></small>` : '');
+        (stage ? `<small>⏱ ${fmtMS(escClearTime(stage))}　🔧💡 ${coinsUsed(stage)}回　<span style="color:#facc15">${escStars(stage)}</span></small>` : '');
       const next = stage === 1 ? '<br>つぎは 部屋2（地下倉庫・プログラムで）へ！' : stage === 2 ? '<br>地下倉庫の謎を解いた！' : '';
       showToast(first ? `${head}<small>自分（${escapeHtml(memberName(team.me))}）+${ptMax(key)}pt ／ 班 +${ptMax(key)}pt${next}</small>`
         : (hasMe() ? `${head}<small>ポイントはもうゲットしているよ${next}</small>` : `${head}<small>「班の設定」で自分の機体を選ぶと、ポイントがもらえるよ${next}</small>`), false, stage === 1 ? 4500 : undefined);
@@ -9342,7 +9531,7 @@ window.DroneQR = (function () {
              <li>手がかりは、そのままでは読めない。これまでに学んだことを使って解読しよう</li>
              <li>解読した数は、扉の暗号パネルに入力する。4機の変数を暗号と同じにすると、扉が開く（上書きに注意）</li>
              ${ESC.timer ? `<li>⏱ 制限時間：部屋1 ${ESC.limit[1] / 60}分・部屋2 ${ESC.limit[2] / 60}分（時間がすぎても、脱出はできる）</li>` : ''}
-             ${ESC.keys ? `<li>🗝 ヒントの鍵：各部屋 ${ESC.keys}本（使った本数は、脱出ランクに入る）</li>` : ''}
+             <li>🧩 <b>謎</b>：部屋2で、ブロックのパラメータを変えるときや、💡 ヒントでまちがいを光らせたいときは、その場でミニ問題を1問解く。正解すると変えられる・ヒントが出る。変更とヒントの回数は脱出ランクに入る</li>
            </ul></div>
            <p>どの順番で箱に数を入れれば、暗号がそろうだろう？ まずは <b>② 例示（練習の部屋）</b> で、箱の使い方を確かめよう。</p>` };
         case 'bs': return { title: '地下倉庫の謎 ― 並んだ箱から、はやくさがす', side: varEpisodeArt(), html:
@@ -9352,7 +9541,7 @@ window.DroneQR = (function () {
            <div class="riddle"><h3>🔐 脱出のルール</h3><ul class="escRules">
              <li>さがす数（扉の暗号）の手がかりは、部屋のどこかにある。ドラッグで部屋を見回して、気になる物をクリックして調べよう。解読した数は、🚪 扉の暗号パネルに入力する</li>
              <li><b>${roomName(1)}</b>：箱をクリックすると、さがす数が飛んでいって、ふたが開く。開けた箱の数が、さがす数より小さいか大きいかを見て、次に開ける箱を考えよう。どの箱にもないと思ったら「🙅 この数はない」。4つのさがす数のこたえがそろうと脱出</li>
-             <li><b>${roomName(2)}</b>：組みかけのプログラム（関数 find）が置いてある。まちがいが1か所。🗝 鍵で直して実行し、4つの数をプログラムにさがさせる（どれも4回以内のくらべで）</li>
+             <li><b>${roomName(2)}</b>：組みかけのプログラム（関数 find）が置いてある。まちがいが1か所。謎を解いて直して実行し、4つの数をプログラムにさがさせる（どれも4回以内のくらべで）</li>
              ${ESC.timer ? `<li>⏱ 制限時間：部屋1 ${ESC.limit[1] / 60}分・部屋2 ${ESC.limit[2] / 60}分（時間がすぎても、脱出はできる）</li>` : ''}
            </ul></div>
            <p>まずは <b>② 例示</b> で、2つの見本の「くらべた回数」をくらべてみよう。</p>` };
@@ -9578,7 +9767,7 @@ window.DroneQR = (function () {
     };
     // 問題（③④）：答えに使うブロックを、最初からプログラムエリアにばらばらに並べておく（消せない・増やせない）
     const fieldsXml = (f, m) => (m && m.length ? `<data>${m.join(',')}</data>` : '') + Object.entries(f || {}).map(([k, v]) => F(k, v)).join('');
-    // keep：今のパラメータのまま、並びだけばらばらにもどす（鍵を使って変えた所は、そのまま）
+    // keep：今のパラメータのまま、並びだけばらばらにもどす（謎を解いて変えた所は、そのまま）
     function layVarInventory(keep) {
       let list = varInventory();
       if (keep && presetDiff(varStage()) <= diffAllow(varStage())) {
@@ -9633,7 +9822,7 @@ window.DroneQR = (function () {
     clearBlocks = function () {
       if (currentUnit === 'bs') {
         if (varUsesInventory()) {
-          if (!confirm('ブロックの並びを、最初の並び（ばらばら）にもどします。\n（鍵を使って変えたパラメータは、そのままです）よろしいですか？')) return;
+          if (!confirm('ブロックの並びを、最初の並び（ばらばら）にもどします。\n（謎を解いて変えたパラメータは、そのままです）よろしいですか？')) return;
           layVarInventory(true); prepareVarProblem(false);
         } else {
           if (!confirm('ブロックを、見本の並びにもどします。よろしいですか？')) return;
@@ -9644,14 +9833,57 @@ window.DroneQR = (function () {
       }
       baseClearBlocks();
     };
-    // ---- 🗝 鍵：問題のブロックのパラメータは、鍵を1本使うと1か所変えられる（並べ方・組み方は自由） ----
-    const keysOf = () => Math.max(ARR_NEED, ESC.keys);
+    // ---- 🧩 謎：問題のブロックのパラメータは、謎（ミニ問題）を1問解くと1か所変えられる（並べ方・組み方は自由） ----
+    // 🧩 パラメータを変えるとき・ヒントがほしいときは、その場でミニ問題（謎）を解く（正解すると変えられる／ヒントが出る）
+    const hintCoins = (st) => Number(escSteps()['bs:hc' + st]) || 0;      // ヒントを使った回数（もどらない）
+    const coinsUsed = (st) => escHints(st) + hintCoins(st);                // 変更＋ヒントの回数（脱出ランクに入る）
+    function coinRow(st) {
+      return `<div class="keyRow"><span class="keyLeft">🔧 パラメータの変更 ${escHints(st)} か所　💡 ヒント ${hintCoins(st)} 回</span></div>`;
+    }
+    // ---- 💡 ヒント（謎を解く）：まちがっているブロックを1つ光らせる（部屋2） ----
+    const hintBad = new Set();
+    function wrongBlocks() {
+      if (currentUnit !== 'bs' || curStep() !== 3 || varStage() !== 2) return [];
+      const pre = presetOf(2) || [];
+      if (!pre.length || !pre.every((b) => b.ok)) return [];
+      // 正しいパラメータ（用意したブロックの、まちがえる前の値）と同じブロックを、1つずつ対応させる。対応しないブロックが「まちがい」
+      const pool = pre.map((b) => ({ type: b.type, ok: b.ok, used: false })), bad = [];
+      workspace.getAllBlocks(true).forEach((b) => {
+        if (!PARAM_NAMES[b.type] || !pool.some((p) => p.type === b.type)) return;
+        const same = (p) => Object.keys(p.ok).every((n) => !b.getField(n) || String(b.getFieldValue(n)) === String(p.ok[n]));
+        const m = pool.find((p) => !p.used && p.type === b.type && same(p));
+        if (m) m.used = true; else bad.push(b);
+      });
+      return bad;
+    }
+    function refreshHintMarks() {
+      const badIds = new Set(wrongBlocks().map((b) => b.id));
+      [...hintBad].forEach((id) => {
+        const b = workspace.getBlockById(id);
+        if (!b || !badIds.has(id)) { if (b) b.getSvgRoot().classList.remove('blockHintBad'); hintBad.delete(id); }
+        else b.getSvgRoot().classList.add('blockHintBad');
+      });
+    }
+    function useCoinHint(solved) {
+      const st = varStage();
+      const next = wrongBlocks().find((b) => !hintBad.has(b.id));
+      if (!next) { closeEscModal(); showToast(wrongBlocks().length ? '💡 まちがっているブロックは、もう光っている' : '💡 パラメータのまちがいは、もうない<small>あとは、ブロックの並べ方・つなぎ方を確かめよう</small>', false, 4500); return; }
+      if (!solved) { openGate({ kind: 'hint' }); return; }
+      escSteps()['bs:hc' + st] = hintCoins(st) + 1; saveTeam();
+      hintBad.add(next.id); next.getSvgRoot().classList.add('blockHintBad');
+      closeEscModal();
+      try { if (wsScroll.on) { const P = BLOCK_ROW_WS * workspace.scale, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (ROW_PAD + pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
+      showToast('💡 赤く光っているブロックに、まちがいがある<small>パラメータ（プルダウン）を直そう</small>', false, 4500);
+      renderStep();
+    }
+    workspace.addChangeListener((e) => { if (hintBad.size && (e.type === Blockly.Events.BLOCK_CHANGE || e.type === Blockly.Events.BLOCK_MOVE)) setTimeout(refreshHintMarks, 0); });
     let keyPending = null;
     const optLabel = (b, name, v) => { try { const o = b.getField(name).getOptions().find((x) => String(x[1]) === String(v)); return o ? o[0] : String(v); } catch (e) { return String(v); } };
     function setFieldQuiet(b, name, v) {
       Blockly.Events.disable();
       try { b.setFieldValue(v, name); } finally { Blockly.Events.enable(); }
       saveWs(); updatePythonView(); scheduleFit();
+      try { refreshHintMarks(); } catch (e) { /* なし */ }
     }
     workspace.addChangeListener((e) => {
       if (e.type !== Blockly.Events.BLOCK_CHANGE || e.element !== 'field' || currentUnit !== 'bs' || curStep() !== 3) return;
@@ -9665,19 +9897,78 @@ window.DroneQR = (function () {
         showToast('🔒 ここは正しいので、変えられない<small>まちがっている所だけ変えられるよ（2か所）。target の数は自由に変えられる</small>', true, 3000);
         return;
       }
-      setFieldQuiet(b, e.name, e.oldValue);   // いったんもとにもどして、鍵を使うか聞く
+      // 用意されたブロックから変わっている所の数がふえるときだけ、謎を解く（もとにもどすときは、謎なしでもどせる）
+      const after = presetDiff(st);
+      setFieldQuiet(b, e.name, e.oldValue);
+      const before = presetDiff(st);
+      if (after <= before) {
+        setFieldQuiet(b, e.name, e.newValue);
+        if (after < before && escHints(st) > 0) { escSteps()['bs:h' + st] = escHints(st) - 1; saveTeam(); showToast('↩ もとの値にもどした<small>変えた所の数が1つへった</small>', false, 2500); }
+        renderStep();
+        return;
+      }
       keyPending = { id: b.id, name: e.name, from: e.oldValue, to: e.newValue };
-      openKeyAsk();
+      openGate({ kind: 'param' });
     });
-    function openKeyAsk() {
-      const p = keyPending, b = p && workspace.getBlockById(p.id);
-      if (!b) return;
-      const st = varStage(), used = escHints(st), left = keysOf() - used;
-      const keyRow = `<div class="keyRow">${'<span class="key">🗝</span>'.repeat(Math.max(0, left))}${'<span class="key used">🗝</span>'.repeat(Math.min(used, keysOf()))}<span class="keyLeft">のこり ${Math.max(0, left)} 本</span></div>`;
-      showEscModal('<div class="escTitle">🗝 パラメータを変える</div>' + keyRow +
-        `<div class="escSub">「<b>${escapeHtml(optLabel(b, p.name, p.from))}</b>」を「<b>${escapeHtml(optLabel(b, p.name, p.to))}</b>」に変える？<br>` +
-        (left > 0 ? '<span class="dim">鍵を1本使う。使った鍵はもどらない。</span>' : '<span class="dim">鍵はもうない。予備の鍵を使うと変えられるが、脱出ランクの★が1つへる。</span>') + '</div>' +
-        `<div class="escActions"><button class="go" onclick="applyKey()">🗝 ${left > 0 ? '鍵を1本使って変える' : '予備の鍵を使って変える'}</button><button onclick="keyPending=null;closeEscModal()">やめる</button></div>`, 'hintModal');
+    // ---- 🧩 謎のゲート：ヒント・パラメータの変更の前に、ミニ問題を1問解く。まちがえると5秒待って、別の問題 ----
+    let gateAct = null, gateZ = null, gateCool = 0, gateTimer = null;
+    const gateN = (st) => Number(escSteps()['bs:qn' + st]) || 0;
+    function openGate(act, msg) {
+      const st = varStage();
+      if (act) { gateAct = act; gateZ = null; }
+      if (!gateZ) gateZ = gateQuiz(gateN(st));
+      const z = gateZ, cool = gateCool > Date.now(), p = gateAct.kind === 'param' ? keyPending : null, b = p && workspace.getBlockById(p.id);
+      const head = gateAct.kind === 'hint' ? `<div class="escTitle">💡 ヒントの謎</div><div class="escSub dim">${gateAct.note || 'この問題に正解すると、まちがっているブロックが1つ赤く光る。'}</div>`
+        : '<div class="escTitle">🔧 パラメータを変える謎</div>' + (b ? `<div class="escSub dim">正解すると「<b>${escapeHtml(optLabel(b, p.name, p.from))}</b>」を「<b>${escapeHtml(optLabel(b, p.name, p.to))}</b>」に変えられる。</div>` : '');
+      showEscModal(head +
+        (z.box ? `<div style="display:flex;gap:6px;justify-content:center;margin:8px 0;flex-wrap:wrap">${z.box.map((v, k) => `<div style="text-align:center"><div style="min-width:40px;padding:6px 8px;border:2px solid #facc15;border-radius:8px;font:900 20px ui-monospace,monospace;color:#fde68a">${v}</div><small style="color:#94a3b8">${z.labs ? z.labs[k] : '左から' + (k + 1)}</small></div>`).join('')}</div>` : '') +
+        `<div class="escSub">${z.q}</div>` +
+        (msg ? `<div class="escSub" style="color:#fca5a5">${msg}</div>` : '') +
+        `<div class="escActions" style="flex-wrap:wrap">${z.ch.map((c, j) => `<button class="go"${cool ? ' disabled' : ''} onclick="answerGate(${j})">${escapeHtml(String(c))}${z.unit || ''}</button>`).join('')}<button onclick="cancelGate()">やめる</button></div>`, 'hintModal');
+    }
+    function cancelGate() { clearTimeout(gateTimer); gateAct = null; gateZ = null; keyPending = null; closeEscModal(); }
+    function answerGate(j) {
+      const st = varStage(), z = gateZ, act = gateAct;
+      if (!z || !act || gateCool > Date.now()) return;
+      escSteps()['bs:qn' + st] = gateN(st) + 1; saveTeam();   // つぎは別の問題
+      if (String(z.ch[j]) !== String(z.ans)) {
+        gateCool = Date.now() + 5000;
+        openGate(null, 'ちがうみたい。5秒たつと、別の問題が出る');
+        clearTimeout(gateTimer);
+        gateTimer = setTimeout(() => { if (gateAct === act && !document.getElementById('escOverlay').classList.contains('viewHidden')) { gateZ = null; openGate(null); } }, 5100);
+        return;
+      }
+      gateAct = null; gateZ = null;
+      if (act.kind === 'hint') useCoinHint(true); else applyKey();
+      showToast(`⭕ 正解！<small>${z.why}</small>`, false, 3000);
+    }
+    // 謎の問題を作る道具（班・何問目かで決まる）
+    function gateRand(i) {
+      let h = 2166136261; const seed = `${team.group}|gate|${team.round || 0}|${i}`;
+      for (let c = 0; c < seed.length; c++) { h ^= seed.charCodeAt(c); h = Math.imul(h, 16777619) >>> 0; }
+      const rnd = () => { h ^= h << 13; h >>>= 0; h ^= h >>> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; };
+      const ri = (n) => Math.floor(rnd() * n);
+      const shuf = (a) => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = ri(k + 1); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+      const pick = (n, max) => shuf(Array.from({ length: max || 20 }, (_, k) => k + 1)).slice(0, n);
+      const choices = (ans, pool) => { const c = [ans]; pool.forEach((x) => { if (c.length < 4 && !c.some((y) => String(y) === String(x))) c.push(x); }); return shuf(c); };
+      return { rnd, ri, shuf, pick, choices };
+    }
+    // 謎：二分探索のミニ問題（mid・つぎの範囲・くらべる回数）
+    function gateQuiz(i) {
+      const { ri, pick, choices } = gateRand(i), kind = i % 3, box = pick(7, 30).sort((a, b) => a - b), labs = box.map((_, k) => k + '番');
+      if (kind === 0) {
+        const lo = ri(4), hi = lo + 2 + ri(6 - lo - 1), ans = Math.floor((lo + hi) / 2);
+        return { box, labs, kind, q: `low = ${lo}、high = ${hi} のとき、<b>mid = (low + high) ÷ 2</b>（小数は切り捨て）は？`, ans, ch: choices(ans, [Math.ceil((lo + hi) / 2) === ans ? ans + 1 : Math.ceil((lo + hi) / 2), lo + hi, hi - lo, ans - 1]), unit: '番', why: `(${lo} + ${hi}) ÷ 2 = ${(lo + hi) / 2} → 切り捨てて ${ans}。` };
+      }
+      if (kind === 1) {
+        let k; do { k = ri(7); } while (k === 3);
+        const x = box[k], big = x > box[3], ans = big ? 'low = 4、high = 6' : 'low = 0、high = 2';
+        return { box, labs, kind, q: `<b>${x}</b> を二分探索でさがす。low = 0、high = 6。1回目は mid = 3 の box[3]（${box[3]}）とくらべる。つぎの low と high は？`, ans, ch: choices(ans, ['low = 4、high = 6', 'low = 0、high = 2', 'low = 3、high = 6', 'low = 0、high = 3']), why: `${x} は ${box[3]} より${big ? '大きい → 右半分（low = mid + 1 = 4）' : '小さい → 左半分（high = mid - 1 = 2）'}。` };
+      }
+      const k = ri(7), x = box[k];
+      let lo = 0, hi = 6, n = 0;
+      while (lo <= hi) { const m = Math.floor((lo + hi) / 2); n++; if (box[m] === x) break; if (box[m] < x) lo = m + 1; else hi = m - 1; }
+      return { box, labs, kind, q: `<b>${x}</b> を二分探索でさがす（low = 0、high = 6 から）。何回くらべたら見つかる？`, ans: n, ch: choices(n, [k + 1, 1, 2, 3, 4]), unit: '回', why: `真ん中とくらべて、半分ずつにしぼる。${x} は ${n} 回目で見つかる（線形探索なら ${k + 1} 回）。` };
     }
     function applyKey() {
       const p = keyPending, b = p && workspace.getBlockById(p.id);
@@ -9689,7 +9980,7 @@ window.DroneQR = (function () {
       saveTeam();
       setFieldQuiet(b, p.name, p.to);
       renderStep();
-      showToast(`🗝 鍵を使って「${escapeHtml(optLabel(b, p.name, p.to))}」に変えた<small>のこり ${Math.max(0, keysOf() - escHints(st))} 本</small>`, false, 2500);
+      setTimeout(() => showToast(`🔧 「${escapeHtml(optLabel(b, p.name, p.to))}」に変えた<small>もとの値にもどすときは、謎なしでもどせる</small>`, false, 2500), 3100);
     }
     let wsSaveTimer = null;
     workspace.addChangeListener((e) => {
@@ -9790,7 +10081,7 @@ window.DroneQR = (function () {
         tools.innerHTML = u === 'bs'
           ? escTimerHtml() + '<button class="escBtn" onclick="saveMidway()" title="ここまでの記録を保存（次の時間は「📂 続きから」）">💾<span class="escLong"> 途中保存</span></button>' + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + (varStage() !== 2 ? '' : `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>`) + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>` +
-            (varStage() === 1 ? '<button class="escBtn" onclick="r1None()" title="いまさがす数は、どの箱にもない">🙅<span class="escLong"> この数はない</span></button><button class="escBtn" onclick="showHint()">💡<span class="escLong"> ヒント</span></button>' : `<button class="escBtn" onclick="showHint()">🗝<span class="escLong"> 鍵</span> のこり${Math.max(0, keysOf() - escHints(varStage()))}</button>`)
+            (varStage() === 1 ? '<button class="escBtn" onclick="r1None()" title="いまさがす数は、どの箱にもない">🙅<span class="escLong"> この数はない</span></button><button class="escBtn" onclick="showHint()">💡<span class="escLong"> ヒント</span></button>' : '<button class="escBtn" onclick="showHint()">💡<span class="escLong"> ヒント</span></button>')
           : (BLOCK_LIMIT[u] ? '<span class="blockCount" id="blockCountBox"></span>' : '') + '<button onclick="showHint()">ヒント</button>';
         if (u === 'bs') renderEscTimer();
         updateBlockCount();
@@ -9838,7 +10129,7 @@ window.DroneQR = (function () {
           `${ex ? '真ん中（mid）とくらべて、半分ずつしぼる' : 'はしから順に、1つずつくらべる'}<br>「実行」して、くらべた回数を見よう</div></div>`;
       }
       return `<div class="progMission" id="progMission" style="top:${top.toFixed(1)}px;height:${(bottom - top).toFixed(1)}px">${varPanelHtml()}</div>` +
-        `<div class="progRule" style="top:${(bottom + 4).toFixed(1)}px;height:${(lineH * 3.0).toFixed(1)}px"><div class="prIn">🔒 <span class="prStage">${VAR_STAGE_NAME[varStage()]} ${varStage() === 1 ? '手でさがす' : 'プログラムでさがす'}・${ptMax(varStage() === 1 ? 'bs' : 'bs2')}pt</span><br>${escDecodedCount(varStage()) < 4 ? `部屋を調べて、扉の暗号を解読しよう（${escDecodedCount(varStage())} / 4）` : (varStage() === 2 ? `組みかけの find のまちがい（1か所）を直して実行（こたえ ${lsLocks(2)} / 4）` : (r1Cur() === undefined ? '' : `いまさがす数 ${lsCodes(1)[r1Cur()]}：箱をクリックして開けよう（あと ${OPEN_LIMIT - opensUsed()} 回・こたえ ${lsLocks(1)} / 4）`))}<br>${varStage() === 1 ? 'この部屋では、プログラムは使わない' : `ブロックはすべて使う。パラメータを変えるには🗝鍵（のこり ${Math.max(0, keysOf() - escHints(varStage()))}本）`}</div></div>`;
+        `<div class="progRule" style="top:${(bottom + 4).toFixed(1)}px;height:${(lineH * 3.0).toFixed(1)}px"><div class="prIn">🔒 <span class="prStage">${VAR_STAGE_NAME[varStage()]} ${varStage() === 1 ? '手でさがす' : 'プログラムでさがす'}・${ptMax(varStage() === 1 ? 'bs' : 'bs2')}pt</span><br>${escDecodedCount(varStage()) < 4 ? `部屋を調べて、扉の暗号を解読しよう（${escDecodedCount(varStage())} / 4）` : (varStage() === 2 ? `組みかけの find のまちがい（1か所）を直して実行（こたえ ${lsLocks(2)} / 4）` : (r1Cur() === undefined ? '' : `いまさがす数 ${lsCodes(1)[r1Cur()]}：箱をクリックして開けよう（あと ${OPEN_LIMIT - opensUsed()} 回・こたえ ${lsLocks(1)} / 4）`))}<br>${varStage() === 1 ? 'この部屋では、プログラムは使わない' : `ブロックはすべて使う。パラメータを変えるときは、謎を1問解く`}</div></div>`;
     }
     // 変数の問題では、プログラムエリアの上に「扉の暗号」の説明を入れるので、ブロックを置く場所をその分下げる
     function extraHeadRows() { return currentUnit === 'bs' && curStep() >= 2 ? (curStep() >= 3 ? 4 : 2) : 0; }
@@ -9847,14 +10138,14 @@ window.DroneQR = (function () {
     document.querySelectorAll('#unitNav button[data-unit]').forEach((b) => b.addEventListener('click', () => setUnit(b.dataset.unit)));
 
 
-    // ==================== 脱出ゲーム（部屋・扉・手がかり・タイマー・ヒントの鍵） ====================
+    // ==================== 脱出ゲーム（部屋・扉・手がかり・タイマー・ヒント） ====================
     // ③問題は「部屋1（倉庫）→ 部屋2（管制室）」からの脱出。部屋の中の物をクリックして調べる（場所の目印は出さない）。
     //   ・物は順番につながっている（開けた物の中の持ち物で、次の物が開く。金庫の番号は、ほかの手がかりの中に2進数で）
     //   ・手がかりは4つ（4機ぶん）。2進数のランプ・プログラム（順次・繰返・分岐）・16進数・偶数パリティで書かれていて、
     //     どの機体のものかは色だけでわかる。解読した数を「扉の暗号パネル」（扉をクリック）に入れると、その機体の暗号が表示される
     //   ・4機の変数を暗号と同じにすると、扉が開いて次の部屋へ
     //   ・制限時間（URL の ?t1=10&t2=15 で分を変えられる。?timer=0 でタイマーなし）
-    //   ・ヒントの鍵（各部屋3本。?keys=0〜3 で本数を変えられる）
+    //   ・ヒント・パラメータの変更は、謎（ミニ問題）を1問解く
     // 脱出タイム・ヒントの数・見つけたメモは、この端末の記録（team.steps）に入る。ポイントのしくみは今までどおり。
     const ESC = (() => {
       const q = new URLSearchParams(location.search);
@@ -9934,7 +10225,7 @@ window.DroneQR = (function () {
     const WALL_SLOTS = [{ p: [2.6, 4.3, -0.62], r: 0 }, { p: [-2.6, 4.3, -0.62], r: 0 }, { p: [-4.33, 3.3, 3.0], r: Math.PI / 2 }, { p: [-4.33, 2.9, 0.75], r: Math.PI / 2 }, { p: [0, 5.5, -0.62], r: 0 }, { p: [4.33, 3.0, 3.4], r: -Math.PI / 2 }, { p: [-4.33, 5.0, 2.0], r: Math.PI / 2 }];
     const layoutCache = {};
     // 確認クイズの問題集（授業のWebアプリの確認クイズから）
-    const QUIZ_BANK = [{"q": "コンピュータを構成する、物理的な装置のことを何という？", "o": ["ソフトウェア", "ハードウェア", "アプリ"], "a": 1}, {"q": "「写真のデータ」は、ハードウェアとソフトウェアのどちらにふくまれる？", "o": ["ハードウェア", "ソフトウェア", "どちらでもない"], "a": 1}, {"q": "演算と制御を受け持つ装置はどれ？", "o": ["CPU", "ストレージ", "ディスプレイ"], "a": 0}, {"q": "主記憶装置(メモリ)の特徴は？(速さ・容量・電源を切ったとき)", "o": ["遅い・大きい・残る", "速い・小さい・消える", "速い・大きい・残る"], "a": 1}, {"q": "データの読み書きがいちばん速いのはどれ？", "o": ["HDD", "SSD", "主記憶装置"], "a": 2}, {"q": "次のうち、出力装置はどれ？", "o": ["マイク", "スピーカー", "イメージスキャナ"], "a": 1}, {"q": "イヤホンなどの周辺装置を、無線でつなぐときによく使われるのは？", "o": ["USB", "Bluetooth", "HDD"], "a": 1}, {"q": "ハードウェアとほかのソフトウェアの仲立ちをし、起動中は常に動いているのは？", "o": ["Webブラウザ", "OS", "表計算ソフト"], "a": 1}, {"q": "APIの説明として正しいものは？", "o": ["アプリがハードを直接動かすしくみ", "アプリがOSに頼むための窓口", "画面のデザインの規格"], "a": 1}, {"q": "ワープロ、表計算、Webブラウザなどをまとめて何という？", "o": ["アプリ", "OS", "周辺装置"], "a": 0}, {"q": "ディスプレイで、赤の光と緑の光を重ねると何色に見える?", "o": ["黄", "シアン", "白", "黒"], "a": 0}, {"q": "R・G・Bの光をすべて重ねると白になる。これはどちらの混色?", "o": ["加法混色", "減法混色"], "a": 0}, {"q": "印刷でC・M・Yに黒(K)のインクを加える理由として正しいのは?", "o": ["３色を重ねてもきれいな黒にならず、黒を補うため", "インクの色数を減らすため", "光の三原色を使うため"], "a": 0}, {"q": "「あざやかさ」を表す色の属性はどれ?", "o": ["色相", "明度", "彩度"], "a": 2}, {"q": "色相環で、真向かいにある２色の関係は?", "o": ["類似色", "補色", "無彩色"], "a": 1}, {"q": "白・灰・黒のように、色みがなく明度だけをもつ色を何という?", "o": ["有彩色", "無彩色", "補色"], "a": 1}, {"q": "赤と緑だけで見分けさせているグラフの、最も適切な改善は?", "o": ["赤をもっと濃くする", "形・線種・直接ラベルを併用する", "緑をうすくする"], "a": 1}, {"q": "文字を読みやすくするために、まず必要なのは?", "o": ["色相のちがい", "明度差(明るさのちがい)", "彩度を最大にする"], "a": 1}, {"q": "ログインの手順のように、分かれ道のある「流れ」を伝えるのに向く図は?", "o": ["フローチャート", "円グラフ", "ツリー図"], "a": 0}, {"q": "R・G・Bを各8ビットで表すとき、１画素で表せる色の数は?", "o": ["約1677万色", "256色", "約65万色"], "a": 0}, {"q": "ガラスの壁は、通り抜けることができない。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 0}, {"q": "ガラスの壁に貼られた、ぶつからないための目印のシール。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1}, {"q": "ボタンの出っ張りや影が、「押せそう」と感じさせる。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1}, {"q": "いすには、座るという行為ができる。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 0}, {"q": "操作できないボタンが、灰色になっている。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1}, {"q": "目的の商品にたどり着くまでのクリック数が多く、時間がかかるショッピングサイト。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 0}, {"q": "画像に代替テキストがなく、スクリーンリーダー(読み上げソフト)を使う人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1}, {"q": "動画に字幕がなく、耳が聞こえにくい人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1}, {"q": "申込みフォームの入力欄の順番がわかりにくく、入力ミスをして何度もやり直してしまう。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 0}, {"q": "マウスが使えない人のために、キーボードだけでもすべての操作ができるようにした。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1}, {"q": "停電すると、踏切の遮断かんが自然に下りる。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 0}, {"q": "電子レンジは、扉が開いていると加熱が始まらない。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1}, {"q": "ガソリンスタンドで、軽油用のノズルはガソリン車の給油口に入らない太さになっている。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1}, {"q": "エレベーターのワイヤーが切れても、非常止め装置が働いてカゴが落下しない。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 0}, {"q": "ファイルを削除する前に「本当に削除しますか?」と確認画面が出る。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1}, {"q": "路線図が、駅の実際の距離や線の曲がり具合をあえて省いているのは、どの考え方？", "o": ["可視化", "抽象化", "構造化"], "a": 1}, {"q": "「月ごとのスマホ使用時間の変化」を見せたい。いちばん向いているグラフは？", "o": ["折れ線グラフ", "円グラフ", "散布図"], "a": 0}, {"q": "棒グラフの縦軸を、途中(たとえば50)から始めるとどうなる？", "o": ["データが正確になる", "小さな差が実際より大きく見える", "棒が読みにくくなるだけで影響はない"], "a": 1}, {"q": "フォルダの中にフォルダがあり、その中にファイルがある。この整理の形はどれ？", "o": ["表", "リスト", "木構造(階層)"], "a": 2}, {"q": "SNSの友達関係のように、多対多のつながりを表すのに向いている構造は？", "o": ["ネットワーク", "表", "リスト"], "a": 0}, {"q": "学校や家など、限定された範囲でコンピュータを結んだネットワークを何という？", "o": ["LAN", "WAN", "ISP"], "a": 0}, {"q": "都市や国など、広い範囲のコンピュータを結ぶネットワークを何という？", "o": ["LAN", "WAN", "ルータ"], "a": 1}, {"q": "東京の本社と大阪の支社のネットワークを結ぶのは？", "o": ["LAN", "WAN", "回線終端装置"], "a": 1}, {"q": "インターネットの説明として正しいものは？", "o": ["1台の大きなコンピュータ", "たくさんのWANをつないでつくられた、世界規模のネットワーク", "学校の中だけのネットワーク"], "a": 1}, {"q": "インターネットについて正しいものは？", "o": ["1つの会社がすべてを持っている", "たくさんの組織のネットワークがつながってできている", "決まった組織の人しか使えない"], "a": 1}, {"q": "LANとWANの間に置き、通信を中継して適切な宛先に送る装置は？", "o": ["ルータ", "回線終端装置", "基地局"], "a": 0}, {"q": "ISP(インターネットサービスプロバイダ)とは？", "o": ["インターネットへの接続サービスを提供する業者", "LANケーブルの種類", "パソコンの部品"], "a": 0}, {"q": "光ファイバー回線の光の信号を、コンピュータ通信のデジタル信号に変換する装置は？", "o": ["ルータ", "回線終端装置", "基地局"], "a": 1}, {"q": "外出中のスマートフォンが、無線で通信する相手の装置は？", "o": ["基地局", "回線終端装置", "プリンタ"], "a": 0}, {"q": "家のパソコンからインターネットへ。データが通る順として正しいのは？", "o": ["パソコン→ルータ→回線終端装置→ISPのWAN", "パソコン→ISPのWAN→ルータ→回線終端装置", "パソコン→回線終端装置→基地局→ルータ"], "a": 0}, {"q": "ケーブルで、複数のコンピュータやプリンタをつなぐための装置は？", "o": ["ハブ", "アクセスポイント", "回線終端装置"], "a": 0}, {"q": "スマートフォンなどを、家のLANに無線でつなぐための装置は？", "o": ["ハブ", "アクセスポイント", "回線終端装置"], "a": 1}, {"q": "家庭用のルータについて正しいものは？", "o": ["ハブやアクセスポイントの機能を内蔵していることが多い", "光の信号しか扱えない", "インターネットには関係ない"], "a": 0}, {"q": "ルータの働きとして正しいものは？", "o": ["いくつかのルートの中から、宛先までの道を選んで送る", "光の信号をデジタル信号に変換する", "電波で機器をつなぐ"], "a": 0}, {"q": "インターネットで、データを細かく分割して送るときの単位を何という？", "o": ["ヘッダ", "パケット", "プロトコル"], "a": 1}, {"q": "通信のあいだ、1本の回線を独り占めして通信する方式は？", "o": ["パケット交換方式", "回線交換方式"], "a": 1}, {"q": "パケットのうち、送り主や送り先、データの順番などの情報を含む部分は？", "o": ["ヘッダ", "パリティビット", "ルータ"], "a": 0}, {"q": "届いたパケットの順番がばらばらでも、元のデータにもどせるのはなぜ？", "o": ["必ず送った順に届くから", "ヘッダに順番が書いてあるから", "受信側が内容から推測するから"], "a": 1}, {"q": "インターネット上で、コンピュータごとに割り振られる固有の番号は？", "o": ["パスワード", "ポート", "IPアドレス"], "a": 2}, {"q": "IPv4のIPアドレスは何ビットで表す？", "o": ["8ビット", "32ビット", "128ビット"], "a": 1}, {"q": "IPアドレスの一部、2進数 11000000 を10進数にすると？", "o": ["128", "192", "255"], "a": 1}, {"q": "ルータが宛先や混雑状況をふまえて、パケットを次のネットワークへ転送する処理は？", "o": ["ルーティング", "パリティチェック", "パケット交換"], "a": 0}, {"q": "偶数パリティで、データ 1011001 につけるパリティビットは？", "o": ["0", "1", "どちらでもよい"], "a": 0}, {"q": "偶数パリティで、末尾がパリティビットの 10110011 を受け取った。判定は？", "o": ["エラーなし", "エラーあり"], "a": 1}, {"q": "エラーが見つかり、訂正もできないとき、どうする？", "o": ["そのまま使う", "送信元に再送を求める", "通信をやめる"], "a": 1}, {"q": "通信をするための約束ごとを何という？", "o": ["プロトコル", "ルータ", "ヘッダ"], "a": 0}, {"q": "TCP/IPモデルで、Webページの閲覧に使うHTTPはどの層？", "o": ["トランスポート層", "インターネット層", "アプリケーション層"], "a": 2}, {"q": "TCP/IPモデルで、IPはどの層？", "o": ["インターネット層", "ネットワークインタフェース層", "トランスポート層"], "a": 0}, {"q": "CPUに複数のコアがあると、どうなる？", "o": ["同時にたくさんの計算を実行できる", "メモリの容量が増える", "時計が正確になる"], "a": 0}, {"q": "CPUが1秒間に基本的な動作を何回おこなうかを示す値は？", "o": ["コア", "クロック周波数", "番地"], "a": 1}, {"q": "クロック周波数が1GHzのCPUは、1秒間に約何回の基本的な動作をおこなう？", "o": ["約1000回", "約100万回", "約10億回"], "a": 2}, {"q": "クロック周波数が2倍になると、同じ時間にできる基本的な動作の回数は？", "o": ["半分になる", "変わらない", "2倍になる"], "a": 2}, {"q": "1GHzのCPUで、基本的な動作1回にかかる時間は？", "o": ["1000分の1秒", "100万分の1秒", "10億分の1秒"], "a": 2}, {"q": "CPUに与える命令で、数字の羅列で書かれ、CPUの種類によって異なるものは？", "o": ["ソースコード", "機械語", "プログラミング言語"], "a": 1}, {"q": "プログラムの「設計図」にたとえられるものは？", "o": ["ソースコード", "機械語", "バグ"], "a": 0}, {"q": "プログラミング言語を使うと、人間にもわかりやすくプログラムを書くことができる。", "o": ["○", "×"], "a": 0}, {"q": "インタプリタは、ソースコードを機械語に翻訳してから実行する。", "o": ["○", "×"], "a": 1}, {"q": "高速な処理やハードウェアの制御によく使われ、コンパイラで機械語に翻訳してから実行することが多い言語は？", "o": ["Python", "Scratch", "C、C++"], "a": 2}, {"q": "表計算ソフトの処理を自動化するのに使われる言語は？", "o": ["VBA", "JavaScript", "Scratch"], "a": 0}, {"q": "おもにWebページのなかで動作するプログラムの作成に用いられる言語は？", "o": ["Python", "JavaScript", "C、C++"], "a": 1}];
+    const QUIZ_BANK = [{"q": "コンピュータを構成する、物理的な装置のことを何という？", "o": ["ソフトウェア", "ハードウェア", "アプリ"], "a": 1, "t": "hw"}, {"q": "「写真のデータ」は、ハードウェアとソフトウェアのどちらにふくまれる？", "o": ["ハードウェア", "ソフトウェア", "どちらでもない"], "a": 1, "t": "hw"}, {"q": "演算と制御を受け持つ装置はどれ？", "o": ["CPU", "ストレージ", "ディスプレイ"], "a": 0, "t": "hw"}, {"q": "主記憶装置(メモリ)の特徴は？(速さ・容量・電源を切ったとき)", "o": ["遅い・大きい・残る", "速い・小さい・消える", "速い・大きい・残る"], "a": 1, "t": "hw"}, {"q": "データの読み書きがいちばん速いのはどれ？", "o": ["HDD", "SSD", "主記憶装置"], "a": 2, "t": "hw"}, {"q": "次のうち、出力装置はどれ？", "o": ["マイク", "スピーカー", "イメージスキャナ"], "a": 1, "t": "hw"}, {"q": "イヤホンなどの周辺装置を、無線でつなぐときによく使われるのは？", "o": ["USB", "Bluetooth", "HDD"], "a": 1, "t": "hw"}, {"q": "ハードウェアとほかのソフトウェアの仲立ちをし、起動中は常に動いているのは？", "o": ["Webブラウザ", "OS", "表計算ソフト"], "a": 1, "t": "hw"}, {"q": "APIの説明として正しいものは？", "o": ["アプリがハードを直接動かすしくみ", "アプリがOSに頼むための窓口", "画面のデザインの規格"], "a": 1, "t": "hw"}, {"q": "ワープロ、表計算、Webブラウザなどをまとめて何という？", "o": ["アプリ", "OS", "周辺装置"], "a": 0, "t": "hw"}, {"q": "ディスプレイで、赤の光と緑の光を重ねると何色に見える?", "o": ["黄", "シアン", "白", "黒"], "a": 0, "t": "design"}, {"q": "R・G・Bの光をすべて重ねると白になる。これはどちらの混色?", "o": ["加法混色", "減法混色"], "a": 0, "t": "design"}, {"q": "印刷でC・M・Yに黒(K)のインクを加える理由として正しいのは?", "o": ["３色を重ねてもきれいな黒にならず、黒を補うため", "インクの色数を減らすため", "光の三原色を使うため"], "a": 0, "t": "design"}, {"q": "「あざやかさ」を表す色の属性はどれ?", "o": ["色相", "明度", "彩度"], "a": 2, "t": "design"}, {"q": "色相環で、真向かいにある２色の関係は?", "o": ["類似色", "補色", "無彩色"], "a": 1, "t": "design"}, {"q": "白・灰・黒のように、色みがなく明度だけをもつ色を何という?", "o": ["有彩色", "無彩色", "補色"], "a": 1, "t": "design"}, {"q": "赤と緑だけで見分けさせているグラフの、最も適切な改善は?", "o": ["赤をもっと濃くする", "形・線種・直接ラベルを併用する", "緑をうすくする"], "a": 1, "t": "design"}, {"q": "文字を読みやすくするために、まず必要なのは?", "o": ["色相のちがい", "明度差(明るさのちがい)", "彩度を最大にする"], "a": 1, "t": "design"}, {"q": "ログインの手順のように、分かれ道のある「流れ」を伝えるのに向く図は?", "o": ["フローチャート", "円グラフ", "ツリー図"], "a": 0, "t": "design"}, {"q": "R・G・Bを各8ビットで表すとき、１画素で表せる色の数は?", "o": ["約1677万色", "256色", "約65万色"], "a": 0, "t": "design"}, {"q": "ガラスの壁は、通り抜けることができない。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 0, "t": "design_soc"}, {"q": "ガラスの壁に貼られた、ぶつからないための目印のシール。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1, "t": "design_soc"}, {"q": "ボタンの出っ張りや影が、「押せそう」と感じさせる。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1, "t": "design_soc"}, {"q": "いすには、座るという行為ができる。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 0, "t": "design_soc"}, {"q": "操作できないボタンが、灰色になっている。　これは、アフォーダンス・シグニファイア のどちら？", "o": ["アフォーダンス", "シグニファイア"], "a": 1, "t": "design_soc"}, {"q": "目的の商品にたどり着くまでのクリック数が多く、時間がかかるショッピングサイト。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 0, "t": "design_soc"}, {"q": "画像に代替テキストがなく、スクリーンリーダー(読み上げソフト)を使う人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1, "t": "design_soc"}, {"q": "動画に字幕がなく、耳が聞こえにくい人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1, "t": "design_soc"}, {"q": "申込みフォームの入力欄の順番がわかりにくく、入力ミスをして何度もやり直してしまう。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 0, "t": "design_soc"}, {"q": "マウスが使えない人のために、キーボードだけでもすべての操作ができるようにした。　これは、ユーザビリティ・アクセシビリティ のどちら？", "o": ["ユーザビリティ", "アクセシビリティ"], "a": 1, "t": "design_soc"}, {"q": "停電すると、踏切の遮断かんが自然に下りる。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 0, "t": "design_soc"}, {"q": "電子レンジは、扉が開いていると加熱が始まらない。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1, "t": "design_soc"}, {"q": "ガソリンスタンドで、軽油用のノズルはガソリン車の給油口に入らない太さになっている。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1, "t": "design_soc"}, {"q": "エレベーターのワイヤーが切れても、非常止め装置が働いてカゴが落下しない。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 0, "t": "design_soc"}, {"q": "ファイルを削除する前に「本当に削除しますか?」と確認画面が出る。　これは、フェイルセーフ・フールプルーフ のどちら？", "o": ["フェイルセーフ", "フールプルーフ"], "a": 1, "t": "design_soc"}, {"q": "路線図が、駅の実際の距離や線の曲がり具合をあえて省いているのは、どの考え方？", "o": ["可視化", "抽象化", "構造化"], "a": 1, "t": "design_kufu"}, {"q": "「月ごとのスマホ使用時間の変化」を見せたい。いちばん向いているグラフは？", "o": ["折れ線グラフ", "円グラフ", "散布図"], "a": 0, "t": "design_kufu"}, {"q": "棒グラフの縦軸を、途中(たとえば50)から始めるとどうなる？", "o": ["データが正確になる", "小さな差が実際より大きく見える", "棒が読みにくくなるだけで影響はない"], "a": 1, "t": "design_kufu"}, {"q": "フォルダの中にフォルダがあり、その中にファイルがある。この整理の形はどれ？", "o": ["表", "リスト", "木構造(階層)"], "a": 2, "t": "design_kufu"}, {"q": "SNSの友達関係のように、多対多のつながりを表すのに向いている構造は？", "o": ["ネットワーク", "表", "リスト"], "a": 0, "t": "design_kufu"}, {"q": "学校や家など、限定された範囲でコンピュータを結んだネットワークを何という？", "o": ["LAN", "WAN", "ISP"], "a": 0, "t": "net"}, {"q": "都市や国など、広い範囲のコンピュータを結ぶネットワークを何という？", "o": ["LAN", "WAN", "ルータ"], "a": 1, "t": "net"}, {"q": "東京の本社と大阪の支社のネットワークを結ぶのは？", "o": ["LAN", "WAN", "回線終端装置"], "a": 1, "t": "net"}, {"q": "インターネットの説明として正しいものは？", "o": ["1台の大きなコンピュータ", "たくさんのWANをつないでつくられた、世界規模のネットワーク", "学校の中だけのネットワーク"], "a": 1, "t": "net"}, {"q": "インターネットについて正しいものは？", "o": ["1つの会社がすべてを持っている", "たくさんの組織のネットワークがつながってできている", "決まった組織の人しか使えない"], "a": 1, "t": "net"}, {"q": "LANとWANの間に置き、通信を中継して適切な宛先に送る装置は？", "o": ["ルータ", "回線終端装置", "基地局"], "a": 0, "t": "net"}, {"q": "ISP(インターネットサービスプロバイダ)とは？", "o": ["インターネットへの接続サービスを提供する業者", "LANケーブルの種類", "パソコンの部品"], "a": 0, "t": "net"}, {"q": "光ファイバー回線の光の信号を、コンピュータ通信のデジタル信号に変換する装置は？", "o": ["ルータ", "回線終端装置", "基地局"], "a": 1, "t": "net"}, {"q": "外出中のスマートフォンが、無線で通信する相手の装置は？", "o": ["基地局", "回線終端装置", "プリンタ"], "a": 0, "t": "net"}, {"q": "家のパソコンからインターネットへ。データが通る順として正しいのは？", "o": ["パソコン→ルータ→回線終端装置→ISPのWAN", "パソコン→ISPのWAN→ルータ→回線終端装置", "パソコン→回線終端装置→基地局→ルータ"], "a": 0, "t": "net"}, {"q": "ケーブルで、複数のコンピュータやプリンタをつなぐための装置は？", "o": ["ハブ", "アクセスポイント", "回線終端装置"], "a": 0, "t": "net"}, {"q": "スマートフォンなどを、家のLANに無線でつなぐための装置は？", "o": ["ハブ", "アクセスポイント", "回線終端装置"], "a": 1, "t": "net"}, {"q": "家庭用のルータについて正しいものは？", "o": ["ハブやアクセスポイントの機能を内蔵していることが多い", "光の信号しか扱えない", "インターネットには関係ない"], "a": 0, "t": "net"}, {"q": "ルータの働きとして正しいものは？", "o": ["いくつかのルートの中から、宛先までの道を選んで送る", "光の信号をデジタル信号に変換する", "電波で機器をつなぐ"], "a": 0, "t": "net"}, {"q": "インターネットで、データを細かく分割して送るときの単位を何という？", "o": ["ヘッダ", "パケット", "プロトコル"], "a": 1, "t": "pkt"}, {"q": "通信のあいだ、1本の回線を独り占めして通信する方式は？", "o": ["パケット交換方式", "回線交換方式"], "a": 1, "t": "pkt"}, {"q": "パケットのうち、送り主や送り先、データの順番などの情報を含む部分は？", "o": ["ヘッダ", "パリティビット", "ルータ"], "a": 0, "t": "pkt"}, {"q": "届いたパケットの順番がばらばらでも、元のデータにもどせるのはなぜ？", "o": ["必ず送った順に届くから", "ヘッダに順番が書いてあるから", "受信側が内容から推測するから"], "a": 1, "t": "pkt"}, {"q": "インターネット上で、コンピュータごとに割り振られる固有の番号は？", "o": ["パスワード", "ポート", "IPアドレス"], "a": 2, "t": "pkt"}, {"q": "IPv4のIPアドレスは何ビットで表す？", "o": ["8ビット", "32ビット", "128ビット"], "a": 1, "t": "pkt"}, {"q": "IPアドレスの一部、2進数 11000000 を10進数にすると？", "o": ["128", "192", "255"], "a": 1, "t": "pkt"}, {"q": "ルータが宛先や混雑状況をふまえて、パケットを次のネットワークへ転送する処理は？", "o": ["ルーティング", "パリティチェック", "パケット交換"], "a": 0, "t": "pkt"}, {"q": "偶数パリティで、データ 1011001 につけるパリティビットは？", "o": ["0", "1", "どちらでもよい"], "a": 0, "t": "pkt"}, {"q": "偶数パリティで、末尾がパリティビットの 10110011 を受け取った。判定は？", "o": ["エラーなし", "エラーあり"], "a": 1, "t": "pkt"}, {"q": "エラーが見つかり、訂正もできないとき、どうする？", "o": ["そのまま使う", "送信元に再送を求める", "通信をやめる"], "a": 1, "t": "pkt"}, {"q": "通信をするための約束ごとを何という？", "o": ["プロトコル", "ルータ", "ヘッダ"], "a": 0, "t": "pkt"}, {"q": "TCP/IPモデルで、Webページの閲覧に使うHTTPはどの層？", "o": ["トランスポート層", "インターネット層", "アプリケーション層"], "a": 2, "t": "pkt"}, {"q": "TCP/IPモデルで、IPはどの層？", "o": ["インターネット層", "ネットワークインタフェース層", "トランスポート層"], "a": 0, "t": "pkt"}, {"q": "CPUに複数のコアがあると、どうなる？", "o": ["同時にたくさんの計算を実行できる", "メモリの容量が増える", "時計が正確になる"], "a": 0, "t": "prog"}, {"q": "CPUが1秒間に基本的な動作を何回おこなうかを示す値は？", "o": ["コア", "クロック周波数", "番地"], "a": 1, "t": "prog"}, {"q": "クロック周波数が1GHzのCPUは、1秒間に約何回の基本的な動作をおこなう？", "o": ["約1000回", "約100万回", "約10億回"], "a": 2, "t": "prog"}, {"q": "クロック周波数が2倍になると、同じ時間にできる基本的な動作の回数は？", "o": ["半分になる", "変わらない", "2倍になる"], "a": 2, "t": "prog"}, {"q": "1GHzのCPUで、基本的な動作1回にかかる時間は？", "o": ["1000分の1秒", "100万分の1秒", "10億分の1秒"], "a": 2, "t": "prog"}, {"q": "CPUに与える命令で、数字の羅列で書かれ、CPUの種類によって異なるものは？", "o": ["ソースコード", "機械語", "プログラミング言語"], "a": 1, "t": "prog"}, {"q": "プログラムの「設計図」にたとえられるものは？", "o": ["ソースコード", "機械語", "バグ"], "a": 0, "t": "prog"}, {"q": "プログラミング言語を使うと、人間にもわかりやすくプログラムを書くことができる。", "o": ["○", "×"], "a": 0, "t": "prog"}, {"q": "インタプリタは、ソースコードを機械語に翻訳してから実行する。", "o": ["○", "×"], "a": 1, "t": "prog"}, {"q": "高速な処理やハードウェアの制御によく使われ、コンパイラで機械語に翻訳してから実行することが多い言語は？", "o": ["Python", "Scratch", "C、C++"], "a": 2, "t": "prog"}, {"q": "表計算ソフトの処理を自動化するのに使われる言語は？", "o": ["VBA", "JavaScript", "Scratch"], "a": 0, "t": "prog"}, {"q": "おもにWebページのなかで動作するプログラムの作成に用いられる言語は？", "o": ["Python", "JavaScript", "C、C++"], "a": 1, "t": "prog"}, {"q": "圧縮したデータを、元とまったく同じデータにもどせる圧縮を何という？", "o": ["可逆圧縮", "非可逆圧縮"], "a": 0, "t": "comp"}, {"q": "元にもどしたとき、元のデータと完全には同じにならない圧縮を何という？", "o": ["可逆圧縮", "非可逆圧縮"], "a": 1, "t": "comp"}, {"q": "プログラムや文書のファイルを圧縮するのに向いているのはどちら？", "o": ["可逆圧縮", "非可逆圧縮"], "a": 0, "t": "comp"}, {"q": "「AAAABBBCCD」を、文字と続く個数で表す（ランレングス圧縮）と？", "o": ["A4B3C2D1", "ABCD4321", "A1B1C1D1"], "a": 0, "t": "comp"}, {"q": "100KBのファイルを圧縮したら25KBになった。圧縮率（圧縮後÷圧縮前）は？", "o": ["25%", "75%", "400%"], "a": 0, "t": "comp"}, {"q": "写真によく使われる、非可逆圧縮の画像の形式は？", "o": ["JPEG", "PNG", "ZIP"], "a": 0, "t": "comp"}, {"q": "可逆圧縮の画像の形式はどれ？", "o": ["PNG", "JPEG", "MP3"], "a": 0, "t": "comp"}, {"q": "音楽によく使われる、非可逆圧縮の音声の形式は？", "o": ["MP3", "ZIP", "PNG"], "a": 0, "t": "comp"}, {"q": "非可逆圧縮でデータ量を大きく減らせるのは、なぜ？", "o": ["人が気づきにくい細かい情報を省くから", "データを2回保存するから", "画面を大きくするから"], "a": 0, "t": "comp"}, {"q": "動画は、何を次々に切りかえて表示している？", "o": ["静止画（フレーム）", "文字", "音声だけ"], "a": 0, "t": "comp"}, {"q": "1秒間に表示するフレームの数を表す単位は？", "o": ["fps", "bps", "dpi"], "a": 0, "t": "comp"}, {"q": "30fpsの動画、10秒間のフレームの数は？", "o": ["30", "300", "3000"], "a": 1, "t": "comp"}, {"q": "動画の圧縮で、前のフレームとの「ちがい（差分）」だけを記録するとデータ量が減るのはなぜ？", "o": ["となりあうフレームはよく似ているから", "フレームの順番が入れかわるから", "音声を消すから"], "a": 0, "t": "comp"}, {"q": "常に稼働していて、要求に応じてサービスを提供するシステムは？", "o": ["サーバ", "クライアント", "ハブ"], "a": 0, "t": "cs"}, {"q": "サーバにサービスを要求して、利用する側を何という？", "o": ["クライアント", "サーバ", "DNS"], "a": 0, "t": "cs"}, {"q": "サーバを置かず、端末どうしが対等の立場で直接データをやりとりする方式は？", "o": ["ピアツーピア型", "クライアントサーバ型"], "a": 0, "t": "cs"}, {"q": "コンサートのチケット予約のように、情報を1か所でまとめて管理したいときに向く方式は？", "o": ["クライアントサーバ型", "ピアツーピア型"], "a": 0, "t": "cs"}, {"q": "メールアドレス taro@example.jp の「example.jp」が表すのは？", "o": ["メールサーバのドメイン名", "ユーザ名", "パスワード"], "a": 0, "t": "cs"}, {"q": "メールを送信するときや、メールサーバどうしで転送するときのプロトコルは？", "o": ["SMTP", "POP", "HTTP"], "a": 0, "t": "cs"}, {"q": "メールをサーバに置いたまま読み、パソコンとスマホで同じメールを見られるプロトコルは？", "o": ["IMAP", "POP", "SMTP"], "a": 0, "t": "cs"}, {"q": "相手のパソコンの電源が切れているときに送ったメールは、どうなる？", "o": ["相手のメールサーバのメールボックスで保管される", "届かずに消える", "自分のパソコンにもどってくる"], "a": 0, "t": "cs"}, {"q": "ドメイン名をIPアドレスに変換するしくみを何という？", "o": ["DNS", "SMTP", "HTTP"], "a": 0, "t": "cs"}, {"q": "ドメイン名 www.example.co.jp で、いちばん大きな範囲を表す部分は？", "o": ["jp", "co", "www"], "a": 0, "t": "cs"}, {"q": "「jp」の下の第2レベルドメインで、「ac」が表すのは？", "o": ["大学など", "企業", "政府機関"], "a": 0, "t": "cs"}, {"q": "「jp」の下の第2レベルドメインで、「go」が表すのは？", "o": ["政府機関", "企業", "小・中・高校など"], "a": 0, "t": "cs"}, {"q": "URLの先頭の「https」が表すものは？", "o": ["通信を暗号化したWebのプロトコル", "サーバの名前", "IPアドレス"], "a": 0, "t": "cs"}, {"q": "DNSサーバが止まってしまうと、どうなる？", "o": ["ドメイン名でWebページが開けなくなる", "パソコンの電源が入らなくなる", "画面の色が変わる"], "a": 0, "t": "cs"}, {"q": "URLを入力してからWebページが表示されるまでで、最初におこなわれるのは？", "o": ["DNSサーバにIPアドレスを問い合わせる", "Webサーバがページのデータを返す", "Webブラウザがページを表示する"], "a": 0, "t": "cs"}, {"q": "ことばのかわりに、絵や図で情報を伝える記号を何という？", "o": ["ピクトグラム", "フローチャート", "ヒストグラム"], "a": 0, "t": "design_soc"}, {"q": "年齢・国・障がいの有無などにかかわらず、だれもが使いやすいように設計する考え方は？", "o": ["ユニバーサルデザイン", "ピクトグラム", "アフォーダンス"], "a": 0, "t": "design_soc"}, {"q": "色の見え方がちがう人にも情報が正しく伝わるように、配色などを工夫することを何という？", "o": ["カラーユニバーサルデザイン", "グラデーション", "補色"], "a": 0, "t": "design_soc"}, {"q": "データや情報を、図やイラストを使ってひと目でわかるように表したものを何という？", "o": ["インフォグラフィック", "ピクトグラム", "フォント"], "a": 0, "t": "design_kufu"}, {"q": "たくさんの情報を、時間・場所・五十音・分類・連続量などの基準で整理することを何という？", "o": ["構造化", "抽象化", "可視化"], "a": 0, "t": "design_kufu"}];
     const DOOR_ID = 999;   // 扉（物の番号と重ならない数）
     // 機体 k の暗号の手がかりを、もう手に入れたか（その手がかりが入っている物を開けたか）
     function escClueFor(st, k) {
@@ -10066,7 +10357,8 @@ window.DroneQR = (function () {
       {   // A〜F が両方の数に出てくる、16進数どうしのひき算（(16) などの印はつけない）
         for (let tries = 0; tries < 500; tries++) {
           const a = v[2] + 10 + Math.floor(r() * Math.max(1, 246 - v[2]));
-          if (hasAF(a) && hasAF(a - v[2])) { hex = [H(a), H(a - v[2])]; break; }
+          // 16の位は、2つの数で同じ数字（文字）にしない（1の位だけのひき算にならないように）
+          if (hasAF(a) && hasAF(a - v[2]) && H(a)[0] !== H(a - v[2])[0]) { hex = [H(a), H(a - v[2])]; break; }
         }
       }
       const safe = 100 + Math.floor(r() * 156);
@@ -10127,7 +10419,7 @@ window.DroneQR = (function () {
     function escStarsN(st) {
       const ct = escClearTime(st);
       if (ct === null) return 0;
-      return 1 + ((!ESC.timer || ct <= ESC.limit[st]) ? 1 : 0) + (escHints(st) <= ARR_NEED ? 1 : 0);
+      return 1 + ((!ESC.timer || ct <= ESC.limit[st]) ? 1 : 0) + (coinsUsed(st) <= ARR_NEED ? 1 : 0);
     }
     const escStars = (st) => { const n = escStarsN(st); return n ? '★'.repeat(n) + '☆'.repeat(3 - n) : ''; };
     const roomStage = () => currentUnit === 'bs' && curStep() >= 3 ? varStage() : 0;
@@ -10578,8 +10870,10 @@ window.DroneQR = (function () {
       let goal;
       try { goal = varGoal(); } catch (e) { return; }
       roomState.lamps.forEach((lamp, k) => {
-        const on = escRuleFound(st, k) && lsLockOk(st, k);
-        lamp.material.color.set(on ? MEMBER_COLORS[k].css : '#334155');
+        // そのマークの謎（暗号）を解くと色がつく。プログラムの答えも正しくそろうと、大きく光る
+        const dec = escRuleFound(st, k), ok = dec && lsLockOk(st, k);
+        lamp.material.color.set(dec ? MEMBER_COLORS[k].css : '#334155');
+        lamp.scale.setScalar(ok ? 1.35 : 1);
       });
     }
     // 毎フレーム：マウスをのせた物を少し大きくする（目印は出さない）
@@ -10809,38 +11103,323 @@ window.DroneQR = (function () {
     }
     function openInner(st, i, first) {
       if (escLayout(st).objs[i].inner === 'logic') { logicSel = {}; openLogic(st, i, '', first); }
-      else { quizSel = {}; openQuiz(st, i, '', false, first); }
+      else { quizSel = {}; quizCur = null; openQuiz(st, i, '', false, first); }
     }
     // クイズ端末：3問すべて正解でロックが外れる。まちがえると5秒待って、別の問題になる
     let quizSel = {}, quizCool = 0;
+    // ==== ひねり問題（脱出ゲームらしい問題。知識をそのまま聞くのではなく、読みとる・並べる・つなぐ・計算する） ====
+    //   kind：choice（えらぶ）／ order（順にタップ）／ match（それぞれえらぶ）／ input（文字や数を入れる）。数や組み合わせは毎回変わる
+    const TW = (() => {
+      const pick = (r, a) => a[Math.floor(r() * a.length)];
+      const shuffle = (r, a) => { a = a.slice(); for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(r() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+      const sample = (r, a, n) => shuffle(r, a).slice(0, n);
+      const choice = (r, q, o, a) => { const ord = shuffle(r, o.map((_, j) => j)); return { kind: 'choice', q, o: ord.map((j) => o[j]), a: ord.indexOf(a) }; };
+      const order = (r, q, items) => { const ord = shuffle(r, items.map((_, j) => j)); return { kind: 'order', q, items: ord.map((j) => items[j]), ans: items.map((_, j) => ord.indexOf(j)) }; };
+      const match = (r, q, pairs, labels) => ({ kind: 'match', q, rows: pairs.map((p) => p[0]), labels: labels || shuffle(r, [...new Set(pairs.map((p) => p[1]))]), ans: pairs.map((p) => p[1]) });
+      const input = (q, ans, unit, hint) => ({ kind: 'input', q, ans: [].concat(ans).map(String), unit: unit || '', hint: hint || '' });
+      const rle = (s) => s.replace(/(.)\1*/g, (m, c) => c + m.length);
+      // 2択の場面（今の問題から）を、仕分けにする
+      const SORT2 = [
+        ['アフォーダンス', 'シグニファイア', [['ガラスの壁は、通り抜けられない', 0], ['ガラスの壁に、ぶつからないための目印のシール', 1], ['ボタンの出っ張りや影が「押せそう」と感じさせる', 1], ['いすには、座ることができる', 0], ['操作できないボタンが灰色になっている', 1], ['ドアの取っ手は、つかんで引くことができる', 0]]],
+        ['ユーザビリティ', 'アクセシビリティ', [['商品にたどり着くまでのクリック数が多い', 0], ['画像に代替テキストがなく、読み上げソフトで内容がわからない', 1], ['動画に字幕がない', 1], ['入力欄の順番がわかりにくく、何度もやり直す', 0], ['キーボードだけでもすべて操作できる', 1], ['よく使うボタンが、見つけにくい場所にある', 0]]],
+        ['フェイルセーフ', 'フールプルーフ', [['停電すると、踏切の遮断かんが下りる', 0], ['電子レンジは、扉が開いていると加熱しない', 1], ['軽油のノズルは、ガソリン車の給油口に入らない', 1], ['ワイヤーが切れても、エレベーターは落ちない', 0], ['削除の前に「本当に削除しますか?」と出る', 1], ['故障を見つけると、機械が安全な状態で止まる', 0]]]
+      ];
+      // ---- 🧩 1文をどこに入れる？：プログラムの「＋」の所を選ぶと、その場所に1文が入り、表示がその場で変わる ----
+      const insertPuzzle = (r) => {
+        for (let tries = 0; tries < 60; tries++) {
+          const a = 1 + Math.floor(r() * 5), b = 1 + Math.floor(r() * 4), c = 1 + Math.floor(r() * 4), n = 2 + Math.floor(r() * 2);
+          const usePrint = r() < 0.4;
+          const stmt = usePrint ? { t: 'print', s: 'print(x)' } : pick(r, [{ t: 'mul', v: 2, s: 'x = x * 2' }, { t: 'mul', v: 3, s: 'x = x * 3' }, { t: 'sub', v: 1, s: 'x = x - 1' }]);
+          // 行：x = a ／ x = x + b ／ for i in range(n): ／ (中) x = x + c ／ print(x)（print を入れる問題では、最後の print はなし）
+          const lines = [{ s: `x = ${a}`, d: 0 }, { s: `x = x + ${b}`, d: 0 }, { s: `for i in range(${n}):`, d: 0 }, { s: `x = x + ${c}`, d: 1 }].concat(usePrint ? [] : [{ s: 'print(x)', d: 0 }]);
+          // 入れられる所：［行のあと, 字下げ］
+          const slots = [[0, 0], [1, 0], [2, 1], [3, 1], [3, 0]].concat(usePrint ? [] : [[4, 0]]);
+          const run = (slot) => {
+            let x = 0; const out = [];
+            const ap = (o) => { if (o.t === 'set') x = o.v; else if (o.t === 'add') x += o.v; else if (o.t === 'mul') x *= o.v; else if (o.t === 'sub') x -= o.v; else if (o.t === 'print') out.push(x); };
+            const S = slot >= 0 ? slots[slot] : null, ins = (after, inLoop) => { if (S && S[0] === after && (S[1] === 1) === inLoop) ap(stmt); };
+            ap({ t: 'set', v: a }); ins(0, false);
+            ap({ t: 'add', v: b }); ins(1, false);
+            for (let k = 0; k < n; k++) { ins(2, true); ap({ t: 'add', v: c }); ins(3, true); }
+            ins(3, false);
+            if (!usePrint) { out.push(x); ins(4, false); }
+            return out.join(' ');
+          };
+          const outs = slots.map((_, k) => run(k)), base = run(-1);
+          const cand = outs.map((_, k) => k).filter((k) => outs.filter((x) => x === outs[k]).length === 1 && outs[k] !== base && outs[k] !== '');
+          if (!cand.length) continue;
+          const ans = pick(r, cand);
+          return { kind: 'insert', q: `🧩 1文をどこに入れる？ 下のプログラムの「＋」をえらぶと、<b class="qzCode">${stmt.s}</b> がそこに入る。画面に <b class="qzCode">${outs[ans]}</b> と表示されるようにしよう`,
+            lines, slots, stmt: stmt.s, outs, base, ans, target: outs[ans] };
+        }
+        return { kind: 'choice', q: 'x = 2 のあと x = x * 3 を実行すると、x は？', o: ['5', '6', '8'], a: 1 };
+      };
+      // ---- 🔍 デザインのまちがいさがし：申込みフォームの絵。使いにくい所（3つ）をさがしてタップ。どこがまちがいかは毎回変わる ----
+      const spotForm = (r) => {
+        const AREAS = ['note', 'fields', 'buttons', 'help', 'error'];
+        const bad = sample(r, AREAS, 3), B = (k) => bad.includes(k);
+        const fieldFlaw = pick(r, ['order', 'color']), btnFlaw = pick(r, ['twin', 'contrast']);
+        const T = (x, y, s, size, fill, w) => `<text x="${x}" y="${y}" font-size="${size || 13}" fill="${fill || '#0f172a'}" font-weight="${w || 600}">${s}</text>`;
+        let g = '<rect x="0" y="0" width="360" height="330" rx="10" fill="#f8fafc"/><rect x="0" y="0" width="360" height="36" rx="10" fill="#0369a1"/><rect x="0" y="26" width="360" height="10" fill="#0369a1"/>' + T(14, 24, 'イベント申込みフォーム', 15, '#fff', 800);
+        // 注意書き
+        g += B('note') ? T(14, 52, '※ 以下の項目を入力し、内容を確認のうえ送信してください。入力内容に誤りがある場合は受付できません。', 6.5, '#94a3b8', 400)
+          : T(14, 54, B('fields') && fieldFlaw === 'color' ? '赤い文字の項目は、かならず入力してください' : '＊ のついた項目は、かならず入力してください', 12.5, '#334155', 700);
+        // 入力欄
+        let rows = [['名前', true], ['ふりがな', true], ['郵便番号', false], ['住所', true]];
+        if (B('fields') && fieldFlaw === 'order') rows = [rows[3], rows[0], rows[2], rows[1]];
+        rows.forEach(([lab, req], k) => {
+          const y = 76 + k * 30, colorOnly = B('fields') && fieldFlaw === 'color';
+          g += T(14, y + 15, colorOnly ? lab : lab + (req ? ' ＊' : ''), 12.5, colorOnly && req ? '#dc2626' : '#0f172a', 700);
+          g += `<rect x="100" y="${y}" width="240" height="22" rx="4" fill="#fff" stroke="#94a3b8"/>`;
+        });
+        // ボタン
+        if (B('buttons') && btnFlaw === 'twin') g += '<rect x="60" y="204" width="110" height="32" rx="6" fill="#0369a1"/>' + T(98, 225, '送信', 14, '#fff', 800) + '<rect x="190" y="204" width="110" height="32" rx="6" fill="#0369a1"/>' + T(210, 225, '全部消す', 14, '#fff', 800);
+        else if (B('buttons')) g += '<rect x="110" y="204" width="140" height="32" rx="6" fill="#cbd5e1"/>' + T(165, 225, '送信', 14, '#e2e8f0', 800) + T(276, 225, '全部消す', 10, '#64748b', 600);
+        else g += '<rect x="110" y="204" width="140" height="32" rx="6" fill="#0369a1"/>' + T(165, 225, '送信', 14, '#fff', 800) + T(276, 225, '全部消す', 10, '#64748b', 600);
+        // ヘルプ
+        g += B('help') ? '<circle cx="330" cy="257" r="11" fill="#e2e8f0" stroke="#94a3b8"/>' + T(326, 262, '?', 13, '#475569', 800)
+          : '<rect x="262" y="246" width="84" height="22" rx="11" fill="#e2e8f0" stroke="#94a3b8"/>' + T(272, 262, '？ 書き方', 11.5, '#334155', 800);
+        // エラーの知らせ
+        g += '<rect x="14" y="282" width="332" height="34" rx="6" fill="#fef2f2" stroke="#fca5a5"/>' +
+          (B('error') ? T(26, 304, 'エラーが発生しました（E-0x2F）', 12.5, '#b91c1c', 700) : T(26, 304, '郵便番号は、数字7けたで入力してください', 12.5, '#b91c1c', 700));
+        const REG = { note: [8, 40, 344, 22], fields: [8, 70, 344, 122], buttons: [50, 198, 290, 44], help: [256, 242, 96, 30], error: [8, 278, 344, 42] };
+        const WHY = { note: '注意書きの文字が小さすぎて、読めない', fields: fieldFlaw === 'order' ? '入力欄の順番が不自然（住所が先、ふりがなが最後）' : '必須の項目を、赤い色だけで表している（色の見え方がちがう人にはわからない）',
+          buttons: btnFlaw === 'twin' ? '「送信」と「全部消す」が同じ見た目でとなりにあり、押しまちがえやすい' : '「送信」の文字と背景の明るさの差が小さく、読みにくい',
+          help: 'ヘルプのボタンが「?」だけで、何のボタンかわかりにくい', error: 'エラーの知らせが、どこをどう直せばよいかを伝えていない' };
+        return { kind: 'spot', q: '🔍 デザインのまちがいさがし！ この申込みフォームには、<b>使いにくい所が3つ</b>ある。全部さがしてタップしよう（もう一度タップで取り消し）',
+          svg: g, regions: AREAS.map((k) => ({ id: k, r: REG[k] })), ans: bad.slice().sort(), why: bad.map((k) => WHY[k]) };
+      };
+      const G = {
+        comp: [
+          (r) => { let s = ''; sample(r, ['A', 'B', 'C', 'W'], 3).forEach((c) => { s += c.repeat(2 + Math.floor(r() * 5)); }); return input(`ランレングス圧縮では「同じ文字が続く数」で表す（例：AAAB → A3B1）。<br><b class="qzCode">${s}</b> を圧縮すると？`, rle(s), '', '例：A3B1 のように'); },
+          (r) => { const parts = sample(r, ['W', 'B', 'R'], 3).map((c) => c + (2 + Math.floor(r() * 4))); const s = parts.join(''); return input(`ランレングス圧縮されたデータ <b class="qzCode">${s}</b> を元にもどすと？`, s.replace(/([A-Z])(\d+)/g, (m, c, n) => c.repeat(Number(n))), ''); },
+          (r) => { const f = pick(r, [24, 30, 60]), sec = pick(r, [2, 4, 5, 10, 20]); return input(`${f}fps の動画を ${sec} 秒間再生した。表示された静止画（フレーム）は何枚？`, f * sec, '枚'); },
+          (r) => { const before = pick(r, [200, 400, 500, 800]), rate = pick(r, [10, 20, 25, 50]); return input(`${before}KB の画像を圧縮したら、圧縮率（圧縮後÷圧縮前）が ${rate}% になった。圧縮後は何KB？`, before * rate / 100, 'KB'); },
+          (r) => { const lossy = sample(r, ['JPEG', 'MP3', 'MP4'], 3), odd = pick(r, ['PNG', 'ZIP']); return choice(r, `🕵 仲間はずれをさがせ！ ひとつだけ「可逆圧縮」がまじっている。`, lossy.concat([odd]), 3); }
+        ],
+        design: [
+          (r) => { const C = [[[255, 255, 0], '黄'], [[0, 255, 255], 'シアン'], [[255, 0, 255], 'マゼンタ'], [[255, 255, 255], '白'], [[0, 0, 0], '黒']]; const c = pick(r, C); return choice(r, `画面の色のデータ（R, G, B）＝（${c[0].join(', ')}）。何色に見える？<br><small>0 は光なし、255 は光をいちばん強く</small>`, C.map((x) => x[1]).filter((x) => x !== c[1]).slice(0, 3).concat([c[1]]), 3); },
+          (r) => { const ps = sample(r, [['折れ線グラフ', '時間とともにどう変わったか'], ['円グラフ', '全体の中の割合'], ['棒グラフ', '量の大きさのくらべ'], ['散布図', '2つの量の関係']], 3); return match(r, '見せたいことに合うグラフを、それぞれえらぼう', ps.map((p) => [p[1], p[0]]), ['折れ線グラフ', '円グラフ', '棒グラフ', '散布図']); }
+        ],
+        design_soc: SORT2.map((s) => (r) => { const rows = sample(r, s[2], 4); return match(r, `それぞれ「${s[0]}」と「${s[1]}」のどちら？`, rows.map((x) => [x[0], s[x[1]]]), [s[0], s[1]]); }).concat([spotForm, spotForm, spotForm]),   // まちがいさがしは出やすく
+        design_kufu: [
+          (r) => { const ps = sample(r, [['フォルダの中にフォルダがある', '木構造（階層）'], ['SNSの友達どうしのつながり', 'ネットワーク'], ['クラスの名簿（番号・名前・部活）', '表'], ['買い物リスト', 'リスト']], 3); return match(r, 'それぞれ、いちばん合う整理の形は？', ps.map((p) => [p[0], p[1]]), ['木構造（階層）', 'ネットワーク', '表', 'リスト']); },
+          (r) => choice(r, '🕵 グラフのワナ！ 2つの店の売上 100 と 110。縦軸を 90 から始めた棒グラフでは、110 の棒は 100 の棒の何倍の高さに見える？', ['約1.1倍', '約2倍', '同じ'], 1)
+        ],
+        hw: [
+          (r) => { const ps = sample(r, [['マウス', '入力'], ['キーボード', '入力'], ['プリンタ', '出力'], ['スピーカー', '出力'], ['SSD', '記憶'], ['メモリ', '記憶'], ['CPU', '演算・制御']], 4); return match(r, 'それぞれの装置の役わりは？', ps, ['入力', '出力', '記憶', '演算・制御']); },
+          (r) => { const hw = sample(r, ['CPU', 'メモリ', 'SSD', 'ディスプレイ', 'キーボード'], 3), sw = pick(r, ['OS', 'Webブラウザ', '表計算ソフト']); return choice(r, '🕵 仲間はずれをさがせ！ ひとつだけ「ソフトウェア」がまじっている。', hw.concat([sw]), 3); }
+        ],
+        prog: [
+          (r) => { const g = pick(r, [2, 3, 4]); return input(`${g}GHz の CPU は、1秒間に約何億回の基本的な動作をする？（1GHz ＝ 1秒に約10億回）`, g * 10, '億回'); },
+          (r) => order(r, 'プログラムが実行されるまでを、順にタップしよう（コンパイラの場合）', ['人がソースコードを書く', 'コンパイラが機械語に翻訳する', 'CPUが機械語の命令を実行する']),
+          (r) => { const ps = sample(r, [['JavaScript', 'Webページの中で動く'], ['VBA', '表計算ソフトの自動化'], ['C、C++', 'ハードウェアの制御・高速な処理'], ['Scratch', 'ブロックを組み立てて作る']], 3); return match(r, 'それぞれの言語の、よく使われる場面は？', ps.map((p) => [p[0], p[1]])); }
+        ],
+        net: [
+          (r) => order(r, '家のパソコンからインターネットへ。データが通る順にタップしよう', ['パソコン', 'ルータ', '回線終端装置', 'ISPのネットワーク']),
+          (r) => { const ps = sample(r, [['ハブ', 'ケーブルで複数の機器をつなぐ'], ['アクセスポイント', '無線でLANにつなぐ'], ['回線終端装置', '光の信号とデジタル信号を変換する'], ['ルータ', '宛先までの道を選んで送る']], 3); return match(r, 'それぞれの装置の働きは？', ps.map((p) => [p[0], p[1]])); }
+        ],
+        pkt: [
+          (r) => { const n = (1 << 7) | (Math.floor(r() * 8) << 4); const b = n.toString(2).padStart(8, '0'); return input(`IPアドレスの一部が2進数で <b class="qzCode">${b}</b> になっている。10進数にすると？`, n, ''); },
+          (r) => { let d = ''; for (let k = 0; k < 7; k++) d += r() < 0.5 ? '1' : '0'; const p = (d.split('1').length - 1) % 2; return input(`偶数パリティ（1の数を偶数にする）で、データ <b class="qzCode">${d}</b> のうしろにつけるパリティビットは？`, p, ''); },
+          (r) => { const w = pick(r, ['プロトコル', 'ルーティング', 'パケット交換', 'ヘッダ情報']).split(''); const k = Math.ceil(w.length / 4); const ch = []; for (let j = 0; j < w.length; j += k) ch.push(w.slice(j, j + k).join('')); const ord = shuffle(r, ch.map((_, j) => j));
+            return input(`順番がばらばらに届いたパケット。ヘッダの番号の順にならべると、どんな言葉になる？<br>${ord.map((j) => `<span class="qzPkt"><small>${j + 1}/${ch.length}</small>${ch[j]}</span>`).join(' ')}`, w.join(''), ''); }
+        ],
+        cs: [
+          (r) => order(r, 'URLを入力してから、Webページが表示されるまで。順にタップしよう', ['URLを入力する', 'DNSサーバにIPアドレスを問い合わせる', 'Webサーバにページを要求する', 'Webサーバがデータを返す', 'ブラウザがページを表示する']),
+          (r) => { const ps = sample(r, [['ac', '大学など'], ['go', '政府機関'], ['co', '企業'], ['ed', '小・中・高校など'], ['lg', '地方公共団体']], 4); return match(r, 'ドメイン名 ○○.example.<b>□□</b>.jp の □□ が表す組織は？', ps.map((p) => [p[0] + '.jp', p[1]])); },
+          (r) => { const u = pick(r, ['hanako', 'taro', 'drone']), d = pick(r, ['mail.example.ac.jp', 'example.co.jp', 'school.example.ed.jp']); return input(`メールアドレス <b class="qzCode">${u}@${d}</b> で、メールサーバのドメイン名は？`, d, ''); },
+          (r) => { const ps = sample(r, [['メールを送信する', 'SMTP'], ['メールをサーバに置いたまま読む', 'IMAP'], ['メールを端末に取り込んで読む', 'POP'], ['Webページを暗号化してやりとりする', 'HTTPS']], 3); return match(r, 'それぞれに使うプロトコルは？', ps, ['SMTP', 'IMAP', 'POP', 'HTTPS']); }
+        ]
+      };
+      // ---- ボタンで答える問題（押すと 色・数・長さ・高さ が変わる ／ 0・1 のボタン ／ 数字のボタン） ----
+      const bits = (q, ans, len) => ({ kind: 'bits', q, ans: String(ans), len });
+      const keypad = (q, ans, unit) => ({ kind: 'keypad', q, ans: String(ans), unit: unit || '' });
+      const toggle = (q, labels, max, view, ans, init) => ({ kind: 'toggle', q, labels, max, view, ans, init: init || labels.map(() => 0) });
+      const sign = (title, lines) => `<div class="qzSign"><div class="qzSignT">${title}</div>${lines.map((l) => `<div>${l}</div>`).join('')}</div>`;
+      const MECH = {
+        pkt: [
+          (r) => { const n = pick(r, [192, 168, 172, 224, 240, 10, 255, 128]); return bits(`IPアドレスの一部 <b class="qzCode">${n}</b> を、2進数8けたで入れよう（0 と 1 のボタンを、左のけたから順に押す）`, n.toString(2).padStart(8, '0'), 8); },
+          (r) => { let d = ''; for (let k = 0; k < 7; k++) d += r() < 0.5 ? '1' : '0'; const par = (d.split('1').length - 1) % 2;
+            return toggle('偶数パリティ。ランプは 1 なら光る。データ7個のうしろの<b>パリティのランプ</b>を、押して正しくしよう（1の数を偶数に）', ['パリティ'], [2],
+              (st) => `<div class="qzLamps">${d.split('').map((b) => `<span class="qzLamp${b === '1' ? ' on' : ''}">${b}</span>`).join('')}<span class="qzLamp par${st[0] ? ' on' : ''}">${st[0]}</span></div>`, [par]); }
+        ],
+        design: [
+          (r) => { const C = [['黄', [1, 1, 0]], ['シアン', [0, 1, 1]], ['マゼンタ', [1, 0, 1]], ['白', [1, 1, 1]]]; const c = pick(r, C);
+            return toggle(`光の三原色のスイッチ。R・G・B のボタンを押して、ランプを <b>${c[0]}</b> にしよう（光はたし算で混ざる）`, ['R（赤）', 'G（緑）', 'B（青）'], [2, 2, 2],
+              (st) => `<div class="qzMix"><span class="qzBulb" style="background:rgb(${st[0] * 255},${st[1] * 255},${st[2] * 255})"></span><small>（R, G, B）＝（${st.map((x) => x * 255).join(', ')}）</small></div>`, c[1]); }
+        ],
+        comp: [
+          (r) => { const cs = ['W', 'B', 'W'], ns = [1, 2, 3].map(() => 1 + Math.floor(r() * 5)); const row = (st) => cs.map((c, k) => `<span class="qzPx ${c}"></span>`.repeat(st[k] + 1)).join('');
+            return toggle('ランレングス圧縮。下の<b>見本の行</b>と同じ模様になるように、それぞれの数のボタンを押して合わせよう（押すと数がふえ、行の長さが変わる）', cs.map((c) => c + ' の数'), [6, 6, 6],
+              (st) => `<div class="qzRows"><div><small>見本</small>${row(ns.map((x) => x - 1))}</div><div><small>あなた</small>${row(st)}</div><div class="qzCode">${cs.map((c, k) => c + (st[k] + 1)).join('')}</div></div>`, ns.map((x) => x - 1)); },
+          (r) => { const f = pick(r, [24, 30, 60]), sec = pick(r, [2, 5, 10]), kb = pick(r, [2, 3, 5]);
+            return keypad(sign('🎬 動画の情報', [`1秒間のフレーム数：${f} fps`, `長さ：${sec} 秒`, `1フレームのデータ量（圧縮後）：${kb} KB`]) + 'この動画のデータ量は、合計で何KB？ 数字のボタンで入れよう', f * sec * kb, 'KB'); }
+        ],
+        design_kufu: [
+          (r) => { const names = ['A', 'B', 'C'], vals = names.map(() => 1 + Math.floor(r() * 5));
+            return toggle(sign('🏪 3つの店の来客数（看板）', names.map((n, k) => `${n}店：${vals[k] * 10} 人`)) + 'グラフの棒を押して高さを変え、看板の数のとおりの棒グラフにしよう（1目盛り＝10人）', names.map((n) => n + '店'), [6, 6, 6],
+              (st) => `<div class="qzChart"><div class="qzAxis">${[50, 40, 30, 20, 10, 0].map((y) => `<span>${y}</span>`).join('')}</div><div><div class="qzBars">${st.map((v) => `<div class="qzBar" style="height:${v * 16}px"></div>`).join('')}</div>` +
+                `<div class="qzBarLab">${names.map((n) => `<span>${n}店</span>`).join('')}</div></div></div>`, vals); }
+        ],
+        cs: [
+          (r) => { const html = pick(r, [10, 12, 20]), css = pick(r, [4, 6, 8]), n = pick(r, [2, 3, 4]), img = pick(r, [30, 40, 50]);
+            return keypad(sign('📄 Webページの部品', [`HTML：${html} KB`, `CSS：${css} KB`, `画像：${n} 枚（1枚 ${img} KB）`]) + 'Webサーバがブラウザに返すデータは、合計何KB？', html + css + n * img, 'KB'); }
+        ],
+        net: [
+          (r) => { const pk = pick(r, [4, 5, 6]), size = pick(r, [100, 200, 500]), hd = 20;
+            return keypad(sign('📦 送るデータ', [`データを ${pk} 個のパケットに分ける`, `1個のパケットのデータ部分：${size} バイト`, `1個のパケットのヘッダ：${hd} バイト`]) + 'ヘッダもふくめて、送るパケット全部で何バイト？', pk * (size + hd), 'バイト'); }
+        ]
+      };
+      G.prog.push(insertPuzzle, insertPuzzle, insertPuzzle);   // 1文をどこに入れる？は出やすく
+      Object.keys(MECH).forEach((t) => { MECH[t].forEach((g) => { G[t].push(g, g); }); });   // ボタンの問題は出やすく
+      const norm = (s) => { s = String(s == null ? '' : s); try { s = s.normalize('NFKC'); } catch (e) { /* なし */ } return s.replace(/\s+/g, '').toUpperCase(); };
+      return { G, norm };
+    })();
+    function quizDone(q, v) {      // 答えがそろっているか
+      if (q.kind === 'order') return Array.isArray(v) && v.length === q.items.length;
+      if (q.kind === 'match') return !!v && q.rows.every((_, k) => v[k] !== undefined && v[k] !== '');
+      if (q.kind === 'input') return TW.norm(v) !== '';
+      if (q.kind === 'spot') return Array.isArray(v) && v.length > 0;
+      if (q.kind === 'bits' || q.kind === 'keypad') return !!v && String(v).length > 0;
+      if (q.kind === 'toggle') return true;
+      if (q.kind === 'insert') return v !== undefined && v >= 0;
+      return v !== undefined;
+    }
+    function quizRight(q, v) {
+      if (q.kind === 'order') return Array.isArray(v) && v.join() === q.ans.join();
+      if (q.kind === 'match') return !!v && q.rows.every((_, k) => v[k] === q.ans[k]);
+      if (q.kind === 'input') return q.ans.some((a) => TW.norm(a) === TW.norm(v));
+      if (q.kind === 'spot') return Array.isArray(v) && v.slice().sort().join() === q.ans.join();
+      if (q.kind === 'bits' || q.kind === 'keypad') return String(v || '') === q.ans;
+      if (q.kind === 'toggle') return (Array.isArray(v) ? v : q.init).join() === q.ans.join();
+      if (q.kind === 'insert') return v !== undefined && q.outs[v] === q.target;   // 同じ表示になる所なら正解
+      return v === q.a;
+    }
+    // 出す問題・問題の順・選択肢の順は、引き出しを開けるたび（まちがえたときも）に変わる。答えているあいだは同じ
+    let quizCur = null;
     function quizSet(st) {
-      const at = Number(escSteps()['bs:qa' + st]) || 0;
-      const r = seededRand(`${team.group}|quizB|${st}|${team.round || 0}|${at}`);
-      const idx = [];
-      while (idx.length < 3) { const k = Math.floor(r() * QUIZ_BANK.length); if (!idx.includes(k)) idx.push(k); }
-      return idx.map((k) => {
-        const q = QUIZ_BANK[k], ord = q.o.map((_, j) => j);
+      if (quizCur && quizCur.st === st) return quizCur.qs;
+      const r = Math.random;
+      // 出題の分野（データの圧縮と動画・情報デザイン・社会における情報デザイン・情報デザインの工夫・ハードウェアとソフトウェア・
+      //   プログラムが動くしくみ・インターネットのしくみ・パケットとプロトコル・クライアント・サーバとDNS）から、ちがう分野の3問
+      const topics = [...new Set(QUIZ_BANK.map((q) => q.t))], tp = [];
+      while (tp.length < 3) { const t = topics[Math.floor(r() * topics.length)]; if (!tp.includes(t)) tp.push(t); }
+      const idx = tp.map((t) => { const ks = QUIZ_BANK.map((q, k) => q.t === t ? k : -1).filter((k) => k >= 0); return ks[Math.floor(r() * ks.length)]; });
+      // 3問のうち2問くらいは、ひねり問題（並べる・つなぐ・計算する・読みとる）にする。残りは知識の4択
+      const nTwist = r() < 0.5 ? 2 : 3;
+      const qs = idx.map((k, n) => {
+        const q = QUIZ_BANK[k], gens = TW.G[q.t] || [];
+        if (n < nTwist && gens.length) return Object.assign(gens[Math.floor(r() * gens.length)](r), { t: q.t });
+        const ord = q.o.map((_, j) => j);
         for (let j = ord.length - 1; j > 0; j--) { const t = Math.floor(r() * (j + 1)); [ord[j], ord[t]] = [ord[t], ord[j]]; }
-        return { q: q.q, o: ord.map((j) => q.o[j]), a: ord.indexOf(q.a) };
+        return { kind: 'choice', q: escapeHtml(q.q), o: ord.map((j) => q.o[j]), a: ord.indexOf(q.a), t: q.t };
       });
+      for (let j = qs.length - 1; j > 0; j--) { const t = Math.floor(r() * (j + 1)); [qs[j], qs[t]] = [qs[t], qs[j]]; }   // ひねり問題の位置もばらばらに
+      quizCur = { st, qs };
+      return qs;
     }
     function openQuiz(st, i, note, bad, first) {
       const o = escLayout(st).objs[i], info = OBJ_INFO[o.kind], qs = quizSet(st), cool = quizCool > Date.now();
-      const body = qs.map((q, n) => `<div class="qzItem"><div class="qzQ">Q${n + 1}. ${escapeHtml(q.q)}</div><div class="qzOpts">` +
-        q.o.map((t, j) => `<button class="qzOpt${quizSel[n] === j ? ' sel' : ''}" onclick="pickQuiz(${i},${n},${j})"${cool ? ' disabled' : ''}>${escapeHtml(t)}</button>`).join('') + '</div></div>').join('');
-      const ready = Object.keys(quizSel).length === 3 && !cool;
-      showEscModal(`<div class="escTitle">🧾 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、クイズ端末のついた引き出しがあった。' : ''}画面に3つの問題が出ている。3問とも正解すると、引き出しのロックが外れる。</div>` +
+      const dis = cool ? ' disabled' : '';
+      const body = qs.map((q, n) => {
+        const v = quizSel[n];
+        let ui = '';
+        if (q.kind === 'order') {
+          const seq = Array.isArray(v) ? v : [];
+          ui = '<div class="qzOpts">' + q.items.map((t, j) => { const p = seq.indexOf(j); return `<button class="qzOpt${p >= 0 ? ' sel' : ''}" onclick="orderQuiz(${i},${n},${j})"${dis}>${p >= 0 ? `<b class="qzNo">${p + 1}</b>` : ''}${escapeHtml(t)}</button>`; }).join('') +
+            `<button class="qzOpt qzRe" onclick="orderQuiz(${i},${n},-1)"${dis}>↺ やり直す</button></div>`;
+        } else if (q.kind === 'match') {
+          ui = '<div class="qzMatch">' + q.rows.map((t, k) => `<div class="qzRow"><span>${escapeHtml(t)}</span><select onchange="matchQuiz(${i},${n},${k},this.value)"${dis}><option value="">― えらぶ ―</option>` +
+            q.labels.map((l) => `<option${v && v[k] === l ? ' selected' : ''}>${escapeHtml(l)}</option>`).join('') + '</select></div>').join('') + '</div>';
+        } else if (q.kind === 'bits' || q.kind === 'keypad') {
+          const cur = String(v || ''), keys = q.kind === 'bits' ? ['0', '1'] : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+          const disp = q.kind === 'bits' ? Array.from({ length: q.len }, (_, k) => `<span class="qzSlot${cur[k] === '1' ? ' one' : ''}">${cur[k] || ''}</span>`).join('') : `<span class="qzNum">${cur || '&nbsp;'}</span>${q.unit ? `<span class="qzUnit">${escapeHtml(q.unit)}</span>` : ''}`;
+          ui = `<div class="qzDisp">${disp}</div><div class="qzKeys${q.kind === 'bits' ? ' big' : ''}">` + keys.map((c) => `<button class="qzKey" onclick="keyQuiz(${i},${n},'${c}')"${dis}>${c}</button>`).join('') +
+            `<button class="qzKey del" onclick="keyQuiz(${i},${n},'del')"${dis}>⌫</button></div>`;
+        } else if (q.kind === 'insert') {
+          const sel = v === undefined ? -1 : v, ind = (d) => '&nbsp;'.repeat(d * 4);
+          let code = '';
+          const slotRow = (k) => { const [, d] = q.slots[k], on = sel === k;
+            return on ? `<div class="qzLine ins" onclick="insQuiz(${i},${n},${k})">${ind(d)}${escapeHtml(q.stmt)}<span class="qzX">✕</span></div>`
+              : `<div class="qzSlot2" onclick="insQuiz(${i},${n},${k})">${ind(d)}<span>＋</span></div>`; };
+          q.lines.forEach((l, li) => {
+            code += `<div class="qzLine">${ind(l.d)}${escapeHtml(l.s)}</div>`;
+            q.slots.forEach((sl, k) => { if (sl[0] === li && sl[1] === 1) code += slotRow(k); });
+            q.slots.forEach((sl, k) => { if (sl[0] === li && sl[1] === 0) code += slotRow(k); });
+          });
+          const out = sel >= 0 ? q.outs[sel] : q.base;
+          ui = `<div class="qzProg">${code}</div><div class="qzOut">🖥 表示：<b>${escapeHtml(out || '（なし）')}</b>　<small>めざす表示：${escapeHtml(q.target)}</small></div>`;
+        } else if (q.kind === 'toggle') {
+          const stv = Array.isArray(v) ? v : q.init;
+          ui = `<div class="qzView">${q.view(stv)}</div><div class="qzKeys">` + q.labels.map((l, k) => `<button class="qzKey tog" onclick="togQuiz(${i},${n},${k})"${dis}>${escapeHtml(l)}</button>`).join('') + '</div>';
+        } else if (q.kind === 'spot') {
+          const mk = Array.isArray(v) ? v : [];
+          ui = `<div class="qzSpot"><svg viewBox="0 0 360 330" width="100%" style="max-width:520px;display:block;margin:0 auto">${q.svg}` +
+            q.regions.map((g) => { const [x, y, w, h] = g.r, on = mk.includes(g.id);
+              return `<g style="cursor:pointer" onclick="spotQuiz(${i},${n},'${g.id}')"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${on ? 'rgba(239,68,68,.12)' : 'transparent'}" stroke="${on ? '#ef4444' : 'transparent'}" stroke-width="3"/>` +
+                (on ? `<circle cx="${x + w - 10}" cy="${y + 10}" r="9" fill="#ef4444"/><text x="${x + w - 10}" y="${y + 14}" font-size="12" text-anchor="middle" fill="#fff" font-weight="900">!</text>` : '') + '</g>'; }).join('') +
+            `</svg><div class="qzCount">見つけた数：${mk.length} / 3</div></div>`;
+        } else if (q.kind === 'input') {
+          ui = `<div class="qzOpts"><input class="qzIn" type="text" autocomplete="off" spellcheck="false" placeholder="${escapeHtml(q.hint || 'こたえ')}" value="${escapeHtml(v || '')}" oninput="quizSel[${n}]=this.value"${dis}>${q.unit ? `<span class="qzUnit">${escapeHtml(q.unit)}</span>` : ''}</div>`;
+        } else {
+          ui = '<div class="qzOpts">' + q.o.map((t, j) => `<button class="qzOpt${v === j ? ' sel' : ''}" onclick="pickQuiz(${i},${n},${j})"${dis}>${escapeHtml(t)}</button>`).join('') + '</div>';
+        }
+        return `<div class="qzItem"><div class="qzQ">Q${n + 1}. ${q.q}</div>${ui}</div>`;
+      }).join('');
+      const ready = !cool;
+      showEscModal(`<div class="escTitle">🧾 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、クイズ端末のついた引き出しがあった。' : ''}画面に3つの問題が出ている。えらぶ・並べる・つなぐ・入れる…いろいろな形の問題だ。3問とも正解すると、引き出しのロックが外れる。</div>` +
         `<div class="cpanel qzPanel${bad ? ' shake' : ''}">${body}<div class="safeMsg">${note || ''}</div>` +
         `<button class="qzGo" onclick="answerQuiz(${i})"${ready ? '' : ' disabled'}>答える</button></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
     }
     function pickQuiz(i, n, j) { quizSel[n] = j; openQuiz(varStage(), i); }
+    function orderQuiz(i, n, j) {
+      const seq = Array.isArray(quizSel[n]) ? quizSel[n] : [];
+      if (j < 0) quizSel[n] = []; else if (!seq.includes(j)) quizSel[n] = seq.concat([j]);
+      openQuiz(varStage(), i);
+    }
+    function keyQuiz(i, n, c) {
+      if (quizCool > Date.now()) return;
+      const q = quizCur && quizCur.qs[n]; if (!q) return;
+      let v = String(quizSel[n] || '');
+      if (c === 'del') v = v.slice(0, -1); else if (v.length < (q.kind === 'bits' ? q.len : 7)) v += c;
+      quizSel[n] = v; openQuiz(varStage(), i);
+    }
+    function insQuiz(i, n, k) {
+      if (quizCool > Date.now()) return;
+      quizSel[n] = quizSel[n] === k ? undefined : k; openQuiz(varStage(), i);
+    }
+    function togQuiz(i, n, k) {
+      if (quizCool > Date.now()) return;
+      const q = quizCur && quizCur.qs[n]; if (!q) return;
+      const st = (Array.isArray(quizSel[n]) ? quizSel[n] : q.init).slice();
+      st[k] = (st[k] + 1) % q.max[k]; quizSel[n] = st; openQuiz(varStage(), i);
+    }
+    function spotQuiz(i, n, id) {
+      if (quizCool > Date.now()) return;
+      const mk = Array.isArray(quizSel[n]) ? quizSel[n].slice() : [], p = mk.indexOf(id);
+      if (p >= 0) mk.splice(p, 1); else mk.push(id);
+      quizSel[n] = mk; openQuiz(varStage(), i);
+    }
+    function matchQuiz(i, n, k, val) { const m = Object.assign({}, quizSel[n] || {}); m[k] = val; quizSel[n] = m; }
     function answerQuiz(i) {
       const st = varStage(), qs = quizSet(st);
-      const wrong = qs.filter((q, n) => quizSel[n] !== q.a).length;
-      if (!wrong) { quizSel = {}; escOpen(st, i); return; }
+      // 入力中の文字も拾う（入力欄から直接）
+      document.querySelectorAll('#escModal .qzIn').forEach((el, k) => { /* oninput で入っている */ });
+      if (qs.some((q, n) => !quizDone(q, quizSel[n]))) { openQuiz(st, i, 'まだ答えていない問題がある'); return; }
+      const wrong = qs.filter((q, n) => !quizRight(q, quizSel[n])).length;
+      if (!wrong) {
+        const sp = qs.find((q) => q.kind === 'spot');
+        quizSel = {}; escOpen(st, i);
+        if (sp) setTimeout(() => {   // 開いた画面の上に、見つけた使いにくい所の理由を出す
+          const m = document.getElementById('escModal'), t = m && m.querySelector('.escTitle');
+          if (t) t.insertAdjacentHTML('afterend', '<div class="escSub" style="background:#1e293b;border-left:4px solid #ef4444;border-radius:8px;padding:6px 10px;text-align:left"><b>🔍 見つけた使いにくい所</b><br>' + sp.why.map((w) => '・' + escapeHtml(w)).join('<br>') + '</div>');
+        }, 0);
+        return;
+      }
       escSteps()['bs:qa' + st] = (Number(escSteps()['bs:qa' + st]) || 0) + 1; saveTeam();
-      quizSel = {}; quizCool = Date.now() + 5000;
+      quizSel = {}; quizCool = Date.now() + 5000; quizCur = null;
       openQuiz(st, i, 'ブーッ！ まちがいがある。5秒たつと、別の問題が出る', true);
       setTimeout(() => { const m = document.getElementById('escModal'); if (m && !document.getElementById('escOverlay').classList.contains('viewHidden') && m.querySelector('.qzPanel')) openQuiz(st, i); }, 5100);
     }
@@ -10885,12 +11464,10 @@ window.DroneQR = (function () {
         if (c.neg[j]) {
           p += `<path d="M66 ${Y[j]} H106" stroke="${col(k)}"/>` + `<g stroke="#e2e8f0" fill="#1e293b">${notg(106, Y[j])}</g>`;
           p += `<path d="M136 ${Y[j]} H${endX - 24} V${endY} H${endX}" stroke="${notVal(k) === 1 ? on : off}" fill="none"/>`;
-          nodes += auto(notVal(k), 160, Y[j]);
         } else p += `<path d="M66 ${Y[j]} H${endX - 24} V${endY} H${endX}" stroke="${col(k)}" fill="none"/>`;
       }
       const g1x = c.g1 === 'AND' ? G1 + 54 : c.g1 === 'OR' ? G1 + 56 : G1 + 64;
       p += `<path d="M${g1x} 80 H330 V118 H${G2 + inOff(c.g2)}" stroke="${g1v === 1 ? on : off}" fill="none"/>`;
-      nodes += auto(g1v, 300, 80);
       const g2x = c.g2 === 'AND' ? G2 + 54 : c.g2 === 'OR' ? G2 + 56 : G2 + 64;
       p += `<path d="M${g2x} 130 H468" stroke="${lit ? on : off}" fill="none"/>`;
       p += `<g stroke="#e2e8f0" fill="#1e293b">${gate(c.g1, G1, 80)}${gate(c.g2, G2, 130)}</g>`;
@@ -10900,7 +11477,7 @@ window.DroneQR = (function () {
     function openLogic(st, i, note, first, lit, bad) {
       const o = escLayout(st).objs[i], info = OBJ_INFO[o.kind];
       showEscModal(`<div class="escTitle">🔌 ${info.name}の中の引き出し</div><div class="escSub">${first ? (OPEN_TXT[o.need] || `${info.name}を開けると、`) + '中に、電子ロックのついた引き出しがあった。' : ''}` +
-        '左はしのオレンジの丸（入力 A・B・C）をクリックして、0 か 1 を入れよう。回路の先のランプがつけば開く。<br><small>（灰色の四角の値は、入力によって決まる）</small></div>' +
+        '左はしのオレンジの丸（入力 A・B・C）をクリックして、0 か 1 を入れよう。回路の先のランプがつけば開く。<br><small>（入力するのは左はしの3つだけ。1 の線は黄色に光る）</small></div>' +
         `<div class="cpanel${bad ? ' shake' : ''}">${circuitSvg(o.circ, logicSel, lit, i)}<div class="safeMsg${lit ? ' good' : ''}">${note || ''}</div></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
     }
@@ -11073,7 +11650,7 @@ window.DroneQR = (function () {
         (memos ? `<div class="memoList">${memos}</div>` : '<div class="escSub dim">まだ何も見つけていない。部屋の中を調べよう。</div>') +
         '<div class="escActions"><button class="go" onclick="closeEscModal()">とじる</button></div>', 'memoModal wideModal');
     }
-    // ---- ヒントの鍵（答えも場所も言わない。考え方だけ） ----
+    // ---- ヒント（答えも場所も言わない。考え方だけ） ----
     function escHintTexts() {
       const st = varStage();
       return [
@@ -11089,20 +11666,19 @@ window.DroneQR = (function () {
       ];
     }
     function openHintModal() {
-      const st = varStage(), used = escHints(st), left = keysOf() - used;
+      const st = varStage();
       let h;
       if (st === 1) {
         h = '<div class="escTitle">💡 ヒント（部屋1）</div>' +
           '<div class="hintItem"><b>使い方</b>この部屋では、プログラムは使わない。左の台に出ている「いまさがす数」を、<b>箱をクリック</b>して開けながらさがす。開けられるのは、さがす数1つにつき <b>4回まで</b>。同じ数の箱が見つかったら、その箱の番号がこたえ。ないと思ったら、上の「🙅 この数はない」。</div>' +
           '';
       } else {
-        h = '<div class="escTitle">🗝 鍵（パラメータを変える権利）</div>';
-        h += `<div class="keyRow">${'<span class="key">🗝</span>'.repeat(Math.max(0, left))}${'<span class="key used">🗝</span>'.repeat(Math.min(used, keysOf()))}<span class="keyLeft">のこり ${Math.max(0, left)} 本${used > keysOf() ? `（予備 ${used - keysOf()} 本使用）` : ''}</span></div>`;
-        h += '<div class="hintItem"><b>使い方</b>プログラムエリアのブロックは、最初から用意されている。<b>並べる順番や、関数・繰返の中に入れるかどうかは自由</b>に変えられる。' +
-        `でも、パラメータ（${st === 1 ? 'ドローン名・番号' : 'ans ← の数・low / high の最初の数・mid の求め方・mid ± 1'}）は、そのままでは変えられない。変えたい所のプルダウンを選ぶと、<b>鍵を1本使って1か所</b>変えられる。</div>` +
-        (st === 1 && !r1sub() ? '<div class="hintItem"><b>めやす</b>手前の扉のブロック6個は、どれも正しい。ならべる順番だけ考えよう（鍵は使わなくてよい）。この先の奥の扉で、まちがいの直しに鍵がいる。</div>' :
-        `<div class="hintItem"><b>めやす</b>用意されたブロックには、まちがっている所がある。よく考えれば、鍵 <b>${ARR_NEED}本</b> で脱出できる（鍵が ${ARR_NEED}本以下なら、脱出ランク ★）。`) +
-        '鍵がなくなっても、予備の鍵で変えられるが、★は1つへる。</div>';
+        h = '<div class="escTitle">💡 ヒント</div>' + coinRow(st);
+        h += '<div class="hintItem"><b>使い方</b>プログラムエリアのブロックは、最初から用意されている。<b>並べる順番や、中に入れるかどうかは自由</b>に変えられる。' +
+          'でも、パラメータ（ans ← の数・low / high の最初の数・mid の求め方・mid ± 1）は、そのままでは変えられない。変えたい所のプルダウンを選ぶと<b>謎（ミニ問題）</b>が出る。正解すると、その1か所が変わる。もとの値にもどすときは、謎なしでもどせる。</div>' +
+          `<div class="hintItem"><b>めやす</b>用意されたブロックには、まちがっている所がある。よく考えれば、変更 <b>${ARR_NEED}か所</b>・ヒントなしで脱出できる（変更とヒントの合計が ${ARR_NEED} 以下なら、脱出ランク ★）。</div>` +
+          '<div class="hintItem"><b>💡 まちがいを光らせる</b>謎を1問解くと、まちがっているブロックが1つ赤く光る。' +
+          '<div style="margin-top:6px"><button class="go" onclick="useCoinHint()">🧩 謎を解いて、まちがっているブロックを光らせる</button></div></div>';
       }
       h += `<div class="hintItem"><b>考え方</b>${st === 1 ? 'はしから開けると、4回では足りないことがある。のこっている範囲の真ん中を開ければ、1回で半分にしぼれる（8 → 4 → 2 → 1）。' : 'まちがいは1か所。low・high の最初の数、mid の求め方、low ← mid ＋ 1 と high ← mid − 1 を、1つずつ確かめよう。'}</div>`;
       h += '<div class="escActions"><button class="go" onclick="closeEscModal()">とじる</button></div>';
@@ -11110,7 +11686,6 @@ window.DroneQR = (function () {
     }
     function useHintKey() {
       const st = varStage();
-      if (escHints(st) >= ESC.keys) return;
       escSteps()['bs:h' + st] = escHints(st) + 1;
       saveTeam();
       openHintModal(true);
@@ -11193,15 +11768,15 @@ window.DroneQR = (function () {
       const row = (st) => {
         const ct = escClearTime(st);
         return `<div class="escRow${ct !== null ? ' on' : ''}"><span class="erName">🚪 ${roomName(st)}</span>` + (ct !== null
-          ? `<span>⏱ ${fmtMS(ct)}${ESC.timer ? (ct <= ESC.limit[st] ? '<small>（時間内）</small>' : '<small>（タイムオーバー）</small>') : ''}</span><span>🗝 鍵 ${escHints(st)}本</span><span class="erStars">${escStars(st)}</span>`
+          ? `<span>⏱ ${fmtMS(ct)}${ESC.timer ? (ct <= ESC.limit[st] ? '<small>（時間内）</small>' : '<small>（タイムオーバー）</small>') : ''}</span><span>🔧 変更・💡 ヒント ${coinsUsed(st)}回</span><span class="erStars">${escStars(st)}</span>`
           : '<span class="dim">まだ脱出していない</span>') + '</div>';
       };
       return `<div class="escSummary"><div class="esHead">${both ? '🎉 地下倉庫の謎を解いた！' : '🔐 脱出の記録'}</div>${both && window.DroneHub ? (DroneHub.clear('bin'), DroneHub.pieceCard('bin')) : ''}${row(1)}${row(2)}` +
-        '<div class="esNote">脱出ランク：脱出 ★ ＋ 制限時間内 ★ ＋ 鍵 2本以下 ★</div></div>';
+        `<div class="esNote">脱出ランク：脱出 ★ ＋ 制限時間内 ★ ＋ 変更とヒント ${ARR_NEED}回以下 ★</div></div>`;
     }
     // ポイント情報の画像に入れる1行
     function escRecordLine() {
-      const part = (st) => escClearTime(st) === null ? `部屋${st} まだ` : `部屋${st} ${fmtMS(escClearTime(st))}・鍵${escHints(st)}本・${escStars(st)}`;
+      const part = (st) => escClearTime(st) === null ? `部屋${st} まだ` : `部屋${st} ${fmtMS(escClearTime(st))}・変更とヒント${coinsUsed(st)}回・${escStars(st)}`;
       return `登録した人の脱出記録：${part(1)} ／ ${part(2)}`;
     }
 
@@ -11427,9 +12002,23 @@ window.DroneQR = (function () {
     var get = function () { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } };
     var CLOCK = 'droneClassLock';   // クラスは変わらないので、班を入力し直すときもクラスはロックしたまま
     var getC = function () { try { return localStorage.getItem(CLOCK) || ''; } catch (e) { return ''; } };
-    var set = function (g) { try { if (g) { localStorage.setItem(LOCK, g); var mm = String(g).match(/^(\d)組/); if (mm) localStorage.setItem(CLOCK, mm[1]); } else localStorage.removeItem(LOCK); } catch (e) { /* なし */ } };
+    var FROM = 'droneRegroupFrom';   // 「班だけ入力し直す」の前の班（古い記録が書きもどされても、ロックしなおさないため）
+    var getFrom = function () { try { return localStorage.getItem(FROM) || ''; } catch (e) { return ''; } };
+    var set = function (g) { try { if (g) { localStorage.setItem(LOCK, g); localStorage.removeItem(FROM); var mm = String(g).match(/^(\d)組/); if (mm) localStorage.setItem(CLOCK, mm[1]); } else localStorage.removeItem(LOCK); } catch (e) { /* なし */ } };
+    var stopSave = function () { try { saveTeam = function () { /* 班を入れかえるので、古い班の記録は保存しない */ }; } catch (e) { /* なし */ } };
     var clearAll = function () { try { localStorage.removeItem(LOCK); localStorage.removeItem(CLOCK); } catch (e) { /* なし */ } };
-    try { if (!get() && team && team.group) set(team.group); if (!getC() && get()) set(get()); } catch (e) { /* なし */ }
+    // 班を入力し直したあと、ほかのタブが古い班の記録を書きもどしていたら、もう一度消して表紙からやり直す
+    try {
+      if (!get() && getFrom() && team && team.group === getFrom() && !sessionStorage.getItem('droneRegroupFix')) {
+        sessionStorage.setItem('droneRegroupFix', '1'); stopSave(); wipeDroneRecords(); location.reload();
+      } else sessionStorage.removeItem('droneRegroupFix');
+    } catch (e) { /* なし */ }
+    try { if (!get() && team && team.group && team.group !== getFrom()) set(team.group); if (!getC() && get()) set(get()); } catch (e) { /* なし */ }
+    // ほかのタブで班を入力し直したら（ロックが変わったら）、このタブも古い班の記録を保存せずに、表紙からやり直す
+    window.addEventListener('storage', function (e) {
+      if (e.key !== LOCK && e.key !== null) return;
+      try { if (team && team.group && get() !== team.group) { stopSave(); location.reload(); } } catch (x) { /* なし */ }
+    });
     function apply() {
       var g = get(), c = document.getElementById('inClass'), h = document.getElementById('inHan');
       if (!c || !h) return;
@@ -11448,6 +12037,8 @@ window.DroneQR = (function () {
         rb.setAttribute('style', 'margin-left:6px;padding:2px 10px;border-radius:8px;border:1px solid #fca5a5;background:#450a0a;color:#fecaca;font-weight:800;font-size:13px;cursor:pointer');
         rb.onclick = function () {
           if (!confirm('班を入力し直しますか？（クラス「' + m[1] + '組」はそのままです）\n\n⚠ この端末の、ドローンのステージの記録（ポイント・クリア・組んだブロック）は、すべて消えます（えほんのクリアは残ります）。\n続きをやるときは、新しい班を入れてから、Tの端末の「📥 記録読込」か、ドローンアプリの「📥 ポイント読込」で、自分のファイルを読み込もう。')) return;
+          stopSave();
+          try { localStorage.setItem(FROM, g); } catch (e) { /* なし */ }
           wipeDroneRecords();
           try { localStorage.setItem(CLOCK, m[1]); } catch (e) { /* なし */ }
           set('');

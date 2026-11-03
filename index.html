@@ -153,7 +153,8 @@
   function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
   function team() {
     var t = read(TEAM_KEY) || {};
-    var g = lockedGroup() || t.group || '';
+    var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
+    var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
     return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
@@ -481,7 +482,7 @@
     記録（ぶひん・班・名前・ポイント）は、<b>同じ端末・同じブラウザ</b>のときだけ引きつがれます。<br>
     ポイント情報のファイルは、iPad では「ファイル」アプリの「ダウンロード」に保存されます。
   </div>
-<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v77）</div>
+<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v83）</div>
 </main>
 
 <script>
@@ -557,7 +558,7 @@
     var g = c + '組' + h + '班', cl = ''; try { cl = localStorage.getItem('droneClassLock') || ''; } catch (e) { /* なし */ }
     if (cl && c !== cl) { alert('クラスは「' + cl + '組」に決まっています。変えられません'); return; }
     if (!confirm('「' + g + '」でよいですか？（クラスは、あとから変えられません）')) return;
-    H.setGroup(g); try { localStorage.setItem('droneClassLock', c); } catch (e) { /* なし */ } render();
+    H.setGroup(g); try { localStorage.setItem('droneClassLock', c); localStorage.removeItem('droneRegroupFrom'); } catch (e) { /* なし */ } render();
   });
   function wipeDroneRecords() {   // 班を入れかえるとき：この端末のドローンのステージの記録を全部消す（えほんのクリアは残す）
     try {
@@ -574,6 +575,7 @@
     var g = H.lockedGroup();
     var CLs = g ? g.replace(/組.*$/, '') : '';
     if (!g || !confirm('班を入力し直しますか？（クラス「' + CLs + '組」はそのままです）\n\n⚠ この端末の、ドローンのステージの記録（ポイント・クリア・組んだブロック）は、すべて消えます（えほんのクリアは残ります）。\n続きをやるときは、新しい班を入れてから、Tの端末の「📥 記録読込」か、ドローンアプリの「📥 ポイント読込」で、自分のファイルを読み込もう。')) return;
+    try { localStorage.setItem('droneRegroupFrom', g); } catch (e) { /* なし */ }   // 古い班の記録が書きもどされても、ロックしなおさない
     wipeDroneRecords();
     try { localStorage.setItem('droneClassLock', CLs); localStorage.removeItem('droneGroupLock'); } catch (e) { /* なし */ }
     render();
