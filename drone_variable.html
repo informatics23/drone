@@ -10622,13 +10622,14 @@ window.DroneQR = (function () {
         `<div class="escSub dim">見つけた手がかり ${escCount(st)} / 4　ー　解読した数は、扉の暗号パネルに入力しよう</div>` + ESC_OK, 'memoModal');
       escRefresh();
     }
-    // 金庫（3けたの番号）
+    // 金庫の番号（ふつうは3けた。二分探索で2けたの数を並べるときは、4〜6けた）
+    const safeLen = (st) => { try { return String(escData(st).code).length || 3; } catch (e) { return 3; } };
     let safeInput = '';
     function openSafe(st, i, msg, shake) {
-      const slots = [0, 1, 2].map((j) => `<span class="safeSlot">${safeInput[j] || ''}</span>`).join('');
+      const slots = Array.from({ length: safeLen(st) }, (_, j) => `<span class="safeSlot">${safeInput[j] || ''}</span>`).join('');
       const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button onclick="safePress(${n})">${n}</button>`).join('') +
         '<button onclick="safePress(0)">0</button><button class="go" onclick="safeEnter()">あける</button><button class="sub" onclick="safePress(-1)">消す</button>';
-      showEscModal('<div class="escTitle">🔐 金庫には、3けたの番号のカギがかかっている</div>' +
+      showEscModal(`<div class="escTitle">🔐 金庫には、${safeLen(st)}けたの番号のカギがかかっている</div>` +
         `<div class="safeBody${shake ? ' shake' : ''}"><div class="safeSlots">${slots}</div><div class="safeMsg">${msg || ''}</div><div class="safePad">${keys}</div></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal');
       escKeyHandler = (e) => {
@@ -10643,13 +10644,13 @@ window.DroneQR = (function () {
       const c = openSafe.cur;
       if (!c) return;
       if (n < 0) safeInput = safeInput.slice(0, -1);
-      else if (safeInput.length < 3) safeInput += String(n);
+      else if (safeInput.length < safeLen(c.st)) safeInput += String(n);
       openSafe(c.st, c.i);
     }
     function safeEnter() {
       const c = openSafe.cur;
       if (!c) return;
-      if (safeInput.length < 3) { openSafe(c.st, c.i, '3けた入れよう'); return; }
+      if (safeInput.length < safeLen(c.st)) { openSafe(c.st, c.i, safeLen(c.st) + 'けた入れよう'); return; }
       if (safeInput !== escData(c.st).code) { safeInput = ''; openSafe(c.st, c.i, 'ガチャ…開かない', true); return; }
       safeInput = '';
       escKeyHandler = null;
@@ -10769,9 +10770,16 @@ window.DroneQR = (function () {
         gateTimer = setTimeout(() => { if (gateAct === act && !document.getElementById('escOverlay').classList.contains('viewHidden')) { gateZ = null; openGate(null); } }, 5100);
         return;
       }
-      gateAct = null; gateZ = null;
+      gateAct = null; gateZ = null; gateDoneAct = act;
+      // 正解のわけを見せてから、OK でヒント・変更をする（あとの知らせが、正解の知らせに上書きされないように）
+      showEscModal(`<div class="escTitle">⭕ 正解！</div><div class="escSub">${z.why}</div><div class="escActions"><button class="go" onclick="gateDone()">OK</button></div>`, 'hintModal');
+    }
+    let gateDoneAct = null;
+    function gateDone() {
+      const act = gateDoneAct; gateDoneAct = null;
+      closeEscModal();
+      if (!act) return;
       if (act.kind === 'hint') useHintKey(); else applyKey();
-      showToast(`⭕ 正解！<small>${z.why}</small>`, false, 3000);
     }
     // 謎の問題を作る道具（班・何問目かで決まる）
     function gateRand(i) {
