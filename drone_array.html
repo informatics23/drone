@@ -4297,6 +4297,9 @@ return $.__chunk_javascript;
     .btn-load:hover { background: #0e7490; }
 
     .btn-clear { background: #ef4444; color: #ffffff; }
+    .wsZoomBtns { display: inline-flex; gap: 3px; background: rgba(15,23,42,.75); border-radius: 9px; padding: 3px; }
+    .wsZoomBtns button { background: #334155; color: #e2e8f0; border: 1px solid #64748b; border-radius: 7px; min-width: 2.4em; padding: 2px 8px; font: 800 13px system-ui, sans-serif; cursor: pointer; }
+    .wsZoomBtns button:disabled { opacity: .4; cursor: default; }
     .btn-clear:hover { background: #dc2626; }
 
     #speedControl {
@@ -4850,7 +4853,9 @@ return $.__chunk_javascript;
     .erStars { color: #facc15; font-size: 24px; letter-spacing: .08em; }
     .esNote { text-align: center; color: #94a3b8; font-size: 13px; font-weight: 700; margin-top: 4px; }
     .escRules { margin: 0; padding-left: 1.3em; }
-    @media (max-width: 1750px) { .escLong { display: none; } #missionTools { gap: 6px; } #missionTools button.escBtn { padding: 6px 9px; } }
+    /* ボタンの文字（途中保存など）は、画面がせまくても常に出す（アイコンだけにしない）。せまいときは文字を小さく */
+    @media (max-width: 1750px) { #missionTools { gap: 4px; } #missionTools button.escBtn { padding: 5px 7px; font-size: 12px; } }
+    @media (max-width: 1500px) { #missionTools { gap: 3px; row-gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex: 0 1 auto; max-width: 52%; } #missionTools button.escBtn { padding: 4px 6px; font-size: 11.5px; white-space: nowrap; } #missionText { min-width: 220px; } }
     #varView { display: none !important; }   /* 変数と扉の暗号は、プログラムエリアの上に出ているので、シミュレーションの左上には出さない */
     .hintSub { display: block; color: #fde68a; font-size: 15px; margin-bottom: 2px; }
     .memoHead { display: flex; align-items: center; gap: 8px; padding-right: 0; }
@@ -5465,7 +5470,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v83）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v84・拡大縮小）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -6435,27 +6440,36 @@ window.DroneQR = (function () {
         (pre.clientWidth - 28) / (maxChars * 0.62 * fWs),                    // Pythonの一番長い行
         (viewW - WS_PAD * 2) / (noteChars * fWs * 1.05)                      // 説明の一番長い行
       ];
-      // ブロックが多いときは、小さくしすぎない（READ_MIN より小さくなるなら、その大きさでスクロールにする）
-      // プログラムエリアの文字の大きさは、どの部屋でも同じ（変数ステージの部屋と同じ大きさ。ブロックの数では変えない）
-      //   上の説明9行＋ブロック3行・Python 32文字・ブロックの幅 330 が入る大きさ（画面の大きさだけで決まる）。入りきらないときはスクロール
-      const scaleNow = Math.max(WS_MIN_SCALE, Math.min(
-        WS_MAX_SCALE,
+      // 上の説明・Python・下の行は、いつも同じ大きさ（画面の大きさだけで決まる）。拡大縮小するのは、ブロックの場所（枠の中）だけ
+      const ui = Math.max(WS_MIN_SCALE, Math.min(WS_MAX_SCALE,
         (viewW - WS_PAD * 2) / WS_REF.w,
         (viewH - ROW_PAD * 2) / ((WS_REF.head + 2) * BLOCK_ROW_WS + WS_REF.h),
         (pre.clientWidth - 28) / (WS_REF.chars * 0.62 * fWs),
         (viewW - WS_PAD * 2) / (WS_REF.note * fWs * 1.05)));
-      // 例示などで上の説明が長く、エリアが低くなっても、③問題の部屋と同じ大きさを使う（同じ画面の大きさなら）
-      const sKey = window.innerWidth + 'x' + window.innerHeight;
-      if (curStep() === 3 || WS_REF.key !== sKey) { WS_REF.key = sKey; WS_REF.scale = scaleNow; }
-      const scale = WS_REF.scale;
-      wsScroll.on = !!box && bounds[2] < scale;
+      wsUi = ui;
+      // ブロックの場所（枠）の高さ
+      const zTop0 = ROW_PAD + pyHeadRows() * BLOCK_ROW_WS * ui, zBot0 = Math.min(viewH - ROW_PAD * 0.5 - BLOCK_ROW_WS * ui * 1.06, wsScroll.zoneBottom || 1e9);
+      const zoneH0 = Math.max(40, zBot0 - zTop0);
+      // ブロックは、ふだんは枠の中に全部入る大きさ（説明の文字より大きくはしない）。＋・－ボタン（Ctrl＋ホイール）で拡大縮小
+      const vk = currentUnit + ':' + curStep() + ':' + varStage() + ':' + (typeof r1sub === 'function' ? r1sub() : 0);
+      if (wsZoom.key !== vk) { wsZoom.key = vk; wsZoom.f = 1; }   // 部屋がかわったら、全体が見える大きさにもどす
+      const fitScale = Math.max(WS_FIT_MIN, Math.min(ui, (viewW - WS_PAD * 2 - 16) / Math.max(1, w), (zoneH0 - BLOCK_ROW_WS * ui * 0.6) / Math.max(1, h)));
+      const capScale = Math.max(fitScale, Math.min(WS_MAX_SCALE * 1.4, fitScale * 2.5));   // 全体の2.5倍まで（横にはみ出すときは、横にもスクロール）
+      wsZoom.fit = fitScale; wsZoom.maxF = capScale / fitScale;
+      wsZoom.f = Math.max(1, Math.min(wsZoom.maxF, wsZoom.f));
+      const scale = fitScale * wsZoom.f;
+      wsScroll.on = !!box && h * scale > zoneH0 - BLOCK_ROW_WS * ui * 0.6 + 1;
+      wsZoomUi();
       workspace.setScale(scale);
       if (box) {
-        const topY = ROW_PAD + pyHeadRows() * BLOCK_ROW_WS * scale;
-        const bottomY = Math.min(viewH - ROW_PAD - BLOCK_ROW_WS * scale * 2.6, wsScroll.zoneBottom || 1e9);   // 下の「close」の行の分をあける
+        const topY = zTop0 + BLOCK_ROW_WS * ui * 0.3;
+        const bottomY = zBot0;   // 下の「close」の行の分をあける
         wsScroll.baseX = WS_PAD - box.left * scale;
+        wsScroll.xmax = Math.max(0, w * scale + WS_PAD * 2 + 16 - viewW);
+        if (wsZoom.f <= 1.001) wsScroll.x = 0;
+        wsScroll.x = Math.max(0, Math.min(wsScroll.xmax, wsScroll.x || 0));
         wsScroll.baseY = topY - box.top * scale;
-        wsScroll.max = wsScroll.on ? Math.max(0, h * scale + BLOCK_ROW_WS * scale - (bottomY - topY)) : 0;
+        wsScroll.max = wsScroll.on ? Math.max(0, h * scale + BLOCK_ROW_WS * ui * 0.6 - (bottomY - topY)) : 0;
         // ブロックを動かしたあとも、見ている所がとばないように（今の位置をなるべく保つ）
         const vkey = currentUnit + ':' + curStep() + ':' + varStage() + ':' + (typeof r1sub === 'function' ? r1sub() : 0);
         if (wsScroll.on && wsScroll.key === vkey && wsScroll.curY !== null) wsScroll.y = wsScroll.baseY - wsScroll.curY;
@@ -6464,7 +6478,7 @@ window.DroneQR = (function () {
         wsScroll.y = Math.max(0, Math.min(wsScroll.max, wsScroll.y || 0));
         if (!wsScroll.on) wsScroll.y = 0;
         wsScroll.curY = wsScroll.baseY - wsScroll.y;
-        workspace.translate(wsScroll.baseX, wsScroll.curY);
+        workspace.translate(wsScroll.baseX - (wsScroll.x || 0), wsScroll.curY);
       } else { workspace.translate(0, 0); wsScroll.on = false; wsScroll.y = 0; wsScroll.curY = null; }
       wsClip();
       updatePythonView();
@@ -6472,12 +6486,29 @@ window.DroneQR = (function () {
     // ---- ブロックが多いときのスクロール（上の配列 box などは同じ大きさのまま） ----
     const WS_REF = { h: 100, w: 330, chars: 32, note: 24, head: 9 };   // どの部屋・どの段階でも同じ大きさにするための目安（上の説明9行＋ブロック3行は見える）
     const wsScroll = { on: false, y: 0, max: 0, baseX: 0, baseY: 0, curY: null, key: '' };
+    // プログラムエリアの拡大縮小（f：全体が入る大きさの何倍か）
+    const WS_FIT_MIN = 0.12, wsZoom = { f: 1, fit: 1, maxF: 1, key: '' };
+    let wsUi = 1;   // 上の説明・Python の大きさ（ブロックの拡大縮小とは別）
+    function wsZoomBy(k) { wsZoom.f = Math.max(1, Math.min(wsZoom.maxF, wsZoom.f * k)); fitWorkspaceView(); }
+    function wsZoomFit() { wsZoom.f = 1; wsScroll.x = 0; fitWorkspaceView(); }
+    // 横のスクロール（拡大して、横にはみ出したとき）
+    function wsScrollX(dx) {
+      if (!wsScroll.xmax) return 0;
+      const x0 = wsScroll.x || 0; wsScroll.x = Math.max(0, Math.min(wsScroll.xmax, x0 + dx));
+      if (wsScroll.x !== x0) { workspace.translate(wsScroll.baseX - wsScroll.x, wsScroll.curY !== null ? wsScroll.curY : wsScroll.baseY); updatePythonView(); }
+      return wsScroll.x - x0;
+    }
+    function wsZoomUi() {
+      const a = document.getElementById('wsZoomOut'), b = document.getElementById('wsZoomIn'), c = document.getElementById('wsZoomFit');
+      if (!a) return;
+      a.disabled = c.disabled = wsZoom.f <= 1.001; b.disabled = wsZoom.f >= wsZoom.maxF - 0.001;
+    }
     function wsScrollBy(dy, extra) {
       if (!wsScroll.on) return 0;
       const max = wsScroll.max + (extra || 0), y0 = wsScroll.y;
       wsScroll.y = Math.max(0, Math.min(max, wsScroll.y + dy));
       const d = wsScroll.y - y0;
-      if (d) { wsScroll.curY = wsScroll.baseY - wsScroll.y; workspace.translate(wsScroll.baseX, wsScroll.curY); wsClip(); updatePythonView(); }
+      if (d) { wsScroll.curY = wsScroll.baseY - wsScroll.y; workspace.translate(wsScroll.baseX - (wsScroll.x || 0), wsScroll.curY); wsClip(); updatePythonView(); }
       return d;
     }
     // ブロックの場所（上の説明と下の close の行のあいだ）の外は見せない。スクロールバーも出す
@@ -6493,6 +6524,18 @@ window.DroneQR = (function () {
           '#wsScrollHint{position:absolute;right:20px;z-index:4;font:800 11px system-ui,sans-serif;line-height:1.35;color:#fde68a;background:rgba(15,23,42,.85);border-radius:6px;padding:1px 6px;pointer-events:none}';
         document.head.appendChild(st);
         const hint = document.createElement('div'); hint.id = 'wsScrollHint'; div.parentNode.appendChild(hint);
+        // 拡大・縮小のボタン（ブロックの場所の右下）
+        const zb = document.createElement('div'); zb.id = 'wsZoomBox'; zb.className = 'wsZoomBtns'; zb.title = 'プログラムエリアの拡大・縮小（Ctrl＋ホイールでも）';
+        zb.innerHTML = '<button id="wsZoomOut" onclick="wsZoomBy(1 / 1.25)">－</button><button id="wsZoomFit" onclick="wsZoomFit()">全体</button><button id="wsZoomIn" onclick="wsZoomBy(1.25)">＋</button>';
+        div.parentNode.appendChild(zb);
+        st.textContent += '#wsZoomBox{position:absolute;right:18px;z-index:4}#wsScrollHint{right:150px!important;white-space:nowrap}body.wsDdOpen #wsZoomBox{visibility:hidden}';
+        // プルダウンの選択肢を開いているあいだは、「下にもブロックがある」とスクロールバーをかくす（選択肢に重ならないように）
+        const ddWatch = () => {
+          const open = [...document.querySelectorAll('.blocklyDropDownDiv, .blocklyWidgetDiv')].some((x) => getComputedStyle(x).display !== 'none' && x.offsetHeight > 10 && (x.style.opacity === '' || Number(x.style.opacity) > 0));
+          document.body.classList.toggle('wsDdOpen', open);
+        };
+        setInterval(() => { if (wsScroll.on || document.body.classList.contains('wsDdOpen')) ddWatch(); }, 250);
+        st.textContent += 'body.wsDdOpen #wsScrollHint,body.wsDdOpen #wsBar{visibility:hidden}';
         let drag = null;
         bar.addEventListener('pointerdown', (e) => {
           e.preventDefault(); e.stopPropagation();
@@ -6504,10 +6547,15 @@ window.DroneQR = (function () {
         bar.addEventListener('pointerup', () => { drag = null; });
         bar.addEventListener('pointercancel', () => { drag = null; });
       }
-      const P = BLOCK_ROW_WS * workspace.scale, viewH = div.clientHeight;
-      const top = ROW_PAD + pyHeadRows() * P - 3, bottom = wsScroll.zoneBottom || (viewH - ROW_PAD - P * 2.6);
-      div.style.clipPath = wsScroll.on ? `inset(${top.toFixed(0)}px 0 ${Math.max(0, viewH - bottom).toFixed(0)}px 0)` : '';
+      const P = BLOCK_ROW_WS * wsUi, viewH = div.clientHeight;
+      const top = ROW_PAD + pyHeadRows() * P - 3, bottom = wsScroll.zoneBottom || (viewH - ROW_PAD * 0.5 - P * 1.06);
+      // ブロックの絵（SVG）だけを切りとる。プルダウンの選択肢（ブロックの外に出る）は切らない
+      const svgEl = div.querySelector('.injectionDiv > svg.blocklySvg') || div.querySelector('svg.blocklySvg');
+      div.style.clipPath = '';
+      if (svgEl) svgEl.style.clipPath = wsScroll.on ? `inset(${top.toFixed(0)}px 0 ${Math.max(0, viewH - bottom).toFixed(0)}px 0)` : '';
       const hint = document.getElementById('wsScrollHint');
+      const zbox = document.getElementById('wsZoomBox');
+      if (zbox) { zbox.style.top = (div.offsetTop + (wsScroll.zoneBottom || (viewH - ROW_PAD * 0.5 - P * 1.06)) - 36) + 'px'; wsZoomUi(); }
       bar.style.display = hint.style.display = wsScroll.on ? 'block' : 'none';
       if (!wsScroll.on) return;
       bar.style.top = (div.offsetTop + top + 4) + 'px'; bar.style.height = Math.max(20, bottom - top - 8) + 'px';
@@ -6517,22 +6565,27 @@ window.DroneQR = (function () {
       // 「下にもブロックがある」は、上のルール（部屋を調べて…）と同じ文字の大きさ
       const pr = document.querySelector('#progNotes .progRule .prIn') || document.querySelector('#progNotes .progRule');
       if (pr) hint.style.fontSize = getComputedStyle(pr).fontSize;
-      hint.style.top = (div.offsetTop + bottom + 3) + 'px';
+      hint.style.top = (div.offsetTop + bottom - 30) + 'px';
       hint.textContent = wsScroll.y < wsScroll.max - 2 ? '▼ 下にもブロックがある（スクロール）' : wsScroll.y > 2 ? '▲ 上にもブロックがある' : '';
       hint.style.display = hint.textContent ? 'block' : 'none';
     }
-    function barView() { const div = document.getElementById('blocklyDiv'), P = BLOCK_ROW_WS * workspace.scale; return Math.max(1, (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD - P * 2.6)) - (ROW_PAD + pyHeadRows() * P)); }
+    function barView() { const div = document.getElementById('blocklyDiv'), P = BLOCK_ROW_WS * wsUi; return Math.max(1, (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD * 0.5 - P * 1.06)) - (ROW_PAD + pyHeadRows() * P)); }
     // マウスのホイール・トラックパッド
-    document.getElementById('blocklyDiv').addEventListener('wheel', (e) => { if (!wsScroll.on) return; e.preventDefault(); wsScrollBy(e.deltaY); }, { passive: false });
+    document.getElementById('blocklyDiv').addEventListener('wheel', (e) => {
+      if (e.ctrlKey) { e.preventDefault(); wsZoomBy(e.deltaY < 0 ? 1.12 : 1 / 1.12); return; }   // Ctrl＋ホイール（トラックパッドのピンチ）で拡大縮小
+      const dx = e.shiftKey ? e.deltaY : e.deltaX;
+      if (dx && wsScroll.xmax) { e.preventDefault(); wsScrollX(dx); if (e.shiftKey) return; }
+      if (!wsScroll.on) return; e.preventDefault(); wsScrollBy(e.deltaY);
+    }, { passive: false });
     // 何もない所をドラッグ（指でも）すると、スクロール
     (function () {
       let pan = null;
       const div = document.getElementById('blocklyDiv');
       div.addEventListener('pointerdown', (e) => {
-        if (!wsScroll.on || !e.target.classList || !e.target.classList.contains('blocklyMainBackground')) return;
-        pan = { y: e.clientY, id: e.pointerId };
+        if ((!wsScroll.on && !wsScroll.xmax) || !e.target.classList || !e.target.classList.contains('blocklyMainBackground')) return;
+        pan = { x: e.clientX, y: e.clientY, id: e.pointerId };
       }, true);
-      document.addEventListener('pointermove', (e) => { if (pan && e.pointerId === pan.id) { wsScrollBy(pan.y - e.clientY); pan.y = e.clientY; } });
+      document.addEventListener('pointermove', (e) => { if (pan && e.pointerId === pan.id) { wsScrollBy(pan.y - e.clientY); wsScrollX(pan.x - e.clientX); pan.x = e.clientX; pan.y = e.clientY; } });
       document.addEventListener('pointerup', () => { pan = null; });
       document.addEventListener('pointercancel', () => { pan = null; });
     })();
@@ -6554,8 +6607,8 @@ window.DroneQR = (function () {
         raf = requestAnimationFrame(function step() {
           if (!workspace.isDragging()) { raf = 0; return; }
           if (last && wsScroll.on) {
-            const div = document.getElementById('blocklyDiv'), r = div.getBoundingClientRect(), P = BLOCK_ROW_WS * workspace.scale;
-            const top = r.top + ROW_PAD + pyHeadRows() * P, bottom = r.top + (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD - P * 2.6)), edge = 36;
+            const div = document.getElementById('blocklyDiv'), r = div.getBoundingClientRect(), P = BLOCK_ROW_WS * wsUi;
+            const top = r.top + ROW_PAD + pyHeadRows() * P, bottom = r.top + (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD * 0.5 - P * 1.06)), edge = 36;
             let v = 0;
             if (last.clientY < top + edge) v = -Math.min(14, (top + edge - last.clientY) / 3 + 2);
             else if (last.clientY > bottom - edge) v = Math.min(14, (last.clientY - (bottom - edge)) / 3 + 2);
@@ -6973,9 +7026,11 @@ window.DroneQR = (function () {
       const pre = document.getElementById('pythonCode');
       const notes = document.getElementById('progNotes');
       const preTop = pre.getBoundingClientRect().top;
-      const P = BLOCK_ROW_WS * workspace.scale;               // 1行の高さ(px)
-      const fontPx = blockFontWs() * workspace.scale;         // ブロックの文字と同じ大きさ
+      const P = BLOCK_ROW_WS * wsUi;                        // 1行の高さ(px)（上の説明・下の行）
+      const fontPx = blockFontWs() * wsUi;                  // 説明の文字の大きさ
       const lineH = P * 0.78;
+      const Pb = BLOCK_ROW_WS * workspace.scale, fontB = Math.max(8, blockFontWs() * workspace.scale), lineHb = Pb * 0.78;   // ブロックの行（拡大縮小にあわせる）
+      const isBlk = (l) => l.kind !== 'head' && l.kind !== 'empty' && l.kind !== 'close';
 
       // 各行の縦位置（中心）: 上の5行は一定の間隔、ブロックの行はブロックの文字の高さに合わせる
       const ys = [];
@@ -6984,26 +7039,26 @@ window.DroneQR = (function () {
         let y;
         if (l.kind === 'head') y = ROW_PAD + (i + 0.5) * P;
         else if (l.kind === 'empty') y = ROW_PAD + (pyHeadRows() + 0.5) * P;
-        else if (l.kind === 'close') y = (typeof wsScroll !== 'undefined' && wsScroll.on) ? pre.clientHeight - ROW_PAD - P / 2 - P * 1.5 : Math.max(prev + P * 1.56, pre.clientHeight - ROW_PAD - P / 2 - P * 1.5);   // 下端から少し上に固定
+        else if (l.kind === 'close') y = pre.clientHeight - ROW_PAD * 0.5 - P * 0.55;   // いちばん下に固定（ブロックの場所をできるだけ広くする）   // 下端から少し上に固定
         else {
           const blk = l.owner ? workspace.getBlockById(l.owner) : null;
           if ((l.kind === 'main' || l.kind === 'ghost') && blk) y = labelCenterY(blk, 0) - preTop;
           else if (l.kind === 'else' && blk) y = labelCenterY(blk, l.inputIdx === undefined ? 2 : l.inputIdx) - preTop;
-          else y = prev + P;
-          if (!(y >= 0)) y = prev + P;
-          y = Math.max(y, prev + P * 0.78);
+          else y = prev + Pb;
+          if (!(y >= 0)) y = prev + Pb;
+          y = Math.max(y, prev + Pb * 0.78);
         }
         ys.push(y);
         prev = y;
       });
 
-      const style = (i) => `top:${(ys[i] - lineH / 2).toFixed(1)}px;height:${lineH.toFixed(1)}px;line-height:${lineH.toFixed(1)}px`;
+      const style = (i) => { const lh = isBlk(lines[i]) ? lineHb : lineH; return `top:${(ys[i] - lh / 2).toFixed(1)}px;height:${lh.toFixed(1)}px;line-height:${lh.toFixed(1)}px` + (isBlk(lines[i]) ? `;font-size:${fontB.toFixed(2)}px` : ''); };
       pre.style.fontSize = fontPx.toFixed(2) + 'px';
       const scrollOn = typeof wsScroll !== 'undefined' && wsScroll.on, zTop = ROW_PAD + pyHeadRows() * P - 3, cIdx = lines.findIndex((l) => l.kind === 'close');
       pre.innerHTML = lines.map((l, i) => {
         if (!l.text) return '';
         // スクロール中は、ブロックの場所の外（上の説明・下の close の行と重なる所）の行は出さない
-        if (scrollOn && l.kind !== 'head' && l.kind !== 'close' && (ys[i] < zTop + lineH * 0.4 || ys[i] > (wsScroll.zoneBottom || (cIdx >= 0 ? ys[cIdx] - lineH * 0.8 : 1e9)) - lineH * 0.4)) return '';
+        if (scrollOn && l.kind !== 'head' && l.kind !== 'close' && (ys[i] < zTop + lineHb * 0.4 || ys[i] > (wsScroll.zoneBottom || (cIdx >= 0 ? ys[cIdx] - lineH * 0.8 : 1e9)) - lineHb * 0.4)) return '';
         let cls = 'pyline';
         if (run) {
           // 繰返・もし は、先頭の for / if の行だけを強調する
@@ -7020,9 +7075,9 @@ window.DroneQR = (function () {
       const zoneTop = ROW_PAD + pyHeadRows() * P - 3;
       const connectBottom = ys[3] + lineH / 2;                       // 「ドローンと接続する」の下端
       const zoneGap = (ROW_PAD + PY_BASE_ROWS * P - 3) - connectBottom;   // 上の説明が増えても、枠の下の隙間は同じ                        // 上側の隙間 = 下側の隙間（等距離）
-      let zoneH = Math.max(0, (ys[closeIdx] - lineH / 2) - zoneGap - zoneTop);
+      let zoneH = Math.max(0, (ys[closeIdx] - lineH / 2) - P * 0.12 - zoneTop);   // 枠は、下の行のすぐ上まで
       // スクロールするとき、下の close の行（Python・説明）がなければ、ブロックの場所を下まで広げる（下のはしに「下にもブロックがある」の分だけあける）
-      if (typeof wsScroll !== 'undefined' && wsScroll.on && closeIdx >= 0 && !lines[closeIdx].text && !currentNotes().close) zoneH = Math.max(0, pre.clientHeight - ROW_PAD - Math.max(30, fontPx * 2) - zoneTop);
+      if (typeof wsScroll !== 'undefined' && closeIdx >= 0 && !lines[closeIdx].text && !currentNotes().close) zoneH = Math.max(0, pre.clientHeight - ROW_PAD * 0.5 - P * 0.2 - zoneTop);
       if (typeof wsScroll !== 'undefined') { const zb = zoneTop + zoneH; if (Math.abs((wsScroll.zoneBottom || 0) - zb) > 0.5) { wsScroll.zoneBottom = zb; setTimeout(wsClip, 0); } }
       const zone = `<div class="progZone" style="top:${zoneTop.toFixed(1)}px;height:${zoneH.toFixed(1)}px"><span class="progZoneHint">${currentUnit === 'array' ? 'ブロックをつなげよう' : 'ここにブロックをドラッグ＆ドロップ'}</span></div>`;
       notes.style.fontSize = fontPx.toFixed(2) + 'px';
@@ -7032,6 +7087,13 @@ window.DroneQR = (function () {
         return t ? `<div class="progNote" style="${style(i)}">${t}</div>` : '';
       }).join('');
       if (typeof progMissionHtml === 'function') notes.innerHTML += progMissionHtml(ys, lineH, zoneTop, fontPx);
+      // 部屋のルールの欄：文字が欄に入りきらないときは、入るまで文字を小さくする（上下が切れて読めないことがないように）
+      notes.querySelectorAll('.progRule').forEach((el) => {
+        el.style.alignItems = 'flex-start'; el.style.overflow = 'hidden';
+        let fs = parseFloat(getComputedStyle(el).fontSize) || 12, n = 0;
+        while (el.scrollHeight > el.clientHeight + 1 && fs > 7 && n++ < 40) { fs -= 0.4; el.style.fontSize = fs.toFixed(1) + 'px'; }
+        el.style.alignItems = 'center';
+      });
     }
 
     async function copyToClipboard(text) {
@@ -9415,22 +9477,34 @@ window.DroneQR = (function () {
     }
     // ---- 💡 ヒント（謎を解く）：まちがっているブロックを1つ光らせる（部屋2） ----
     const hintBad = new Set();
-    // ヒント用：正しいプログラムの形（tmp ← box[0] → 繰返 i を 0〜2 で box[i] ← box[i+1] → box[3] ← tmp）
-    function hintSpec() {
-      return [{ kind: 'main', nodes: [{ t: 'ra_assign', f: { L: 'tmp', R: '0' } },
+    // ヒント用：正しいプログラムの形（部屋1：左へ1つずらす代入5個のかたまり／部屋2：配列と繰返）
+    function hintSpec(st) {
+      if (st === 2) return [{ kind: 'main', nodes: [{ t: 'ra_assign', f: { L: 'tmp', R: '0' } },
         { t: 'ra_for', f: { FROM: '0', TO: '2', DIR: 'UP' }, kids: { DO: [{ t: 'ra_assign', f: { L: 'i', R: 'i+1' } }] } },
         { t: 'ra_assign', f: { L: '3', R: 'tmp' } }] }];
+      const A = team.data.arrStages, M = (k) => 'M' + (((k % 4) + 4) % 4);
+      const cyc = (k) => [['tmp', M(k)], [M(k), M(k + 1)], [M(k + 1), M(k + 2)], [M(k + 2), M(k + 3)], [M(k + 3), 'tmp']].map((p) => ({ t: 'rv_copy', f: { X: p[0], Y: p[1] } }));
+      if (!r1sub()) {   // 手前の扉：ずらす5個を2回分（2つのかたまりは、どちらが先でもよい）
+        const ks = A[0].presetA.filter((b) => b.f.X === 'tmp').map((b) => Number(String(b.f.Y).slice(1)));
+        return { alts: [[{ kind: 'main', nodes: cyc(ks[0]).concat(cyc(ks[1])) }], [{ kind: 'main', nodes: cyc(ks[1]).concat(cyc(ks[0])) }]] };
+      }
+      // 奥の扉：繰返の中に、ずらす5個
+      const cb = A[0].presetB.filter((b) => b.type === 'rv_copy').map((b) => b.f.X + '>' + b.f.Y);
+      const kb = [0, 1, 2, 3].map((k) => { const rest = cb.slice(); return cyc(k).filter((n) => { const i = rest.indexOf(n.f.X + '>' + n.f.Y); if (i >= 0) { rest.splice(i, 1); return true; } return false; }).length; });
+      const k1 = kb.indexOf(Math.max(...kb));
+      return [{ kind: 'main', nodes: [{ t: 'custom_repeat', f: { TIMES: String(R1_TIMES[1]) }, kids: { DO: cyc(k1) } }] }];
     }
     function wrongBlocks() {
-      if (currentUnit !== 'array' || curStep() !== 3 || varStage() !== 2) return [];
-      let spec; try { spec = hintSpec(); } catch (e) { return []; }
+      if (currentUnit !== 'array' || curStep() !== 3) return [];
+      let spec; try { spec = hintSpec(varStage()); } catch (e) { return []; }
       if (!spec) return [];
+      const alts = spec.alts || [spec];   // 正しい形が何通りかあるとき
       // 正しいプログラムの形（どの箱・入口の中で、何番目のブロックか）とパラメータを、1つずつ書き出す
       const fkeys = {};
       const keyOf = (t, get) => t + '|' + (fkeys[t] || []).map((n) => n + '=' + get(n)).join(',');
       const collect = (nodes) => nodes.forEach((n) => { fkeys[n.t] = [...new Set((fkeys[n.t] || []).concat(Object.keys(n.f || {})))]; Object.values(n.kids || {}).forEach(collect); });
-      spec.forEach((s) => collect(s.nodes));
-      const canon = [];
+      alts.forEach((a) => a.forEach((s) => collect(s.nodes)));
+      let canon = [];
       const walk = (nodes, cont) => {
         let prevOk = new Set(['']), grp = null;
         nodes.forEach((n, i) => {
@@ -9446,13 +9520,25 @@ window.DroneQR = (function () {
           Object.entries(n.kids || {}).forEach(([inp, kids]) => walk(kids, n.t + '.' + inp));
         });
       };
-      spec.forEach((s) => walk(s.nodes, 'top:' + s.kind));
+      // 何通りかあるときは、同じブロック（同じ場所・同じ何番目）の「すぐ上のブロック」の候補をまとめる
+      let merged = null;
+      alts.forEach((a) => {
+        canon = []; a.forEach((s) => walk(s.nodes, 'top:' + s.kind));
+        if (!merged) { merged = canon; return; }
+        const seen = {};
+        canon.forEach((c) => { const id = c.t + '|' + c.key + '|' + c.cont; seen[id] = (seen[id] || 0) + 1; let n = 0;
+          const m = merged.find((x) => x.t + '|' + x.key + '|' + x.cont === id && ++n === seen[id]); if (m) c.prevOk.forEach((v) => m.prevOk.add(v)); });
+      });
+      canon = merged;
+      spec = alts[0];
       // 今のブロック：どこに入っているか・すぐ上のブロック
       const all = workspace.getAllBlocks(false).filter((b) => !b.isShadow());
       const DEF = new Set(spec.filter((s) => s.kind === 'def').map((s) => s.nodes[0] && s.nodes[0].t));
       const roots = workspace.getTopBlocks(false).filter((b) => !DEF.has(b.type));
       const size = (r) => r.getDescendants(false).length;
-      const mainRoot = roots.sort((a, b) => (size(b) - size(a)) || (a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y))[0] || null;
+      let mainRoot = roots.sort((a, b) => (size(b) - size(a)) || (a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y))[0] || null;
+      if (mainRoot && size(mainRoot) < 2 && roots.length > 1) mainRoot = null;   // まだ1つもつないでいないとき
+      wrongBlocks.loose = 0;
       const valOf = (b) => (k) => (b.getField(k) ? String(b.getFieldValue(k)) : '');
       const where = (b) => {
         const sp = b.getSurroundParent();
@@ -9464,7 +9550,9 @@ window.DroneQR = (function () {
       const prevKey = (b) => { const p = b.getPreviousBlock(); return !p || p === b.getSurroundParent() ? '' : keyOf(p.type, valOf(p)); };
       const used = new Set(), bad = [];
       all.map((b) => ({ b, y: b.getRelativeToSurfaceXY().y })).sort((u, v) => u.y - v.y).forEach(({ b }) => {
-        const key = keyOf(b.type, valOf(b)), cont = where(b), pk = prevKey(b);
+        const key = keyOf(b.type, valOf(b)), cont = where(b), pk = prevKey(b), rt = b.getRootBlock();
+        // まだつないでいないブロック（プログラムのかたまりの外）は、パラメータだけを見る（まちがいにはしない）
+        if (!DEF.has(rt.type) && rt !== mainRoot) { if (canon.some((c) => c.t === b.type && c.key === key)) wrongBlocks.loose++; else bad.push(b); return; }
         const k = canon.findIndex((c, i) => !used.has(i) && c.t === b.type && c.key === key && c.cont === cont && c.prevOk.has(pk));
         if (k >= 0) used.add(k); else bad.push(b);
       });
@@ -9483,22 +9571,29 @@ window.DroneQR = (function () {
       const pos = (b) => { const xy = b.getRelativeToSurfaceXY(); return [xy.y, xy.x]; };
       return wrongBlocks().map((b) => ({ b, p: pos(b) })).sort((u, v) => (u.p[0] - v.p[0]) || (u.p[1] - v.p[1])).map((u) => u.b)[0] || null;
     }
+    // 上の「💡 ヒント」ボタン：プログラムを組む部屋だけ（謎を解くと、まちがっているブロックが光る）
+    function hintBtnHtml() {
+      let ok = false;
+      try { ok = currentUnit === 'array' && curStep() === 3 && !!hintSpec(varStage()) && document.getElementById('blocklyDiv').clientWidth > 50; } catch (e) { ok = false; }   // プログラムエリアが見えているときだけ
+      return ok ? '<button class="escBtn" onclick="useCoinHint()">💡<span class="escLong"> ヒント</span></button>' : '';
+    }
     function useCoinHint(solved) {
       const st = varStage();
       const next = topWrongBlock();
       if (next && hintBad.has(next.id)) { closeEscModal(); showToast('💡 いちばん上のまちがいは、もう赤く光っている<small>そのブロック（つなぐ場所・順番か、パラメータ）を直してから、もう一度ヒントを使おう</small>', false, 4500); return; }
       if (!solved) { openGate({ kind: 'hint' }); return; }
-      if (!next) {   // まちがいがなければ、そのまま実行してよい
+      const loose = wrongBlocks.loose || 0;
+      if (!next) {   // まちがいがなければ、そのまま実行してよい（つないでいないブロックがあれば、それを知らせる）
         escSteps()['array:hc' + st] = hintCoins(st) + 1; saveTeam();
         closeEscModal();
-        showToast('💡 まちがっているブロックはない<small>このまま実行しよう</small>', false, 4500);
+        showToast(loose ? '💡 まちがっているブロックはない<small>まだつないでいないブロックがある。全部つなげてから実行しよう</small>' : '💡 まちがっているブロックはない<small>このまま実行しよう</small>', false, 4500);
         renderStep();
         return;
       }
       escSteps()['array:hc' + st] = hintCoins(st) + 1; saveTeam();
       hintBad.add(next.id); next.getSvgRoot().classList.add('blockHintBad');
       closeEscModal();
-      try { if (wsScroll.on) { const P = BLOCK_ROW_WS * workspace.scale, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (ROW_PAD + pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
+      try { if (wsScroll.on) { const P = BLOCK_ROW_WS * wsUi, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (ROW_PAD + pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
       showToast('💡 赤く光っているのが、いちばん上にあるまちがいのブロック<small>つなぐ場所・順番か、パラメータ（プルダウン）を直そう</small>', false, 4500);
       renderStep();
     }
@@ -9716,7 +9811,7 @@ window.DroneQR = (function () {
         tools.innerHTML = u === 'array'
           ? escTimerHtml() + '<button class="escBtn" onclick="saveMidway()" title="ここまでの記録を保存（次の時間は「📂 続きから」）">💾<span class="escLong"> 途中保存</span></button>' + '<button class="escBtn" onclick="resetView()" title="視点を正面にもどす">🎥<span class="escLong"> 正面</span></button>' + (typeof roomBigBtn === 'function' && roomBigAllowed() ? roomBigBtn() : '') + (varStage() !== 2 ? '' : `<button class="escBtn" onclick="openInvList()" title="持ち物">🎒<span class="escLong"> 持ち物</span> ${(() => { try { return escItems(varStage()).length; } catch (e) { return 0; } })()}</button>`) + `<button class="escBtn" onclick="openMemoList()">📜<span class="escLong"> 手がかり</span> ${escCount(varStage())}/4</button>` +
             `<button class="escBtn" onclick="openDoorPanel()">🚪<span class="escLong"> 暗号パネル</span> ${escDecodedCount(varStage())}/4</button>` +
-            (varStage() === 1 ? '<button class="escBtn" onclick="showHint()">💡<span class="escLong"> ヒント</span></button>' : '<button class="escBtn" onclick="showHint()">💡<span class="escLong"> ヒント</span></button>')
+            hintBtnHtml()
           : (BLOCK_LIMIT[u] ? '<span class="blockCount" id="blockCountBox"></span>' : '') + '<button onclick="showHint()">ヒント</button>';
         if (u === 'array') renderEscTimer();
         updateBlockCount();
