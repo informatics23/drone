@@ -5470,7 +5470,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v84・拡大縮小）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v85・全体スクロール）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -6440,46 +6440,42 @@ window.DroneQR = (function () {
         (pre.clientWidth - 28) / (maxChars * 0.62 * fWs),                    // Pythonの一番長い行
         (viewW - WS_PAD * 2) / (noteChars * fWs * 1.05)                      // 説明の一番長い行
       ];
-      // 上の説明・Python・下の行は、いつも同じ大きさ（画面の大きさだけで決まる）。拡大縮小するのは、ブロックの場所（枠の中）だけ
+      // 上の説明・Python・下の行の大きさは、画面の大きさだけで決まる。ブロックもふだんは同じ大きさ（小さくしない）
       const ui = Math.max(WS_MIN_SCALE, Math.min(WS_MAX_SCALE,
         (viewW - WS_PAD * 2) / WS_REF.w,
         (viewH - ROW_PAD * 2) / ((WS_REF.head + 2) * BLOCK_ROW_WS + WS_REF.h),
         (pre.clientWidth - 28) / (WS_REF.chars * 0.62 * fWs),
         (viewW - WS_PAD * 2) / (WS_REF.note * fWs * 1.05)));
       wsUi = ui;
-      // ブロックの場所（枠）の高さ
-      const zTop0 = ROW_PAD + pyHeadRows() * BLOCK_ROW_WS * ui, zBot0 = Math.min(viewH - ROW_PAD * 0.5 - BLOCK_ROW_WS * ui * 1.06, wsScroll.zoneBottom || 1e9);
-      const zoneH0 = Math.max(40, zBot0 - zTop0);
-      // ブロックは、ふだんは枠の中に全部入る大きさ（説明の文字より大きくはしない）。＋・－ボタン（Ctrl＋ホイール）で拡大縮小
+      const P0 = BLOCK_ROW_WS * ui;
+      // プログラムエリア全体（上の説明 → ブロックの枠 → 最後の行「4機の変数を表示する」）を1枚の紙のように考えて、
+      //   ブロックが入りきらないときは、全体を上下にスクロールする（Python も同じだけ動く）
+      const zTop0 = ROW_PAD + pyHeadRows() * P0;
+      const blocksTop = zTop0 + P0 * 0.3;
+      const viewZoneBottom = viewH - ROW_PAD * 0.5 - P0 * 1.06;     // 全部入るときの枠の下（最後の行は画面の下はし）
       const vk = currentUnit + ':' + curStep() + ':' + varStage() + ':' + (typeof r1sub === 'function' ? r1sub() : 0);
-      if (wsZoom.key !== vk) { wsZoom.key = vk; wsZoom.f = 1; }   // 部屋がかわったら、全体が見える大きさにもどす
-      const fitScale = Math.max(WS_FIT_MIN, Math.min(ui, (viewW - WS_PAD * 2 - 16) / Math.max(1, w), (zoneH0 - BLOCK_ROW_WS * ui * 0.6) / Math.max(1, h)));
-      const capScale = Math.max(fitScale, Math.min(WS_MAX_SCALE * 1.4, fitScale * 2.5));   // 全体の2.5倍まで（横にはみ出すときは、横にもスクロール）
-      wsZoom.fit = fitScale; wsZoom.maxF = capScale / fitScale;
-      wsZoom.f = Math.max(1, Math.min(wsZoom.maxF, wsZoom.f));
-      const scale = fitScale * wsZoom.f;
-      wsScroll.on = !!box && h * scale > zoneH0 - BLOCK_ROW_WS * ui * 0.6 + 1;
+      if (wsZoom.key !== vk) { wsZoom.key = vk; wsZoom.f = 1; wsScroll.y = 0; }   // 部屋がかわったら、ふつうの大きさ・いちばん上にもどす
+      const fitAll = Math.max(WS_FIT_MIN, Math.min(ui, (viewW - WS_PAD * 2 - 16) / Math.max(1, w), (viewZoneBottom - blocksTop - P0 * 0.3) / Math.max(1, h)));
+      wsZoom.minF = fitAll / ui; wsZoom.maxF = 2;
+      wsZoom.f = Math.max(wsZoom.minF, Math.min(wsZoom.maxF, wsZoom.f));
+      const scale = ui * wsZoom.f;
+      const zoneBottomC = Math.max(viewZoneBottom, box ? blocksTop + h * scale + P0 * 0.5 : 0);
+      wsScroll.closeY = zoneBottomC + P0 * 0.12 + P0 * 0.39;          // 最後の行の中心（紙の上での位置）
+      const total = wsScroll.closeY + P0 * 0.55 + ROW_PAD * 0.5;
+      wsScroll.max = Math.max(0, total - viewH);
+      wsScroll.on = wsScroll.max > 1;
+      wsScroll.y = wsScroll.on ? Math.max(0, Math.min(wsScroll.max, wsScroll.y || 0)) : 0;
       wsZoomUi();
       workspace.setScale(scale);
       if (box) {
-        const topY = zTop0 + BLOCK_ROW_WS * ui * 0.3;
-        const bottomY = zBot0;   // 下の「close」の行の分をあける
         wsScroll.baseX = WS_PAD - box.left * scale;
         wsScroll.xmax = Math.max(0, w * scale + WS_PAD * 2 + 16 - viewW);
         if (wsZoom.f <= 1.001) wsScroll.x = 0;
         wsScroll.x = Math.max(0, Math.min(wsScroll.xmax, wsScroll.x || 0));
-        wsScroll.baseY = topY - box.top * scale;
-        wsScroll.max = wsScroll.on ? Math.max(0, h * scale + BLOCK_ROW_WS * ui * 0.6 - (bottomY - topY)) : 0;
-        // ブロックを動かしたあとも、見ている所がとばないように（今の位置をなるべく保つ）
-        const vkey = currentUnit + ':' + curStep() + ':' + varStage() + ':' + (typeof r1sub === 'function' ? r1sub() : 0);
-        if (wsScroll.on && wsScroll.key === vkey && wsScroll.curY !== null) wsScroll.y = wsScroll.baseY - wsScroll.curY;
-        else if (wsScroll.key !== vkey) wsScroll.y = 0;
-        wsScroll.key = vkey;
-        wsScroll.y = Math.max(0, Math.min(wsScroll.max, wsScroll.y || 0));
-        if (!wsScroll.on) wsScroll.y = 0;
+        wsScroll.baseY = blocksTop - box.top * scale;
         wsScroll.curY = wsScroll.baseY - wsScroll.y;
         workspace.translate(wsScroll.baseX - (wsScroll.x || 0), wsScroll.curY);
-      } else { workspace.translate(0, 0); wsScroll.on = false; wsScroll.y = 0; wsScroll.curY = null; }
+      } else { workspace.translate(0, 0); wsScroll.curY = null; }
       wsClip();
       updatePythonView();
     }
@@ -6489,8 +6485,9 @@ window.DroneQR = (function () {
     // プログラムエリアの拡大縮小（f：全体が入る大きさの何倍か）
     const WS_FIT_MIN = 0.12, wsZoom = { f: 1, fit: 1, maxF: 1, key: '' };
     let wsUi = 1;   // 上の説明・Python の大きさ（ブロックの拡大縮小とは別）
-    function wsZoomBy(k) { wsZoom.f = Math.max(1, Math.min(wsZoom.maxF, wsZoom.f * k)); fitWorkspaceView(); }
-    function wsZoomFit() { wsZoom.f = 1; wsScroll.x = 0; fitWorkspaceView(); }
+    function wsZoomBy(k) { wsZoom.f = Math.max(wsZoom.minF || 0.1, Math.min(wsZoom.maxF, wsZoom.f * k)); fitWorkspaceView(); }
+    function wsZoomStd() { wsZoom.f = 1; wsScroll.x = 0; fitWorkspaceView(); }
+    function wsZoomFit() { wsZoom.f = wsZoom.minF || 1; wsScroll.x = 0; wsScroll.y = 0; fitWorkspaceView(); }
     // 横のスクロール（拡大して、横にはみ出したとき）
     function wsScrollX(dx) {
       if (!wsScroll.xmax) return 0;
@@ -6501,14 +6498,15 @@ window.DroneQR = (function () {
     function wsZoomUi() {
       const a = document.getElementById('wsZoomOut'), b = document.getElementById('wsZoomIn'), c = document.getElementById('wsZoomFit');
       if (!a) return;
-      a.disabled = c.disabled = wsZoom.f <= 1.001; b.disabled = wsZoom.f >= wsZoom.maxF - 0.001;
+      const d = document.getElementById('wsZoomStd'), mn = wsZoom.minF || 1;
+      a.disabled = c.disabled = wsZoom.f <= mn + 0.001; b.disabled = wsZoom.f >= wsZoom.maxF - 0.001; if (d) d.disabled = Math.abs(wsZoom.f - 1) < 0.001;
     }
     function wsScrollBy(dy, extra) {
       if (!wsScroll.on) return 0;
       const max = wsScroll.max + (extra || 0), y0 = wsScroll.y;
       wsScroll.y = Math.max(0, Math.min(max, wsScroll.y + dy));
       const d = wsScroll.y - y0;
-      if (d) { wsScroll.curY = wsScroll.baseY - wsScroll.y; workspace.translate(wsScroll.baseX - (wsScroll.x || 0), wsScroll.curY); wsClip(); updatePythonView(); }
+      if (d) { wsScroll.curY = wsScroll.baseY - wsScroll.y; workspace.translate(wsScroll.baseX - (wsScroll.x || 0), wsScroll.curY); wsClip(); updatePythonView(); }   // 上の説明・Python も同じだけ動く
       return d;
     }
     // ブロックの場所（上の説明と下の close の行のあいだ）の外は見せない。スクロールバーも出す
@@ -6526,9 +6524,9 @@ window.DroneQR = (function () {
         const hint = document.createElement('div'); hint.id = 'wsScrollHint'; div.parentNode.appendChild(hint);
         // 拡大・縮小のボタン（ブロックの場所の右下）
         const zb = document.createElement('div'); zb.id = 'wsZoomBox'; zb.className = 'wsZoomBtns'; zb.title = 'プログラムエリアの拡大・縮小（Ctrl＋ホイールでも）';
-        zb.innerHTML = '<button id="wsZoomOut" onclick="wsZoomBy(1 / 1.25)">－</button><button id="wsZoomFit" onclick="wsZoomFit()">全体</button><button id="wsZoomIn" onclick="wsZoomBy(1.25)">＋</button>';
+        zb.innerHTML = '<button id="wsZoomOut" onclick="wsZoomBy(1 / 1.25)">－</button><button id="wsZoomFit" onclick="wsZoomFit()" title="ブロックを全部、画面に入れる">全体</button><button id="wsZoomStd" onclick="wsZoomStd()" title="ふつうの大きさ">標準</button><button id="wsZoomIn" onclick="wsZoomBy(1.25)">＋</button>';
         div.parentNode.appendChild(zb);
-        st.textContent += '#wsZoomBox{position:absolute;right:18px;z-index:4}#wsScrollHint{right:150px!important;white-space:nowrap}body.wsDdOpen #wsZoomBox{visibility:hidden}';
+        st.textContent += '#wsZoomBox{position:absolute;right:18px;z-index:4}#wsScrollHint{right:196px!important;white-space:nowrap}body.wsDdOpen #wsZoomBox{visibility:hidden}';
         // プルダウンの選択肢を開いているあいだは、「下にもブロックがある」とスクロールバーをかくす（選択肢に重ならないように）
         const ddWatch = () => {
           const open = [...document.querySelectorAll('.blocklyDropDownDiv, .blocklyWidgetDiv')].some((x) => getComputedStyle(x).display !== 'none' && x.offsetHeight > 10 && (x.style.opacity === '' || Number(x.style.opacity) > 0));
@@ -6548,14 +6546,14 @@ window.DroneQR = (function () {
         bar.addEventListener('pointercancel', () => { drag = null; });
       }
       const P = BLOCK_ROW_WS * wsUi, viewH = div.clientHeight;
-      const top = ROW_PAD + pyHeadRows() * P - 3, bottom = wsScroll.zoneBottom || (viewH - ROW_PAD * 0.5 - P * 1.06);
+      const top = 2, bottom = viewH - 2;   // スクロールバーは、プログラムエリアの高さいっぱい
       // ブロックの絵（SVG）だけを切りとる。プルダウンの選択肢（ブロックの外に出る）は切らない
       const svgEl = div.querySelector('.injectionDiv > svg.blocklySvg') || div.querySelector('svg.blocklySvg');
       div.style.clipPath = '';
-      if (svgEl) svgEl.style.clipPath = wsScroll.on ? `inset(${top.toFixed(0)}px 0 ${Math.max(0, viewH - bottom).toFixed(0)}px 0)` : '';
+      if (svgEl) svgEl.style.clipPath = 'inset(0)';   // ブロックの絵は、プログラムエリアの外（上のボタンの所など）にはみ出さない
       const hint = document.getElementById('wsScrollHint');
       const zbox = document.getElementById('wsZoomBox');
-      if (zbox) { zbox.style.top = (div.offsetTop + (wsScroll.zoneBottom || (viewH - ROW_PAD * 0.5 - P * 1.06)) - 36) + 'px'; wsZoomUi(); }
+      if (zbox) { zbox.style.top = (div.offsetTop + viewH - 40) + 'px'; wsZoomUi(); }
       bar.style.display = hint.style.display = wsScroll.on ? 'block' : 'none';
       if (!wsScroll.on) return;
       bar.style.top = (div.offsetTop + top + 4) + 'px'; bar.style.height = Math.max(20, bottom - top - 8) + 'px';
@@ -6565,11 +6563,11 @@ window.DroneQR = (function () {
       // 「下にもブロックがある」は、上のルール（部屋を調べて…）と同じ文字の大きさ
       const pr = document.querySelector('#progNotes .progRule .prIn') || document.querySelector('#progNotes .progRule');
       if (pr) hint.style.fontSize = getComputedStyle(pr).fontSize;
-      hint.style.top = (div.offsetTop + bottom - 30) + 'px';
-      hint.textContent = wsScroll.y < wsScroll.max - 2 ? '▼ 下にもブロックがある（スクロール）' : wsScroll.y > 2 ? '▲ 上にもブロックがある' : '';
+      hint.style.top = (div.offsetTop + viewH - 36) + 'px';
+      hint.textContent = wsScroll.y < wsScroll.max - 2 ? '▼ 下にもつづく（スクロール）' : '';
       hint.style.display = hint.textContent ? 'block' : 'none';
     }
-    function barView() { const div = document.getElementById('blocklyDiv'), P = BLOCK_ROW_WS * wsUi; return Math.max(1, (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD * 0.5 - P * 1.06)) - (ROW_PAD + pyHeadRows() * P)); }
+    function barView() { const div = document.getElementById('blocklyDiv'); return Math.max(1, div.clientHeight - 4); }
     // マウスのホイール・トラックパッド
     document.getElementById('blocklyDiv').addEventListener('wheel', (e) => {
       if (e.ctrlKey) { e.preventDefault(); wsZoomBy(e.deltaY < 0 ? 1.12 : 1 / 1.12); return; }   // Ctrl＋ホイール（トラックパッドのピンチ）で拡大縮小
@@ -6577,6 +6575,8 @@ window.DroneQR = (function () {
       if (dx && wsScroll.xmax) { e.preventDefault(); wsScrollX(dx); if (e.shiftKey) return; }
       if (!wsScroll.on) return; e.preventDefault(); wsScrollBy(e.deltaY);
     }, { passive: false });
+    // Python の画面の上でホイールを回しても、プログラムエリア全体がスクロール
+    try { document.getElementById('pythonCode').addEventListener('wheel', (e) => { if (!wsScroll.on || e.ctrlKey) return; e.preventDefault(); wsScrollBy(e.deltaY); }, { passive: false }); } catch (e) { /* なし */ }
     // 何もない所をドラッグ（指でも）すると、スクロール
     (function () {
       let pan = null;
@@ -6608,7 +6608,7 @@ window.DroneQR = (function () {
           if (!workspace.isDragging()) { raf = 0; return; }
           if (last && wsScroll.on) {
             const div = document.getElementById('blocklyDiv'), r = div.getBoundingClientRect(), P = BLOCK_ROW_WS * wsUi;
-            const top = r.top + ROW_PAD + pyHeadRows() * P, bottom = r.top + (wsScroll.zoneBottom || (div.clientHeight - ROW_PAD * 0.5 - P * 1.06)), edge = 36;
+            const top = r.top, bottom = r.top + div.clientHeight, edge = 40;
             let v = 0;
             if (last.clientY < top + edge) v = -Math.min(14, (top + edge - last.clientY) / 3 + 2);
             else if (last.clientY > bottom - edge) v = Math.min(14, (last.clientY - (bottom - edge)) / 3 + 2);
@@ -7031,15 +7031,16 @@ window.DroneQR = (function () {
       const lineH = P * 0.78;
       const Pb = BLOCK_ROW_WS * workspace.scale, fontB = Math.max(8, blockFontWs() * workspace.scale), lineHb = Pb * 0.78;   // ブロックの行（拡大縮小にあわせる）
       const isBlk = (l) => l.kind !== 'head' && l.kind !== 'empty' && l.kind !== 'close';
+      const S = (typeof wsScroll !== 'undefined' && wsScroll.on) ? wsScroll.y : 0;   // 全体のスクロール
 
       // 各行の縦位置（中心）: 上の5行は一定の間隔、ブロックの行はブロックの文字の高さに合わせる
       const ys = [];
       let prev = null;
       lines.forEach((l, i) => {
         let y;
-        if (l.kind === 'head') y = ROW_PAD + (i + 0.5) * P;
-        else if (l.kind === 'empty') y = ROW_PAD + (pyHeadRows() + 0.5) * P;
-        else if (l.kind === 'close') y = pre.clientHeight - ROW_PAD * 0.5 - P * 0.55;   // いちばん下に固定（ブロックの場所をできるだけ広くする）   // 下端から少し上に固定
+        if (l.kind === 'head') y = ROW_PAD + (i + 0.5) * P - S;
+        else if (l.kind === 'empty') y = ROW_PAD + (pyHeadRows() + 0.5) * P - S;
+        else if (l.kind === 'close') y = (typeof wsScroll !== 'undefined' && wsScroll.closeY ? wsScroll.closeY : pre.clientHeight - ROW_PAD * 0.5 - P * 0.55) - S;   // ブロックの枠のすぐ下（最後の行）   // 下端から少し上に固定
         else {
           const blk = l.owner ? workspace.getBlockById(l.owner) : null;
           if ((l.kind === 'main' || l.kind === 'ghost') && blk) y = labelCenterY(blk, 0) - preTop;
@@ -7054,7 +7055,7 @@ window.DroneQR = (function () {
 
       const style = (i) => { const lh = isBlk(lines[i]) ? lineHb : lineH; return `top:${(ys[i] - lh / 2).toFixed(1)}px;height:${lh.toFixed(1)}px;line-height:${lh.toFixed(1)}px` + (isBlk(lines[i]) ? `;font-size:${fontB.toFixed(2)}px` : ''); };
       pre.style.fontSize = fontPx.toFixed(2) + 'px';
-      const scrollOn = typeof wsScroll !== 'undefined' && wsScroll.on, zTop = ROW_PAD + pyHeadRows() * P - 3, cIdx = lines.findIndex((l) => l.kind === 'close');
+      const scrollOn = false, zTop = ROW_PAD + pyHeadRows() * P - 3, cIdx = lines.findIndex((l) => l.kind === 'close');
       pre.innerHTML = lines.map((l, i) => {
         if (!l.text) return '';
         // スクロール中は、ブロックの場所の外（上の説明・下の close の行と重なる所）の行は出さない
@@ -7072,12 +7073,12 @@ window.DroneQR = (function () {
       // プログラムエリアの説明（対応するPythonの行と同じ高さ）
       // 「接続する」と「接続を終了する」の間を、ブロックを置く場所として枠で示す
       const closeIdx = lines.findIndex((l) => l.kind === 'close');
-      const zoneTop = ROW_PAD + pyHeadRows() * P - 3;
+      const zoneTop = ROW_PAD + pyHeadRows() * P - 3 - S;
       const connectBottom = ys[3] + lineH / 2;                       // 「ドローンと接続する」の下端
       const zoneGap = (ROW_PAD + PY_BASE_ROWS * P - 3) - connectBottom;   // 上の説明が増えても、枠の下の隙間は同じ                        // 上側の隙間 = 下側の隙間（等距離）
       let zoneH = Math.max(0, (ys[closeIdx] - lineH / 2) - P * 0.12 - zoneTop);   // 枠は、下の行のすぐ上まで
       // スクロールするとき、下の close の行（Python・説明）がなければ、ブロックの場所を下まで広げる（下のはしに「下にもブロックがある」の分だけあける）
-      if (typeof wsScroll !== 'undefined' && closeIdx >= 0 && !lines[closeIdx].text && !currentNotes().close) zoneH = Math.max(0, pre.clientHeight - ROW_PAD * 0.5 - P * 0.2 - zoneTop);
+      if (typeof wsScroll !== 'undefined' && closeIdx >= 0 && !lines[closeIdx].text && !currentNotes().close) zoneH = Math.max(0, (wsScroll.closeY ? wsScroll.closeY + P * 0.4 - S : pre.clientHeight - ROW_PAD * 0.5 - P * 0.2) - zoneTop);
       if (typeof wsScroll !== 'undefined') { const zb = zoneTop + zoneH; if (Math.abs((wsScroll.zoneBottom || 0) - zb) > 0.5) { wsScroll.zoneBottom = zb; setTimeout(wsClip, 0); } }
       const zone = `<div class="progZone" style="top:${zoneTop.toFixed(1)}px;height:${zoneH.toFixed(1)}px"><span class="progZoneHint">${currentUnit === 'array' ? 'ブロックをつなげよう' : 'ここにブロックをドラッグ＆ドロップ'}</span></div>`;
       notes.style.fontSize = fontPx.toFixed(2) + 'px';
@@ -9505,31 +9506,19 @@ window.DroneQR = (function () {
       const collect = (nodes) => nodes.forEach((n) => { fkeys[n.t] = [...new Set((fkeys[n.t] || []).concat(Object.keys(n.f || {})))]; Object.values(n.kids || {}).forEach(collect); });
       alts.forEach((a) => a.forEach((s) => collect(s.nodes)));
       let canon = [];
+      // すぐ上のブロックとして、まちがいにしないもの：なし（とちゅうまで）・正しい順番でそれより前のブロック（あいだが抜けていても、まだ組みかけ）
+      //   順番が自由なかたまり（free）は、かたまりの中のどれでもよい。つまり「後に来るはずのブロックが上にある」ときだけ、順番のまちがい
       const walk = (nodes, cont) => {
-        let prevOk = new Set(['']), grp = null;
+        const keys = nodes.map((n) => keyOf(n.t, (k) => String((n.f || {})[k] ?? '')));
         nodes.forEach((n, i) => {
-          const key = keyOf(n.t, (k) => String((n.f || {})[k] ?? ''));
-          if (n.free) {
-            if (!grp) { grp = { before: prevOk, keys: new Set() }; nodes.slice(i).every((m) => m.free && grp.keys.add(keyOf(m.t, (k) => String((m.f || {})[k] ?? '')))); }
-            canon.push({ t: n.t, key, cont, prevOk: new Set([...grp.before, ...grp.keys]) });
-          } else {
-            canon.push({ t: n.t, key, cont, prevOk: grp ? new Set(grp.keys) : prevOk });
-            grp = null;
-          }
-          if (!n.free) prevOk = new Set([key]);
+          const ok = new Set(['', ...keys.slice(0, i)]);
+          if (n.free) { for (let j = i + 1; j < nodes.length && nodes[j].free; j++) ok.add(keys[j]); }
+          canon.push({ t: n.t, key: keys[i], cont, prevOk: ok });
           Object.entries(n.kids || {}).forEach(([inp, kids]) => walk(kids, n.t + '.' + inp));
         });
       };
-      // 何通りかあるときは、同じブロック（同じ場所・同じ何番目）の「すぐ上のブロック」の候補をまとめる
-      let merged = null;
-      alts.forEach((a) => {
-        canon = []; a.forEach((s) => walk(s.nodes, 'top:' + s.kind));
-        if (!merged) { merged = canon; return; }
-        const seen = {};
-        canon.forEach((c) => { const id = c.t + '|' + c.key + '|' + c.cont; seen[id] = (seen[id] || 0) + 1; let n = 0;
-          const m = merged.find((x) => x.t + '|' + x.key + '|' + x.cont === id && ++n === seen[id]); if (m) c.prevOk.forEach((v) => m.prevOk.add(v)); });
-      });
-      canon = merged;
+      // 何通りかあるときは、それぞれの正しい形とくらべて、まちがいがいちばん少ないものを使う
+      const canons = alts.map((a) => { canon = []; a.forEach((s) => walk(s.nodes, 'top:' + s.kind)); return canon; });
       spec = alts[0];
       // 今のブロック：どこに入っているか・すぐ上のブロック
       const all = workspace.getAllBlocks(false).filter((b) => !b.isShadow());
@@ -9548,15 +9537,24 @@ window.DroneQR = (function () {
         return sp.type + '.' + (inp ? inp.name : '?');
       };
       const prevKey = (b) => { const p = b.getPreviousBlock(); return !p || p === b.getSurroundParent() ? '' : keyOf(p.type, valOf(p)); };
+      const order = all.map((b) => ({ b, y: b.getRelativeToSurfaceXY().y })).sort((u, v) => u.y - v.y);
+      let best = null;
+      canons.forEach((cn) => { canon = cn; wrongBlocks.loose = 0;
       const used = new Set(), bad = [];
-      all.map((b) => ({ b, y: b.getRelativeToSurfaceXY().y })).sort((u, v) => u.y - v.y).forEach(({ b }) => {
+      order.forEach(({ b }) => {
         const key = keyOf(b.type, valOf(b)), cont = where(b), pk = prevKey(b), rt = b.getRootBlock();
         // まだつないでいないブロック（プログラムのかたまりの外）は、パラメータだけを見る（まちがいにはしない）
         if (!DEF.has(rt.type) && rt !== mainRoot) { if (canon.some((c) => c.t === b.type && c.key === key)) wrongBlocks.loose++; else bad.push(b); return; }
-        const k = canon.findIndex((c, i) => !used.has(i) && c.t === b.type && c.key === key && c.cont === cont && c.prevOk.has(pk));
+        // すぐ上のブロックのパラメータがまちがっているだけなら、そのブロックの種類で見る（下のブロックまで、まちがいにしない）
+        const pkBad = pk && !canon.some((c) => c.key === pk), pkType = pk.split('|')[0];
+        const prevFits = (c) => c.prevOk.has(pk) || (pkBad && [...c.prevOk].some((x) => x.split('|')[0] === pkType));
+        const k = canon.findIndex((c, i) => !used.has(i) && c.t === b.type && c.key === key && c.cont === cont && prevFits(c));
         if (k >= 0) used.add(k); else bad.push(b);
       });
-      return bad;
+      if (!best || bad.length < best.bad.length) best = { bad, loose: wrongBlocks.loose };
+      });
+      wrongBlocks.loose = best ? best.loose : 0;
+      return best ? best.bad : [];
     }
     function refreshHintMarks() {
       const badIds = new Set(wrongBlocks().map((b) => b.id));
@@ -9593,7 +9591,7 @@ window.DroneQR = (function () {
       escSteps()['array:hc' + st] = hintCoins(st) + 1; saveTeam();
       hintBad.add(next.id); next.getSvgRoot().classList.add('blockHintBad');
       closeEscModal();
-      try { if (wsScroll.on) { const P = BLOCK_ROW_WS * wsUi, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (ROW_PAD + pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
+      try { if (wsScroll.on) { const P = BLOCK_ROW_WS * wsUi, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (document.getElementById('blocklyDiv').clientHeight * 0.4 + 0 * pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
       showToast('💡 赤く光っているのが、いちばん上にあるまちがいのブロック<small>つなぐ場所・順番か、パラメータ（プルダウン）を直そう</small>', false, 4500);
       renderStep();
     }
