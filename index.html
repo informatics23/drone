@@ -28,12 +28,14 @@
     { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
     { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
     { id: 'cryptoEhon', kind: 'note', title: '暗号のえほん', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
+    { id: 'progEhon1', kind: 'note', title: 'プログラムのえほん1', sub: 'よみもの', file: 'programming-ehon-1.html', gives: 'cpu' },
+    { id: 'progEhon2', kind: 'note', title: 'プログラムのえほん2', sub: 'よみもの', file: 'programming-ehon-2.html', gives: 'cpu' },
     // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
     { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
-    { id: 'lin',  kind: 'escape', title: '応用ステージ\n（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
-    { id: 'bin',  kind: 'escape', title: '応用ステージ\n（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
+    { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
+    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
   ];
   var CFG = window.HUB_CONFIG || {};
   var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
@@ -346,11 +348,12 @@
     .ico { flex: none; width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-size: 24px; background: #334155; }
     .note .ico { background: #1d4ed8; }
     .escape .ico { background: #7c3aed; }
+    .app.escape { height: 104px; box-sizing: border-box; }   /* スキルのボタンは、みな同じ大きさ */
     .ttl { font-weight: 900; font-size: 16px; }
     /* えほんのカードは、どれも同じ高さ（題名・説明は1行に収める） */
     .app.note { height: 84px; box-sizing: border-box; overflow: hidden; }
-    .app.note > span:nth-child(2) { min-width: 0; flex: 1; }
-    .app.note .ttl, .app.note .dsc { white-space: nowrap; overflow: hidden; }
+    .app > span:nth-child(2) { min-width: 0; flex: 1; }
+    .app .ttl, .app .dsc { white-space: nowrap; overflow: hidden; }   /* 題名・説明は1行ずつ（ボタンの大きさをそろえる） */
     .dsc { color: var(--sub); font-size: 12.5px; margin-top: 2px; line-height: 1.5; }
     .state { position: absolute; right: 10px; top: 5px; font-size: 12px; font-weight: 900; }
     .app.done { border-color: #15803d; }
@@ -482,7 +485,7 @@
     記録（ぶひん・班・名前・ポイント）は、<b>同じ端末・同じブラウザ</b>のときだけ引きつがれます。<br>
     ポイント情報のファイルは、iPad では「ファイル」アプリの「ダウンロード」に保存されます。
   </div>
-<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v91）</div>
+<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v94）</div>
 </main>
 
 <script>
@@ -511,7 +514,13 @@
     var icon = it.kind === 'note' ? '📖' : '🧸';
     var cls = 'app ' + it.kind, state = '', tag = 'div', href = '';
     var dsc = it.kind === 'escape' ? esc(it.sub || '') + (it.rooms ? '<br>' + esc(it.rooms) : '') : esc(it.sub || '確認クイズ');
-    if (done) { cls += ' done'; state = '✓ クリア'; if (pt) dsc += '<span class="pc"' + (it.kind === 'escape' ? ' style="background:#fecaca;color:#7f1d1d"' : '') + '>' + H.TYPE_ICON[pt.type] + ' ' + esc(pt.name) + '</span>'; }
+    if (done) {
+      cls += ' done'; state = '✓ クリア';
+      if (pt) {
+        var badge = '<span class="pc"' + (it.kind === 'escape' ? ' style="background:#fecaca;color:#7f1d1d"' : '') + '>' + H.TYPE_ICON[pt.type] + ' ' + esc(pt.name) + '</span>';
+        if (it.kind === 'escape') state = badge + ' ✓ クリア'; else dsc += badge;   // スキルは説明が2行あるので、ケーブルは右上に出す（ボタンの大きさをそろえる）
+      }
+    }
     if (!it.file || missing[it.id]) { cls += ' soon'; state = '準備中'; icon = '⏳'; }
     else if (!H.isOpen(it.id)) { cls += ' locked'; state = '🔒 ロック'; icon = '🔒'; dsc = esc(it.sub || '') + '<br>' + (it.needs || []).map(nameOf).join('・') + 'をクリアすると開く'; }
     else { tag = 'a'; href = ' href="' + esc(it.file) + '"'; if (!done) state = it.kind === 'note' ? '' : '▶ プレイ'; }
@@ -543,9 +552,9 @@
       : '<li class="empty"><b style="color:#60a5fa;margin:0">えほん</b> や <b style="color:#f87171;margin:0">スキル</b> をクリアすると、<br>ぶひん や ケーブル が手に入って、できることが増えていく。</li>';
     fitNotes();
   }
-  // えほんのカード：題名・説明が1行に収まるように、文字を少しずつ小さくする（カードの高さはそろえたまま）
+  // カード（えほん・スキル）：題名・説明が1行に収まるように、文字を少しずつ小さくする（カードの高さはそろえたまま）
   function fitNotes() {
-    document.querySelectorAll('.app.note .ttl, .app.note .dsc').forEach(function (el) {
+    document.querySelectorAll('.app .ttl, .app .dsc').forEach(function (el) {
       el.style.fontSize = '';
       var fs = parseFloat(getComputedStyle(el).fontSize) || 14;
       while (el.scrollWidth > el.clientWidth + 1 && fs > 9) { fs -= 0.5; el.style.fontSize = fs + 'px'; }
