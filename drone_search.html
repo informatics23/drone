@@ -5162,7 +5162,7 @@ return $.__chunk_javascript;
     var t = read(TEAM_KEY) || {};
     var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
     var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
-    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (['赤', '青', '白', '黄'][t.me] + 'の機体')) : '' };
   }
   // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
   function visible(id) {
@@ -5441,6 +5441,7 @@ window.DroneQR = (function () {
 </head>
 <body>
 
+
   <!-- プログラム（JavaScript）が動かない画面で開いたときだけ見える注意（動けばすぐ消す） -->
   <div id="noJsWarn" style="position:fixed;left:0;right:0;top:0;z-index:99999;background:#7f1d1d;color:#fff;font:700 18px/1.7 sans-serif;padding:14px 18px;border-bottom:3px solid #fca5a5;text-align:center">
     ⚠ この画面では、アプリが動きません（「はじめる」も押せません）。<br>
@@ -5471,7 +5472,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v85・全体スクロール）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v91）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -5928,15 +5929,17 @@ window.DroneQR = (function () {
       team.ledger = m.ledger; team.steps = m.steps; team.ws = m.ws; team.seen = m.seen;
       try { updateTeamBox(); } catch (err) { /* 準備中 */ }
     });
-    const memberName = (k) => (team.names[k] || '').trim() || `${k + 1}号機`;
+    // 線形探索では「N号機」（1から数える）は使わない。箱の番号（0から数える）と1ずれて、まぎらわしいため。名前がなければ色で呼ぶ
+    const MEMBER_COLOR_NAME = ['赤', '青', '白', '黄'];
+    const memberName = (k) => (team.names[k] || '').trim() || `${MEMBER_COLOR_NAME[k]}の機体`;
     // Pythonの変数名（使えない名前のときは drone1 〜 drone4）
     function pyName(k) {
       const n = (team.names[k] || '').trim();
-      if (n && /^[\p{L}_][\p{L}\p{N}_]*$/u.test(n) && !PY_KEYWORDS.has(n) && !/^drone\d$/.test(n)) {
+      if (n && /^[\p{L}_][\p{L}\p{N}_]*$/u.test(n) && !PY_KEYWORDS.has(n) && !/^drone\d$/.test(n) && !['red', 'blue', 'white', 'yellow', 'box', 'target', 'ans', 'tmp', 'i'].includes(n)) {
         const others = [0, 1, 2, 3].filter((m) => m !== k).map((m) => (team.names[m] || '').trim());
         if (!others.includes(n)) return n;
       }
-      return `drone${k + 1}`;
+      return ['red', 'blue', 'white', 'yellow'][k];   // 線形探索では、1から数える drone1〜drone4 は使わない（色の名前）
     }
     const groupName = () => (team.group || '').trim() || 'わたしたちの班';
     function chip(k) {
@@ -7022,6 +7025,8 @@ window.DroneQR = (function () {
     //   4つの箱を開けても同じ数がなければ、こたえは -1。こたえが決まったら、箱はまた閉じて、次のさがす数へ。← 知らないうちに、線形探索をしている
     const r1Hand = () => currentUnit === 'ls' && curStep() === 3 && varStage() === 1;
     const boxOpened = (k) => !!(escBits(1, 'bx') & (1 << k));
+    // 部屋1：開けた箱の中身は、さがす数と同じ（当たり）のときだけ見せる。ちがう（はずれ）ときは「？」のまま
+    const r1Hit = (k) => { const j = r1Cur(); return boxOpened(k) && j !== undefined && varState.vals[k] === lsCodes(1)[j]; };
     let r1Busy = false;
     // いまさがす数（暗号パネルに登録した数のうち、まだこたえの出ていないもの）
     const r1Cur = () => [0, 1, 2, 3].find((j) => escRuleFound(1, j) && !lsLockOk(1, j));
@@ -7043,6 +7048,7 @@ window.DroneQR = (function () {
         if (!t || boxOpened(k)) continue;
         if (k === nx) setTag(t, '？', '#facc15', '#713f12', 72); else setTag(t, '？', '#475569', '#e2e8f0', 72);
       }
+      r1ArrowAt(nx);   // つぎに開ける機体の上に矢印
       r1Banner();
     }
     function applyBoxCovers() {
@@ -7051,7 +7057,8 @@ window.DroneQR = (function () {
       for (let k = 0; k < 4; k++) {
         const t = varState.valTags[k];
         if (!t) continue;
-        if (boxOpened(k)) setTag(t, String(varState.vals[k]), '#f8fafc', '#0f172a', 72);
+        if (r1Hit(k)) setTag(t, String(varState.vals[k]), '#bbf7d0', '#0f172a', 72);
+        else if (boxOpened(k)) setTag(t, '？', '#334155', '#94a3b8', 72);   // はずれ：中身は見せない
         else setTag(t, '？', '#475569', '#e2e8f0', 72);
       }
       r1MarkNext();
@@ -7075,29 +7082,38 @@ window.DroneQR = (function () {
       if (r1Busy) return;
       const j = r1Cur();
       if (j === undefined) {
-        showToast([0, 1, 2, 3].some((x) => escRuleFound(1, x)) ? 'さがす数は、ぜんぶ見つけた！' : '🔍 まだ「さがす数」がない<small>部屋の手がかりを解読して、🚪 扉の暗号パネルに登録しよう</small>', true, 4500);
+        { const nf = [0, 1, 2, 3].filter((x) => escRuleFound(1, x)).length;   // 登録したさがす数の数（4つそろうまでは「ぜんぶ」と言わない）
+          showToast(nf >= 4 ? 'さがす数は、ぜんぶ見つけた！'
+            : nf > 0 ? `🔍 次の「さがす数」がまだない（登録 ${nf} / 4）<small>のこりの手がかりを見つけて解読し、🚪 扉の暗号パネルに登録しよう</small>`
+            : '🔍 まだ「さがす数」がない<small>部屋の手がかりを解読して、🚪 扉の暗号パネルに登録しよう</small>', true, 4500); }
         return;
       }
-      if (boxOpened(k)) { showToast(`${escapeHtml(memberName(k))} の箱は、もう開けた（${varState.vals[k]}）。つぎの箱を開けよう`, true, 2500); return; }
+      if (boxOpened(k)) { showToast(`${k}番の箱（${escapeHtml(memberName(k))}）は、もうくらべた（${r1Hit(k) ? '当たり' : 'はずれ'}）。つぎの箱へ`, true, 2500); return; }
       const nx = r1NextBox();
       if (k !== nx) { showToast(`👉 左から順に開けよう<small>つぎは <b>${nx}番</b>の箱（${escapeHtml(memberName(nx))}）。黄色の「？」の機体をクリック</small>`, true, 3500); r1Banner(true); return; }
       r1Busy = true;
       const t = lsCodes(1)[j], v = varState.vals[k];
       try {
-        setStatus(`さがす数 ${t} と、${memberName(k)}（${k}番）の箱をくらべる`);
+        setStatus(`さがす数 ${t} の鍵で、${k}番の箱（${memberName(k)}）をあけてみる（${k + 1}回目のくらべ）`);
+        r1ArrowAt(-1);
+        const so = { t, k, v, n: k + 1 };   // 左から順に開けるので、くらべた回数＝番号＋1
+        scaleShow(Object.assign({ phase: 'put' }, so));
         await flyNumber(String(t), TARGET_POS.clone(), varBoxPos(k), '#fde68a');
+        await scaleAnimate(so);
         escSetBit(1, 'bx', k);
-        await popTag(varState.valTags[k], String(v), v === t ? '#bbf7d0' : '#f8fafc', '#0f172a');
+        // 当たりのときだけ中身を見せる。はずれは「？」のまま（色だけ暗くする）
+        if (v === t) await popTag(varState.valTags[k], String(v), '#bbf7d0', '#0f172a');
+        else await popTag(varState.valTags[k], '？', '#334155', '#94a3b8');
         r1AddLog({ t, k, v });
         renderVarView('v' + k); updatePythonView();
         if (v === t) {
           await liftTo(k);
           await popTag(varState.ansTag, String(k), '#d1fae5', '#065f46');
-          await r1Decide(j, k, `さがす数 <b>${t}</b> は、<b>${escapeHtml(memberName(k))}（${k}番）</b>の箱にあった！ → こたえ <b>${k}</b>`);
+          await r1Decide(j, k, `さがす数 <b>${t}</b> は、<b>${k}番の箱（${escapeHtml(memberName(k))}）</b>にあった！ → こたえ <b>${k}</b><br>左から <b>${k + 1}回</b> くらべて見つかった。見つかったので、ここでおしまい（右の箱は開けない）`);
         } else if ([0, 1, 2, 3].every((x) => boxOpened(x))) {
           await popTag(varState.ansTag, '-1', '#d1fae5', '#065f46');
-          await r1Decide(j, -1, `4つの箱を全部開けたけれど、<b>${t}</b> はどの箱にもなかった → こたえ <b>-1</b>`);
-        } else { setStatus(`${memberName(k)} の箱は ${v} … ${t} とはちがう。つぎの箱を開けよう`); r1MarkNext(); }
+          await r1Decide(j, -1, `4つの箱を全部（<b>4回</b>）くらべたけれど、<b>${t}</b> はどの箱にもなかった → こたえ <b>-1</b><br>ないことがわかるには、最後の箱までくらべる必要がある`);
+        } else { setStatus(`${k}番の箱は はずれ（${t} とはちがう数）。くらべた回数 ${k + 1} 回。つぎは右の箱`); r1MarkNext(); }
       } finally { r1Busy = false; }
     }
     async function r1Decide(j, ans, text) {
@@ -7141,9 +7157,10 @@ window.DroneQR = (function () {
         const j = r1Hand() ? r1Cur() : undefined;
         if (j === undefined) { r1BannerEl.style.display = 'none'; r1BannerKey = ''; return; }
         const t = lsCodes(1)[j], nx = r1NextBox(), n = lsLocks(1);
-        const idx = [0, 1, 2, 3].map((k) => `<span class="${boxOpened(k) ? 'op' : k === nx ? 'nx' : ''}">${k}番 ${escapeHtml(memberName(k))}${boxOpened(k) ? '：' + varState.vals[k] : ''}</span>`).join('');
+        const idx = [0, 1, 2, 3].map((k) => `<span class="${boxOpened(k) ? 'op' : k === nx ? 'nx' : ''}">${k}番 ${escapeHtml(memberName(k))}${r1Hit(k) ? '：当たり ' + varState.vals[k] : boxOpened(k) ? '：はずれ' : ''}</span>`).join('');
         const html = `<div class="bT">🔍 さがす数（${n + 1} / 4）</div><div class="bN">${t}</div>` +
-          `<div class="bS">${nx < 0 ? '' : `左から順に箱を開けよう → つぎは <b style="color:#facc15">${nx}番</b> の箱をクリック`}</div><div class="bIdx">${idx}</div>`;
+          `<div class="bS">${nx < 0 ? '' : `左から順に箱を開けよう → つぎは <b style="color:#facc15">${nx}番</b> の箱をクリック`}</div>` +
+          `<div class="bS" style="color:#7dd3fc">くらべた回数：${[0, 1, 2, 3].filter((x) => boxOpened(x)).length} 回</div><div class="bIdx">${idx}</div>`;
         const key = j + '|' + html;
         if (key !== r1BannerKey) { r1BannerEl.innerHTML = html; r1BannerKey = key; }
         r1BannerEl.style.display = 'block';
@@ -7154,14 +7171,14 @@ window.DroneQR = (function () {
     // 部屋1の Python のところ：手でさがした記録（プログラムにすると、こうなる）
     function r1PyLines() {
       const P = (text, kind) => ({ text, owner: null, anc: [], kind });
-      const out = [0, 1, 2, 3].map((k) => P(`${pyName(k)} = ${boxOpened(k) ? varState.vals[k] : '?'}    # ${k}番の箱`, 'head')).concat([P('', 'head')]);
+      const out = [0, 1, 2, 3].map((k) => P(`box[${k}] = ${r1Hit(k) ? varState.vals[k] : '?'}    # ${k}番の箱（${memberName(k)}）`, 'head')).concat([P('', 'head')]);
       const log = r1Log();
       if (!log.length) out.push(P('# 機体をクリックして、箱を開けよう', 'sub'));
       let cur = null;
       log.forEach((e) => {
         if (e.ans !== undefined) { out.push(P(`# → こたえ ${e.ans}`, 'sub')); out.push(P('', 'sub')); cur = null; return; }
         if (cur !== e.t) { out.push(P(`target = ${e.t}    # さがす数`, 'sub')); cur = e.t; }
-        out.push(P(`if ${pyName(e.k)} == target:    # ${e.v} と ${e.t} … ${e.v === e.t ? '同じ！' : 'ちがう'}`, 'sub'));
+        out.push(P(`if box[${e.k}] == target:    # ${e.v === e.t ? e.v + ' と ' + e.t + ' … 同じ！ 当たり' : '? と ' + e.t + ' … ちがう → はずれ、右へ'}`, 'sub'));
       });
       return out.slice(-30).concat([P('', 'blank'), P('', 'close')]);
     }
@@ -7767,6 +7784,27 @@ window.DroneQR = (function () {
       const h = spr.userData.h, k = spr.userData.k || 1;
       spr.scale.set(h * c.width / c.height * k, h * k, 1);
     }
+    // 配列の箱の名前札「box[0]」：添字の数字を大きく、目立たせる（0 からはじまることが見えるように、box[0] の 0 は特に強調）
+    function makeBoxLabel(k, height) {
+      const fs = 46, fb = 96, c = document.createElement('canvas'), m = c.getContext('2d');
+      m.font = `bold ${fs}px sans-serif`; const w1 = m.measureText('box[').width, w3 = m.measureText(']').width;
+      m.font = `900 ${fb}px sans-serif`; const w2 = m.measureText(String(k)).width;
+      const pad = 18, W = Math.ceil(pad * 2 + w1 + w2 + w3 + 10), H = Math.ceil(fb * 1.18);
+      c.width = W; c.height = H;
+      const g = c.getContext('2d'), r = H * 0.26;
+      g.fillStyle = '#0f172a'; g.beginPath();
+      g.moveTo(r, 0); g.lineTo(W - r, 0); g.quadraticCurveTo(W, 0, W, r); g.lineTo(W, H - r); g.quadraticCurveTo(W, H, W - r, H);
+      g.lineTo(r, H); g.quadraticCurveTo(0, H, 0, H - r); g.lineTo(0, r); g.quadraticCurveTo(0, 0, r, 0); g.fill();
+      g.strokeStyle = k === 0 ? '#fb923c' : '#facc15'; g.lineWidth = k === 0 ? 8 : 5; g.stroke();
+      g.textBaseline = 'alphabetic';
+      const base = H * 0.78;
+      g.font = `bold ${fs}px sans-serif`; g.fillStyle = '#fde68a'; g.fillText('box[', pad, base);
+      g.font = `900 ${fb}px sans-serif`; g.fillStyle = k === 0 ? '#fb923c' : '#facc15'; g.fillText(String(k), pad + w1 + 5, base + 4);
+      g.font = `bold ${fs}px sans-serif`; g.fillStyle = '#fde68a'; g.fillText(']', pad + w1 + w2 + 10, base);
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
+      spr.userData.h = height; spr.scale.set(height * W / H, height, 1); spr.renderOrder = 11;
+      return spr;
+    }
     // 札をドローンの子にする（ドローンの縮小を打ち消して、同じ大きさで表示する）
     function attachTag(mesh, tag, dy) {
       tag.userData.k = 1 / DRONE_SCALE;
@@ -7862,14 +7900,15 @@ window.DroneQR = (function () {
         valTag.position.copy(varBoxPos(k));
         simRoot.add(valTag);
         // 箱の名前（メンバー名の変数 ／ 配列 box[0]〜box[3]）
-        const lab = makeTag(boxLabel(k), '#0f172a', '#fde68a', 0.27, 48);
-        lab.position.copy(varBoxPos(k)).add(new THREE.Vector3(0, 0.5, 0));
+        const lab = boxMode() === 'array' ? makeBoxLabel(k, 0.6) : makeTag(boxLabel(k), '#0f172a', '#fde68a', 0.27, 48);
+        lab.position.copy(varBoxPos(k)).add(new THREE.Vector3(0, 0.66, 0));
         lab.visible = boxMode() === 'array';   // 変数のときは、機体の名前の札がそのまま変数の名前
         simRoot.add(lab);
         varState.labTags.push(lab);
+        if (k === 0 && boxMode() === 'array') { const z0 = makeTag('0 からはじまる ↓', '#7c2d12', '#fed7aa', 0.26, 44); z0.position.copy(varBoxPos(0)).add(new THREE.Vector3(0, 1.17, 0)); simRoot.add(z0); varState.zeroTag = z0; }
         varState.meshes.push(m);
         varState.valTags.push(valTag);
-        makeFloorPad(boxMode() === 'array' ? String(k) : String(k + 1), c.css, 0.9).position.set(X4[k], 0.006, 0);
+        makeFloorPad(String(k), c.css, 0.9).position.set(X4[k], 0.006, 0);
       }
       // target・ans の台（左が target、右が ans）
       const stand = (pos, col, plateCol, label, labBg) => {
@@ -7903,7 +7942,7 @@ window.DroneQR = (function () {
       if (!t) return;
       if (!Number.isInteger(v)) { t.visible = false; return; }
       setTag(t, `${name || 'i'} = ${v}`, name === 'j' ? '#7c3aed' : '#0284c7', '#fff', 48);
-      if (Number.isInteger(v) && v >= 0 && v <= 3) { t.visible = true; t.position.copy(varBoxPos(v)).add(new THREE.Vector3(0, 0.88, 0)); }
+      if (Number.isInteger(v) && v >= 0 && v <= 3) { t.visible = true; t.position.copy(varBoxPos(v)).add(new THREE.Vector3(0, 1.5, 0)); }
       else t.visible = false;
     }
     async function flyNumber(text, from, to, color) {
@@ -7948,6 +7987,106 @@ window.DroneQR = (function () {
       }
       down.forEach((o) => { o.position.y = o.userData.baseY; });
     }
+    // ---- 🔍 くらべる様子を大きく見せる：「さがす数」と「box[i] の中身」をくらべる → ちがえば右へ（つぎの箱）→ 同じなら見つかった ----
+    let cmpEl = null, cmpHideT = 0;
+    function cmpShow(o) {   // o：{ t：さがす数, k：何番の箱, vals：箱の中身, n：何回目, res：くらべた結果（まだなら undefined）, find：find( ) のとき }
+      try {
+        if (!cmpEl) {
+          const st = document.createElement('style');
+          st.textContent = '#cmpBanner{position:absolute;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;background:rgba(15,23,42,.94);border:3px solid #38bdf8;border-radius:16px;padding:8px 16px 10px;color:#f8fafc;text-align:center;font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);width:max-content;max-width:96%}' +
+            '#cmpBanner .cT{font-size:15px;font-weight:800;line-height:1.5;white-space:nowrap}#cmpBanner .cN{display:inline-block;min-width:1.6em;padding:0 6px;border-radius:8px;font-size:26px;font-weight:900;vertical-align:-3px}' +
+            '#cmpBanner .cN.t{background:#fef9c3;color:#713f12}#cmpBanner .cN.v{background:#e2e8f0;color:#0f172a}' +
+            '#cmpBanner .cRow{display:flex;gap:8px;justify-content:center;margin:8px 0 2px}#cmpBanner .cRow span{position:relative;display:flex;flex-direction:column;align-items:center;min-width:54px;padding:3px 4px;border-radius:9px;background:#334155;color:#94a3b8;font-size:12px;font-weight:800}' +
+            '#cmpBanner .cRow span b{font-size:22px;color:#e2e8f0;line-height:1.1}#cmpBanner .cRow span.done{background:#475569;opacity:.75}#cmpBanner .cRow span.done b{color:#94a3b8;text-decoration:line-through}' +
+            '#cmpBanner .cRow span.cur{background:#0c4a6e;outline:3px solid #38bdf8;color:#e0f2fe}#cmpBanner .cRow span.hit{background:#14532d;outline:3px solid #22c55e;color:#dcfce7}#cmpBanner .cRow span.miss{background:#7f1d1d;outline:3px solid #f87171;color:#fee2e2}' +
+            '#cmpBanner .cRow span i{position:absolute;top:-17px;font-style:normal;color:#38bdf8;font-size:15px}#cmpBanner .cR{margin-top:4px;font-size:16px;font-weight:900;white-space:nowrap}#cmpBanner .cR.hit{color:#4ade80}#cmpBanner .cR.miss{color:#fca5a5}#cmpBanner .cS{font-size:12.5px;color:#94a3b8;font-weight:700}';
+          document.head.appendChild(st);
+          cmpEl = document.createElement('div'); cmpEl.id = 'cmpBanner';
+          const box = document.getElementById('simCanvasContainer');
+          if (getComputedStyle(box).position === 'static') box.style.position = 'relative';
+          box.appendChild(cmpEl);
+        }
+        const r1 = document.getElementById('r1Banner');
+        cmpEl.style.top = ((r1 && r1.style.display !== 'none') ? r1.offsetTop + r1.offsetHeight + 8 : 48) + 'px';
+        const cls = (j) => j < o.k ? 'done' : j === o.k ? (o.res === undefined ? 'cur' : o.res ? 'hit' : 'miss') : '';
+        const row = [0, 1, 2, 3].map((j) => `<span class="${cls(j)}">${j === o.k ? '<i>▼</i>' : ''}${o.hide ? j + '番' : 'box[' + j + ']'}<b>${j <= o.k || !o.hide ? o.vals[j] : '?'}</b></span>`).join('');
+        const res = o.res === undefined ? '<div class="cS">同じかな？</div>'
+          : o.res ? `<div class="cR hit">同じ！ ✓ 見つかった → こたえは ${o.k}（番号）</div>`
+          : `<div class="cR miss">ちがう ✗ → ${o.k < 3 ? `右へ。つぎは ${o.hide ? (o.k + 1) + '番の箱' : 'box[' + (o.k + 1) + ']'} とくらべる` : 'これが最後の箱。どこにもなかった'}</div>`;
+        cmpEl.innerHTML = `<div class="cT">${o.n}回目：さがす数 <span class="cN t">${o.t}</span> と、${o.hide ? o.k + '番の箱' : 'box[' + o.k + ']'} の中身 <span class="cN v">${o.vals[o.k]}</span> をくらべる</div><div class="cRow">${row}</div>${res}`;
+        cmpEl.style.display = 'block';
+        clearTimeout(cmpHideT);
+        cmpHideT = setTimeout(() => { if (cmpEl) cmpEl.style.display = 'none'; }, o.res === undefined ? 8000 : 3500);
+      } catch (e) { /* なし */ }
+    }
+    function cmpHide() { clearTimeout(cmpHideT); if (cmpEl) cmpEl.style.display = 'none'; }
+    // ---- 🔑 鍵でくらべる（部屋1）：「さがす数」の鍵を、箱の鍵穴にさしてみる。同じ数なら回って開く（当たり）、ちがえば回らない（はずれ）
+    //   わかるのは「同じか、ちがうか」だけ（大きい・小さいはわからない）。これが線形探索のくらべ方
+    let scaleEl = null, scaleHideT = 0;
+    function scaleShow(o) {   // o：{ t, k, v, n：くらべた回数, phase：'put' | 'in' | 'hit' | 'miss', dx：鍵の位置(0〜1), shake }
+      try {
+        if (!scaleEl) {
+          const st = document.createElement('style');
+          st.textContent = '#r1Scale{position:absolute;left:50%;transform:translateX(-50%);z-index:6;pointer-events:none;background:rgba(15,23,42,.94);border:3px solid #38bdf8;border-radius:16px;padding:6px 14px 8px;color:#f8fafc;text-align:center;font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);width:max-content;max-width:96%}' +
+            '#r1Scale .sT{font-size:15px;font-weight:800;white-space:nowrap}#r1Scale .sN{font-size:12.5px;color:#7dd3fc;font-weight:800}#r1Scale .sR{font-size:16px;font-weight:900;white-space:nowrap;margin-top:2px}#r1Scale .sR.hit{color:#4ade80}#r1Scale .sR.miss{color:#fca5a5}#r1Scale .sR.put{color:#94a3b8;font-size:13px}';
+          document.head.appendChild(st);
+          scaleEl = document.createElement('div'); scaleEl.id = 'r1Scale';
+          const box = document.getElementById('simCanvasContainer');
+          if (getComputedStyle(box).position === 'static') box.style.position = 'relative';
+          box.appendChild(scaleEl);
+        }
+        scaleEl.style.top = 'auto'; scaleEl.style.bottom = '36px';   // 機体の列にかからないように、部屋の下の方に出す
+        const hit = o.phase === 'hit', miss = o.phase === 'miss';
+        const dx = o.dx === undefined ? (o.phase === 'put' ? 0 : 1) : o.dx;
+        const kx = 20 + dx * 92 + (o.shake || 0);   // 鍵の左はし
+        // 鍵：持ち手（丸）に「さがす数」、先に歯。南京錠：体に「？」（開いたら中身の数）、つる（開くと上がる）
+        const key = `<g transform="translate(${kx.toFixed(1)} 0)"><circle cx="30" cy="70" r="26" fill="#fde68a" stroke="#a16207" stroke-width="3"/>` +
+          `<text x="30" y="79" text-anchor="middle" font-size="24" font-weight="900" fill="#713f12">${o.t}</text>` +
+          `<rect x="54" y="64" width="62" height="12" rx="3" fill="#fde68a" stroke="#a16207" stroke-width="2"/><rect x="96" y="76" width="7" height="10" fill="#a16207"/><rect x="106" y="76" width="7" height="7" fill="#a16207"/></g>`;
+        const lockCol = hit ? '#22c55e' : miss ? '#ef4444' : '#64748b', up = hit ? 18 : 0;
+        const lock = `<path d="M196 ${48 - up} V32 a24 24 0 0 1 48 0 V${48 - up}" fill="none" stroke="#cbd5e1" stroke-width="8"/>` +
+          `<rect x="182" y="46" width="76" height="62" rx="10" fill="${lockCol}" stroke="#0f172a" stroke-width="2"/>` +
+          `<circle cx="220" cy="66" r="6" fill="#0f172a"/><rect x="217" y="66" width="6" height="12" fill="#0f172a"/>` +
+          `<text x="220" y="102" text-anchor="middle" font-size="20" font-weight="900" fill="#fff">${hit ? o.v : '？'}</text>` +
+          (miss ? '<text x="262" y="44" font-size="30" font-weight="900" fill="#f87171">✗</text>' : hit ? '<text x="258" y="40" font-size="26" font-weight="900" fill="#4ade80">✓</text>' : '');
+        const svg = `<svg viewBox="0 0 300 120" width="270" height="108">${lock}${key}` +
+          `<text x="50" y="116" text-anchor="middle" font-size="12" font-weight="800" fill="#e2e8f0">さがす数の鍵</text><text x="220" y="119" text-anchor="middle" font-size="12" font-weight="800" fill="#e2e8f0">${o.k}番の箱</text></svg>`;
+        const res = o.phase === 'put' || o.phase === 'in' ? '<div class="sR put">鍵穴にさしてみる…（同じ数の鍵なら回る）</div>'
+          : hit ? `<div class="sR hit">カチッ！ 回った → 同じ数 → 当たり！（中身は ${o.v}）</div>`
+          : `<div class="sR miss">ガチャ… 回らない → ちがう数 → はずれ（？のまま）</div><div class="sR put">${o.k < 3 ? `つぎは右の ${o.k + 1}番の箱` : 'これが最後の箱'}</div>`;
+        scaleEl.innerHTML = `<div class="sT">🔑 さがす数 ${o.t} の鍵で、${o.k}番の箱をあけてみる</div><div class="sN">くらべた回数：${o.n} 回目</div>${svg}${res}`;
+        scaleEl.style.display = 'block';
+        clearTimeout(scaleHideT);
+        scaleHideT = setTimeout(() => { if (scaleEl) scaleEl.style.display = 'none'; }, o.phase === 'put' || o.phase === 'in' ? 8000 : 4000);
+      } catch (e) { /* なし */ }
+    }
+    async function scaleAnimate(o) {   // 鍵を鍵穴まで動かす → 当たりなら開く／はずれならガチャガチャして止まる
+      for (let i = 1; i <= 8; i++) { scaleShow(Object.assign({}, o, { phase: 'in', dx: i / 8 })); await sleep(50); }
+      if (o.v === o.t) { scaleShow(Object.assign({}, o, { phase: 'hit', dx: 1 })); return; }
+      for (let i = 0; i < 6; i++) { scaleShow(Object.assign({}, o, { phase: 'in', dx: 1, shake: i % 2 ? -5 : 5 })); await sleep(60); }
+      scaleShow(Object.assign({}, o, { phase: 'miss', dx: 1 }));
+    }
+    // ---- ⬇ つぎに開ける機体の上に、矢印を立てる（部屋1） ----
+    let r1Arrow = null, r1ArrowRaf = 0;
+    function r1ArrowAt(k) {
+      try {
+        if (!r1Arrow) {
+          r1Arrow = new THREE.Group();
+          const m = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0x9a6b00, emissiveIntensity: 0.6 });
+          const head = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.55, 20), m); head.rotation.x = Math.PI; head.position.y = 0;
+          const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.6, 16), m); tail.position.y = 0.55;
+          r1Arrow.add(head); r1Arrow.add(tail);
+        }
+        if (k < 0 || !r1Hand()) { r1Arrow.visible = false; return; }
+        if (r1Arrow.parent !== simRoot) simRoot.add(r1Arrow);
+        r1Arrow.visible = true;
+        const p = varBoxPos(k); r1Arrow.userData.base = p.y + 1.15; r1Arrow.position.set(p.x, p.y + 1.15, p.z);
+        if (!r1ArrowRaf) {
+          const step = (ts) => { r1ArrowRaf = requestAnimationFrame(step); if (r1Arrow && r1Arrow.visible) r1Arrow.position.y = r1Arrow.userData.base + Math.abs(Math.sin(ts / 260)) * 0.35; };
+          r1ArrowRaf = requestAnimationFrame(step);
+        }
+      } catch (e) { /* なし */ }
+    }
     const showNum = (v) => v === null || v === undefined ? '－' : String(v);
     const varops = {
       // 部屋1・見本①：target に数を入れる
@@ -7972,17 +8111,24 @@ window.DroneQR = (function () {
         if (!Number.isInteger(k) || k > 3 || k < -4) throw simError(`box[${e}] は box[${k}] になります。box の添字は 0〜3 です（Pythonでは IndexError になります）`);
         const kk = k < 0 ? k + 4 : k;
         const v = varState.vals[kk], same = v === varState.target;
-        setStatus(`${boxLabel(kk)}（${v}）と target（${varState.target}）をくらべる … ${same ? '同じ！' : 'ちがう'}`);
+        varState.cmpN = (varState.cmpN || 0) + 1;
+        const co = { t: varState.target, k: kk, vals: varState.vals.slice(), n: varState.cmpN };
+        cmpShow(co);   // まず「さがす数」と「box[i] の中身」をくらべる、と見せる
+        setStatus(`さがす数 target（${varState.target}）と、${boxLabel(kk)} の中身（${v}）をくらべる …`);
+        await sleep(520);
         await flyNumber(String(varState.target), TARGET_POS.clone(), varBoxPos(kk), '#fde68a');
         await popTag(varState.valTags[kk], String(v), same ? '#bbf7d0' : '#f8fafc', '#0f172a');
-        await sleep(same ? 260 : 120);
+        co.res = same; cmpShow(co);   // 同じ → 見つかった ／ ちがう → 右へ
+        setStatus(`${boxLabel(kk)}（${v}）と target（${varState.target}）… ${same ? '同じ！ 見つかった' : (kk < 3 ? 'ちがう → 右の box[' + (kk + 1) + '] へ' : 'ちがう（最後の箱）')}`);
+        await sleep(same ? 900 : 700);
         return same;
       },
       // 関数 find(target)：呼ばれたとき・終わったとき
       async enter(t) {
         varState.saved = { target: varState.target, ans: varState.ans };
-        varState.target = t; varState.ans = null;
-        setStatus(`find(${t}) を呼ぶ：target = ${t}`);
+        varState.target = t; varState.ans = null; varState.cmpN = 0;
+        cmpHide();
+        setStatus(`find(${t}) を呼ぶ：さがす数 target = ${t}。box[0] から順に、右へくらべていく`);
         setTag(varState.tmpTag, String(t), '#fef9c3', '#713f12', 72);
         setTag(varState.ansTag, '－', '#d1fae5', '#065f46', 72);
         await liftTo(-1);
@@ -8336,8 +8482,9 @@ window.DroneQR = (function () {
       fl = fl || (() => '');
       const arr = boxMode() === 'array';
       const cell = (v, lab, cls) => `<div class="vvCell"><div class="vvBox${cls || ''}">${v}</div><span class="vvIdx">${lab}</span></div>`;
-      let h = `<div class="vvRow"><span class="vvName">${arr ? 'box' : '変数'}</span><div class="vvArr">` + [0, 1, 2, 3].map((k) =>
-        cell(r1Hand() && !boxOpened(k) ? '？' : varState.vals[k], arr ? `[${k}]` : escapeHtml(pyName(k)), (varState.up === k ? ' okBox' : '') + fl('v' + k))).join('') +
+      const hb = r1Hand();   // 部屋1（手でさがす）：変数の名前ではなく、箱の番号（0番〜3番）で表示する
+      let h = `<div class="vvRow"><span class="vvName">${arr ? 'box' : hb ? '箱' : '変数'}</span><div class="vvArr">` + [0, 1, 2, 3].map((k) =>
+        cell(r1Hand() && !r1Hit(k) ? '？' : varState.vals[k], arr ? `[${k}]` : hb ? `${k}番` : escapeHtml(pyName(k)), (varState.up === k ? ' okBox' : '') + fl('v' + k))).join('') +
         (r1Hand() ? '' : `<div class="vvCell" style="margin-left:6px"><div class="vvBox tmpBox${varState.target === null ? ' empty' : ''}${fl('target')}">${showNum(varState.target)}</div><span class="vvIdx">target</span></div>` +
         `<div class="vvCell"><div class="vvBox iBox${varState.ans === null ? ' empty' : ''}${fl('ans')}">${showNum(varState.ans)}</div><span class="vvIdx">ans</span></div>`) +
         (loopVars.i !== undefined ? cell(loopVars.i, 'i', ' iBox' + fl('loop-i')) : '') + '</div></div>';
@@ -8646,7 +8793,7 @@ window.DroneQR = (function () {
             // 班替えのまえの自分の記録：ファイルを作った人の行だけを、いまの班の「自分」に入れる
             const own = c.m >= 0 && c.m <= 3 ? c.m : (Number.isInteger(c.me) && c.me >= 0 && c.me <= 3 ? c.me : -1);
             if (own < 0) { msgs.push(`${c.g} のまとめ（だれの記録か分からない）は、読み込みませんでした`); continue; }
-            if (!c.u && c.g in mineOwner && mineOwner[c.g] !== own) { msgs.push(`${c.g} の ${c.n[own] || ((own + 1) + '号機')} の記録は、自分のではないので読み込みませんでした`); continue; }
+            if (!c.u && c.g in mineOwner && mineOwner[c.g] !== own) { msgs.push(`${c.g} の ${c.n[own] || (['赤', '青', '白', '黄'][own] + 'の機体')} の記録は、自分のではないので読み込みませんでした`); continue; }
             if (team.group !== curG) {
               if (!team.group && team.names.every((n) => !n)) team.group = curG; else switchToGroup(curG);
               try { localStorage.setItem('droneGroupLock', curG); } catch (e) { /* なし */ }
@@ -8670,7 +8817,7 @@ window.DroneQR = (function () {
             team.seen[me] = 1;
             mergeHubOrder(c.h);
             mineDone = true;
-            msgs.push(c.u ? `汎用データ（${escapeHtml(String(c.lb || ''))}）を、${curG} の ${memberName(me)} に入れました` : `前の班（${c.g}）の ${c.n[own] || ((own + 1) + '号機')} の記録を、いまの班（${curG}）の ${memberName(me)} に入れました`);
+            msgs.push(c.u ? `汎用データ（${escapeHtml(String(c.lb || ''))}）を、${curG} の ${memberName(me)} に入れました` : `前の班（${c.g}）の ${c.n[own] || (['赤', '青', '白', '黄'][own] + 'の機体')} の記録を、いまの班（${curG}）の ${memberName(me)} に入れました`);
             continue;
           }
           if (team.group !== c.g) {
@@ -8696,7 +8843,7 @@ window.DroneQR = (function () {
           const L = ledgerOf(Number(k));
           Object.entries(row || {}).forEach(([u, p]) => { L[u] = Math.max(L[u] || 0, Number(p) || 0); });
         });
-        msgs.push(c.m >= 0 && c.m <= 3 ? `${c.n[c.m] || ((c.m + 1) + '号機')} のポイントを読み込みました` : `${c.g || '班'} のまとめ（先生）を読み込みました`);
+        msgs.push(c.m >= 0 && c.m <= 3 ? `${c.n[c.m] || (['赤', '青', '白', '黄'][c.m] + 'の機体')} のポイントを読み込みました` : `${c.g || '班'} のまとめ（先生）を読み込みました`);
       }
       // はじめての端末で、班員の画像もまとめて読み込んだときは、「自分」はえらび直してもらう
       // はじめての端末で読み込んだときは、だれの画像かに関係なく「自分」はえらび直してもらう（班員の1枚を読み込んでも大丈夫なように）
@@ -8823,7 +8970,7 @@ window.DroneQR = (function () {
         const colors = MEMBER_COLORS.map((c) => c.css);
         ov.innerHTML = `<div style="background:#fff;border-radius:14px;padding:20px 22px;max-width:420px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3)">
           <div style="font-weight:900;font-size:18px;margin-bottom:12px">自分はどれ？</div>
-          <div style="display:grid;gap:8px">${[0, 1, 2, 3].map((k) => `<button data-k="${k}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #cbd5e1;border-radius:10px;background:#fff;font-size:16px;font-weight:800;cursor:pointer;text-align:left"><span style="width:16px;height:16px;border-radius:50%;background:${colors[k]};flex:none"></span>${escapeHtml(String(names[k] || '').trim() || `${k + 1}号機`)}</button>`).join('')}</div>
+          <div style="display:grid;gap:8px">${[0, 1, 2, 3].map((k) => `<button data-k="${k}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #cbd5e1;border-radius:10px;background:#fff;font-size:16px;font-weight:800;cursor:pointer;text-align:left"><span style="width:16px;height:16px;border-radius:50%;background:${colors[k]};flex:none"></span>${escapeHtml(String(names[k] || '').trim() || `${['赤', '青', '白', '黄'][k]}の機体`)}</button>`).join('')}</div>
           <button data-k="x" style="margin-top:12px;padding:6px 12px;border:none;background:none;color:#64748b;cursor:pointer">やめる</button></div>`;
         ov.addEventListener('click', (e) => {
           const b = e.target.closest('button');
@@ -8892,7 +9039,7 @@ window.DroneQR = (function () {
       let g = (fromCover && coverGroup()) || team.group || '';
       if (!g) { alert('この画像からは記録を読み取れませんでした（記録コードの QR が写っていない、前の形の画像やスクショ）。\n画像を見ながら手で入力できます。先に、表紙で「クラス」と「班」を選んでから、もう一度読み込もう'); return false; }
       const url = URL.createObjectURL(file);
-      const names = [0, 1, 2, 3].map((k) => { const el = fromCover && document.getElementById('inName' + k); return (el && el.value.trim()) || (g === team.group && team.names[k]) || `${k + 1}号機`; });
+      const names = [0, 1, 2, 3].map((k) => { const el = fromCover && document.getElementById('inName' + k); return (el && el.value.trim()) || (g === team.group && team.names[k]) || `${['赤', '青', '白', '黄'][k]}の機体`; });
       const meSel = fromCover && document.querySelector('input[name="inMe"]:checked');
       const meDef = meSel ? Number(meSel.value) : (g === team.group && hasMe() ? team.me : -1);
       const items = POINT_ITEMS.filter(([u]) => /^(var|array|fn|ls|bs)2?$/.test(u));

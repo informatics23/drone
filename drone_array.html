@@ -5470,7 +5470,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v85・全体スクロール）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v91）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -7519,6 +7519,27 @@ window.DroneQR = (function () {
       const h = spr.userData.h, k = spr.userData.k || 1;
       spr.scale.set(h * c.width / c.height * k, h * k, 1);
     }
+    // 配列の箱の名前札「box[0]」：添字の数字を大きく、目立たせる（0 からはじまることが見えるように、box[0] の 0 は特に強調）
+    function makeBoxLabel(k, height) {
+      const fs = 46, fb = 96, c = document.createElement('canvas'), m = c.getContext('2d');
+      m.font = `bold ${fs}px sans-serif`; const w1 = m.measureText('box[').width, w3 = m.measureText(']').width;
+      m.font = `900 ${fb}px sans-serif`; const w2 = m.measureText(String(k)).width;
+      const pad = 18, W = Math.ceil(pad * 2 + w1 + w2 + w3 + 10), H = Math.ceil(fb * 1.18);
+      c.width = W; c.height = H;
+      const g = c.getContext('2d'), r = H * 0.26;
+      g.fillStyle = '#0f172a'; g.beginPath();
+      g.moveTo(r, 0); g.lineTo(W - r, 0); g.quadraticCurveTo(W, 0, W, r); g.lineTo(W, H - r); g.quadraticCurveTo(W, H, W - r, H);
+      g.lineTo(r, H); g.quadraticCurveTo(0, H, 0, H - r); g.lineTo(0, r); g.quadraticCurveTo(0, 0, r, 0); g.fill();
+      g.strokeStyle = k === 0 ? '#fb923c' : '#facc15'; g.lineWidth = k === 0 ? 8 : 5; g.stroke();
+      g.textBaseline = 'alphabetic';
+      const base = H * 0.78;
+      g.font = `bold ${fs}px sans-serif`; g.fillStyle = '#fde68a'; g.fillText('box[', pad, base);
+      g.font = `900 ${fb}px sans-serif`; g.fillStyle = k === 0 ? '#fb923c' : '#facc15'; g.fillText(String(k), pad + w1 + 5, base + 4);
+      g.font = `bold ${fs}px sans-serif`; g.fillStyle = '#fde68a'; g.fillText(']', pad + w1 + w2 + 10, base);
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
+      spr.userData.h = height; spr.scale.set(height * W / H, height, 1); spr.renderOrder = 11;
+      return spr;
+    }
     // 札をドローンの子にする（ドローンの縮小を打ち消して、同じ大きさで表示する）
     function attachTag(mesh, tag, dy) {
       tag.userData.k = 1 / DRONE_SCALE;
@@ -7613,11 +7634,12 @@ window.DroneQR = (function () {
         valTag.position.copy(varBoxPos(k));
         simRoot.add(valTag);
         // 箱の名前（メンバー名の変数 ／ 配列 box[0]〜box[3]）
-        const lab = makeTag(boxLabel(k), '#0f172a', '#fde68a', 0.27, 48);
-        lab.position.copy(varBoxPos(k)).add(new THREE.Vector3(0, 0.5, 0));
+        const lab = boxMode() === 'array' ? makeBoxLabel(k, 0.6) : makeTag(boxLabel(k), '#0f172a', '#fde68a', 0.27, 48);
+        lab.position.copy(varBoxPos(k)).add(new THREE.Vector3(0, 0.66, 0));
         lab.visible = boxMode() === 'array';   // 変数のときは、機体の名前の札がそのまま変数の名前
         simRoot.add(lab);
         varState.labTags.push(lab);
+        if (k === 0 && boxMode() === 'array') { const z0 = makeTag('0 からはじまる ↓', '#7c2d12', '#fed7aa', 0.26, 44); z0.position.copy(varBoxPos(0)).add(new THREE.Vector3(0, 1.17, 0)); simRoot.add(z0); varState.zeroTag = z0; }
         varState.meshes.push(m);
         varState.valTags.push(valTag);
         makeFloorPad(boxMode() === 'array' ? String(k) : String(k + 1), c.css, 0.9).position.set(X4[k], 0.006, 0);
@@ -7646,7 +7668,7 @@ window.DroneQR = (function () {
       const t = varState.iTag;
       if (!t) return;
       setTag(t, `i = ${v}`, '#0284c7', '#fff', 48);
-      if (Number.isInteger(v) && v >= 0 && v <= 3) { t.visible = true; t.position.copy(varBoxPos(v)).add(new THREE.Vector3(0, 0.88, 0)); }
+      if (Number.isInteger(v) && v >= 0 && v <= 3) { t.visible = true; t.position.copy(varBoxPos(v)).add(new THREE.Vector3(0, 1.5, 0)); }
       else t.visible = false;
     }
     async function flyNumber(text, from, to, color) {
