@@ -5440,6 +5440,32 @@ window.DroneQR = (function () {
 </style>
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" type="image/png" href="favicon.png">
+
+  <style>
+    /* ===== せまい画面（iPad など・幅 1280px 未満）=====
+       ③問題では「部屋」と「プログラム（ブロック・Python）」を切りかえて、どちらも画面いっぱいに表示する。
+       上のボタン（途中保存など）は1行に収める（入らないときは文字を小さくする） */
+    body.narrowBar #stepBar { flex-wrap: wrap; row-gap: 4px; padding: 4px 8px; gap: 6px 8px; }
+    body.narrowBar #stepTabs button { padding: 5px 8px; font-size: 13px; }
+    body.narrowBar #missionText { font-size: 13px; line-height: 1.3; min-width: 0 !important; }
+    body.narrowBar #missionTools { flex: 1 1 100%; max-width: none !important; flex-wrap: nowrap !important; justify-content: flex-end; gap: 4px; overflow: hidden; }
+    body.narrowBar #missionTools > * { flex: 0 0 auto; }
+    body.narrowBar #missionTools button.escBtn { white-space: nowrap; }
+    body.compact .topCell { padding: 4px 6px; gap: 4px; flex-wrap: nowrap; }
+    body.compact .topCell button { padding: 6px 9px; font-size: 14px; }
+    body.compact .cellTitle { font-size: 15px; }
+    body.compact #topRight #status { font-size: 14px; }
+    /* プログラムを見るとき：部屋をかくして、プログラムエリアと Python を広く */
+    body.compact.progOnly { grid-template-columns: 0 minmax(0, 3fr) minmax(0, 2fr); }
+    body.compact.progOnly #controls { grid-template-columns: 0 minmax(0, 3fr) minmax(0, 2fr); }
+    body.compact.progOnly #toggleArea, body.compact.progOnly #topLeft { display: none !important; }
+    body.compact.progOnly #progPanel, body.compact.progOnly #topMid { grid-column: 2; }
+    body.compact.progOnly #pythonPanel, body.compact.progOnly #topRight { grid-column: 3; }
+    /* 部屋を見るとき：実行・停止のボタンは出しておく */
+    body.compact.roomFull #controls { grid-template-columns: minmax(0, 1fr) auto; }
+    body.compact.roomFull #topMid { display: flex !important; grid-column: 2; }
+    body.compact.roomFull #topMid .btn-save, body.compact.roomFull #topMid .btn-load, body.compact.roomFull #topMid .btn-clear { display: none; }
+  </style>
 </head>
 <body>
 
@@ -5473,7 +5499,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v94）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v95）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -9434,6 +9460,7 @@ window.DroneQR = (function () {
       isRunning = true;
       updatePauseButton();
       setLeftView('sim');
+      if (document.body.classList.contains('progOnly')) { try { toggleRoomBig(); } catch (e) { /* なし */ } }   // せまい画面：実行したら部屋の画面に
       try {
         if (unitMode() === 'sort') fleet.printNow();   // Pythonの3行目 print(drones)
         await runJs(code, { varops, grid, sfleet, fleet, loopVar, highlight: highlightRunning });
@@ -11281,7 +11308,7 @@ window.DroneQR = (function () {
       setTimeout(() => { try { resizeRenderer(); fitCamera(true); window.dispatchEvent(new Event('resize')); scheduleFit(); } catch (e) { /* なし */ } }, 40);
       try { renderStep(); } catch (e) { /* なし */ }
     }
-    function roomBigBtn() { return `<button class="escBtn" onclick="toggleRoomBig()" title="部屋の表示の大きさを切りかえる">${roomBig ? '🧩<span class="escLong"> プログラムにもどる</span>' : '⛶<span class="escLong"> 部屋を大きく</span>'}</button>`; }
+    function roomBigBtn() { return `<button class="escBtn" onclick="toggleRoomBig()" title="部屋の表示の大きさを切りかえる">${(window.isCompactUI && isCompactUI()) ? (document.body.classList.contains('roomFull') ? '🧩<span class="escLong"> プログラムを見る</span>' : '🏠<span class="escLong"> 部屋を見る</span>') : roomBig ? '🧩<span class="escLong"> プログラムにもどる</span>' : '⛶<span class="escLong"> 部屋を大きく</span>'}</button>`; }
     // カメラは部屋の中だけ（左右の壁の外・天井より上・奥の壁の向こうには出ない）→ ロックされた扉の向こう側は見えない
     controls.addEventListener('change', () => {
       if (currentUnit !== 'bs') return;
@@ -12551,6 +12578,60 @@ window.DroneQR = (function () {
     window.addEventListener('resize', function () { var d = document.getElementById('compareDiv'), sz = d.clientWidth + 'x' + d.clientHeight; if (lastOn && sz !== lastSize) { lastSize = sz; setTimeout(fit, 50); } });
     setInterval(apply, 700);
     apply();
+  })();
+</script>
+
+<script>
+  // ===== せまい画面（iPad など）：部屋 ⇔ プログラム を切りかえる。実行すると部屋の画面にする =====
+  (function () {
+    var W = 1280;
+    function compact() { return window.innerWidth < W; }
+    window.isCompactUI = compact;
+    function step3() { try { return curStep() === 3; } catch (e) { return false; } }
+    // 上のボタンの列：1行に入らないときは、入るまで文字を小さくする
+    function fitTools() {
+      var el = document.getElementById('missionTools');
+      if (!el) return;
+      var bs = el.querySelectorAll('button, .escTimer, span.escTimer');
+      bs.forEach(function (b) { b.style.fontSize = ''; b.style.paddingLeft = ''; b.style.paddingRight = ''; });
+      if (!document.body.classList.contains('narrowBar')) return;
+      var fs = 13;
+      for (var i = 0; i < 12 && el.scrollWidth > el.clientWidth + 1; i++) {
+        fs -= 0.5;
+        bs.forEach(function (b) { b.style.fontSize = fs + 'px'; b.style.paddingLeft = '5px'; b.style.paddingRight = '5px'; });
+      }
+    }
+    var busy = false, lastKey = '';
+    function sync() {
+      if (busy) return; busy = true;
+      try {
+        var b = document.body, c = compact();
+        // ③問題に入ったときは、まず部屋の画面にする（せまい画面だけ）
+        var key = (typeof currentUnit !== 'undefined' ? currentUnit : '') + ':' + (step3() ? 3 : 0);
+        if (key !== lastKey) { lastKey = key; if (c && step3() && !b.classList.contains('roomFull')) { busy = false; try { toggleRoomBig(); } catch (e) { /* なし */ } busy = true; } }
+        if (b.classList.contains('compact') !== c) b.classList.toggle('compact', c);
+        var nb = window.innerWidth < 1500;   // 上のボタンの列を1行にするのは、もう少し広い画面（ノートPCなど）でも
+        if (b.classList.contains('narrowBar') !== nb) b.classList.toggle('narrowBar', nb);
+        var po = c && step3() && !b.classList.contains('roomFull');
+        if (b.classList.contains('progOnly') !== po) {
+          b.classList.toggle('progOnly', po);
+          setTimeout(function () { try { resizeRenderer(); fitCamera(true); window.dispatchEvent(new Event('resize')); scheduleFit(); } catch (e) { /* なし */ } }, 40);
+          // 部屋だけ表示していた間に並べたブロックは、重なっていることがあるので、縦に並べ直す
+          if (po) setTimeout(function () { try {
+            var tops = workspace.getTopBlocks(true), ys = tops.map(function (x) { return Math.round(x.getRelativeToSurfaceXY().y); });
+            if (tops.length > 1 && new Set(ys).size < tops.length) { var y = 0; tops.forEach(function (x) { x.moveTo(new Blockly.utils.Coordinate(0, y)); y += x.getHeightWidth().height + 24; }); scheduleFit(); }
+          } catch (e) { /* なし */ } }, 120);
+        }
+        fitTools();
+      } finally { busy = false; }
+    }
+    window.syncCompactUI = sync;
+    new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    var mt = document.getElementById('missionTools');
+    if (mt) new MutationObserver(function () { setTimeout(sync, 0); }).observe(mt, { childList: true, subtree: true });   // 上のボタンが描き直されたとき（ステップ・部屋が変わったときも）
+    var rt = null;
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(sync, 120); });
+    setTimeout(sync, 300);
   })();
 </script>
 </body>

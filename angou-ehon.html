@@ -7,9 +7,11 @@
 <style>
   body {
     font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-    background: #222; margin: 0; height: 100vh; overflow: hidden;
+    background: #000; margin: 0; height: 100vh; overflow: hidden; position: relative;
   }
-  #book { position: relative; width: 100vw; height: 100vh; background: #000; overflow: hidden; }
+  /* 絵本は 1376×768 の1まいの画面として作り、端末の画面に全体が入るように、まるごと拡大・縮小する（iPad などのせまい画面でも、絵も文字も切れない） */
+  #book { position: absolute; left: 50%; top: 50%; width: 1376px; height: 768px; background: #000; overflow: hidden;
+    transform: translate(-50%, -50%) scale(var(--bookK, 1)); transform-origin: 50% 50%; }
   #spine { position: absolute; left: 50%; top: 0; bottom: 0; width: 60px; margin-left: -30px;
     background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,.1) 50%, rgba(0,0,0,0));
     z-index: 100; pointer-events: none; }
@@ -89,7 +91,7 @@
     box-shadow: 0 4px 10px rgba(0,0,0,.3); visibility: hidden; }
   #restart:hover { background: #3e2723; }
 
-  @media (max-width: 800px) {
+  @media (max-width: 0px) {   /* まるごと縮小するので、せまい画面用の組みかえは使わない */
     .col { font-size: 18px; padding: 20px; }
     .cover h1 { font-size: 40px; } .cover p { font-size: 16px; }
     .nav { width: 50px; height: 50px; font-size: 24px; } #prev { left: 10px; } #next { right: 10px; }
@@ -99,6 +101,19 @@
     .term { font-size: 12px; padding: 4px 10px; white-space: normal; } .term .w { font-size: 16px; }
   }
 </style>
+<script>
+  // 画面の大きさに合わせて、絵本をまるごと拡大・縮小する
+  (function () {
+    function fit() {
+      var w = window.innerWidth || document.documentElement.clientWidth, h = window.innerHeight || document.documentElement.clientHeight;
+      document.documentElement.style.setProperty('--bookK', Math.min(w / 1376, h / 768).toFixed(4));
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', function () { setTimeout(fit, 200); });
+    document.addEventListener('DOMContentLoaded', fit);
+  })();
+</script>
 </head>
 <body>
 <div id="book">
