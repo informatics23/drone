@@ -557,6 +557,16 @@ function sun(x, y, r = 50) {
     <path d="M${x - 18} ${y - 6} q5 -6 10 0 M${x + 8} ${y - 6} q5 -6 10 0" fill="none" ${ln(3)}/><path d="M${x - 14} ${y + 10} q14 14 28 0" fill="none" ${ln(3)}/>
     <ellipse cx="${x - 26}" cy="${y + 8}" rx="8" ry="5" fill="${C.pink}" opacity=".7"/><ellipse cx="${x + 26}" cy="${y + 8}" rx="8" ry="5" fill="${C.pink}" opacity=".7"/>`;
 }
+/* しろい けむり（もこもこ。うしろの ものを かくす） */
+function smoke(x, y, s = 1) {
+  const puffs = [[0, 0, 46], [-44, 10, 34], [44, 8, 36], [-22, -32, 34], [24, -34, 36], [-60, -16, 24], [62, -18, 24], [0, 30, 34], [-34, 34, 24], [36, 34, 26]];
+  const ring = puffs.map(([px, py, r]) => `<circle cx="${px}" cy="${py}" r="${r}"/>`).join("");
+  return G(`<g fill="#f2efe9" stroke="#c9c4bc" stroke-width="7">${ring}</g>
+    <g fill="#fffdf8">${ring}</g>
+    <path d="M-50 -46 q-14 4 -18 18 M10 -60 q16 -4 26 8 M40 50 q22 -2 34 -24" fill="none" stroke="#e2ddd4" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="-96" cy="-40" r="9" fill="#fffdf8" stroke="#c9c4bc" stroke-width="2.5"/><circle cx="98" cy="-46" r="11" fill="#fffdf8" stroke="#c9c4bc" stroke-width="2.5"/>
+    <circle cx="-84" cy="40" r="7" fill="#fffdf8" stroke="#c9c4bc" stroke-width="2.5"/>`, x, y, s);
+}
 function cloud(x, y, s = 1) {
   return G(`<g fill="#fff" opacity=".85" filter="url(#wash)"><ellipse cx="0" cy="0" rx="70" ry="28"/><circle cx="-30" cy="-16" r="30"/><circle cx="20" cy="-24" r="36"/></g>`, x, y, s);
 }
@@ -696,6 +706,11 @@ function bun(s = 1) {
 }
 function dish(s = 1) {
   return G(`<ellipse cx="0" cy="14" rx="44" ry="11" fill="#fff" ${ln(2.4)}/>` + G(bun(1), -14, 4) + G(bun(.9), 16, 6), 0, 0, s);
+}
+/* てんせんの どんぐり（けむりの なかに かくれている しるし） */
+function acornDash(s = 1) {
+  const d = `fill="none" stroke="#a89c8a" stroke-width="2.6" stroke-dasharray="5 4" stroke-linecap="round"`;
+  return G(`<ellipse cx="0" cy="6" rx="14" ry="17" ${d}/><path d="M-17 -2 Q-16 -18 0 -18 Q16 -18 17 -2 Z" ${d}/><path d="M0 -18 v-8" ${d}/>`, 0, 0, s);
 }
 function acorn(s = 1) {
   return G(`<ellipse cx="0" cy="6" rx="14" ry="17" fill="#c98a4b" ${ln(2.3)}/><path d="M-17 -2 Q-16 -18 0 -18 Q16 -18 17 -2 Z" fill="#8a5a36" ${ln(2.3)}/><path d="M0 -18 v-8" ${ln(3)}/>`, 0, 0, s);
@@ -837,8 +852,7 @@ const SCENES = {
 
   overwrite: () => bg("meadow", { seed: 13, noSun: true }) +
     vbox(700, 700, 1.3, "a", pile(acorn, 5), { val: 5 }) +
-    prop(G(acorn(1.2), 470, 460, 1, false, -30) + G(acorn(1.2), 420, 520, 1, false, 20) + G(acorn(1.2), 520, 410, 1, false, 40)) +
-    cloud(470, 470, .45) + txt(390, 410, "ポン！", 30, "#7d8fc0") +
+    prop(smoke(470, 470, 1.15) + G(acornDash(1.2), 420, 485, 1, false, 20) + G(acornDash(1.2), 470, 440, 1, false, -30) + G(acornDash(1.2), 525, 490, 1, false, 30)) + txt(345, 375, "ポン！", 30, "#7d8fc0") +
     tag(470, 590, "まえの 3こ", 18, "#7d8fc0") +
     put(squirrel, 1040, 712, .9, { mood: "surprised" }) + sweat(1130, 470),
 
@@ -861,7 +875,7 @@ const SCENES = {
   swapNg: () => bg("meadow", { seed: 15, noSun: true }) +
     vbox(560, 700, 1.1, "a", pile(kuri, 3)) + vbox(880, 700, 1.1, "b", pile(kuri, 3)) +
     dashArrow("M840 540 Q720 450 610 540", 610, 540, 140) + tag(725, 445, "a = b", 22, "#3c3478") +
-    prop(G(acorn(1.1), 420, 470, 1, false, -30) + G(acorn(1.1), 380, 520, 1, false, 30)) + txt(330, 450, "あっ…", 26, "#7d8fc0") +
+    prop(smoke(400, 495, .95) + G(acornDash(1.1), 375, 500, 1, false, -25) + G(acornDash(1.1), 430, 490, 1, false, 25)) + txt(470, 405, "あっ…", 26, "#7d8fc0") +
     put(squirrel, 230, 712, .85, { mood: "sad" }) + gloom(205, 420) +
     put(owl, 1180, 712, .85, { mood: "surprised" }),
 
@@ -886,13 +900,13 @@ const SCENES = {
     put(bird, 688, 468, .85, { carry: G(pile(acorn, 2, .9), 0, 32) }) + speed(620, 450, 2, 60),
 
   counter: () => bg("meadow", { seed: 19, noSun: true }) +
-    vbox(270, 700, 1.1, "goukei", pile(acorn, 10, 1, 5), { val: 10 }) +
     [0, 2, 4, 6, 8, 10].map((v, i) => {
-      const x = 520 + i * 135;
+      const x = 290 + i * 135;
       return prop(`<circle cx="${x}" cy="610" r="40" fill="${v === 10 ? "#fff3a0" : "#fffdf6"}" ${ln(3)}/>`) + txt(x, 612, v, 34, "#3c3478") +
-        (i < 5 ? txt(x + 68, 612, "→", 30, "#c8503c") : "") + (i ? txt(x, 680, `${i}かいめ`, 17, "#6d4c41", 800) : txt(x, 680, "はじめ", 17, "#6d4c41", 800));
-    }).join("") + tag(790, 520, "+2 ずつ ふえる", 22, "#c8503c") +
-    put(bird, 1160, 450, .7, { carry: G(pile(acorn, 2, .9), 0, 32) }),
+        txt(x + 70, 612, "→", 30, "#c8503c") + (i ? txt(x, 680, `${i}かいめ`, 17, "#6d4c41", 800) : txt(x, 680, "はじめ", 17, "#6d4c41", 800));
+    }).join("") + tag(630, 520, "+2 ずつ ふえる", 22, "#c8503c") +
+    vbox(1160, 700, .95, "goukei", pile(acorn, 10, 1, 5), { val: 10 }) +
+    put(bird, 930, 450, .7, { carry: G(pile(acorn, 2, .9), 0, 32) }),
 
   /* ---- その5 ---- */
   ifs: () => bg("meadow", { seed: 20, noSun: true }) +
@@ -904,9 +918,9 @@ const SCENES = {
     put(fox, 688, 735, .62, { mood: "happy", hw: 34, hold: apple(1.3) }),
 
   structure: () => bg("forest", { seed: 21 }) +
-    [["seq", "じゅんばんに", "順次", 390], ["if", "もしもで わかれる", "分岐", 690], ["rep", "くりかえす", "反復", 990]].map(([k, t, w, x], i) =>
+    [["seq", "じゅんばんに", "じゅんじ", 390], ["if", "もしもで わかれる", "ぶんき", 690], ["rep", "くりかえす", "はんぷく", 990]].map(([k, t, w, x], i) =>
       prop(G(paper(260, 280, txt(0, -112, t, 21, "#c8503c") + G(flowMini(k), 0, 6) +
-        `<rect x="-44" y="96" width="88" height="32" rx="16" fill="#4a86c2"/>` + txt(0, 113, w, 19, "#fff"), (i - 1) * 1.5), x, 560))).join("") +
+        `<rect x="-56" y="96" width="112" height="32" rx="16" fill="#4a86c2"/>` + txt(0, 113, w, 19, "#fff"), (i - 1) * 1.5), x, 560))).join("") +
     put(owl, 1230, 712, .85, { wingUp: true }) + put(squirrel, 150, 712, .7, { mood: "happy" }),
 
   /* ---- その6 ---- */
@@ -928,10 +942,10 @@ const SCENES = {
   func: () => bg("meadow", { seed: 24, noSun: true }) +
     machine(688, 712, 1.05) +
     put(bear, 300, 712, .85, { mood: "joy", hw: 38, hold: sack(1.1, "3") }) +
-    tag(480, 470, "引数 3", 22, RQ) +
+    tag(300, 430, "ひきすう 3", 22, RQ) +
     dashArrow("M400 520 Q470 380 540 380", 540, 380, 10, RQ) +
     prop(G(`<ellipse cx="0" cy="0" rx="100" ry="20" fill="#d8a05a" ${ln(2.6)}/>` + G(pile(bun, 6, .85, 3), 0, -12), 1010, 680)) +
-    tag(1010, 590, "戻り値 6", 22, OKC) +
+    tag(1010, 590, "もどりち 6", 22, OKC) +
     put(rabbit, 1220, 712, .8, { mood: "joy", armUp: true }),
 
   funcReuse: () => bg("meadow", { seed: 25, noSun: true }) +
@@ -1257,6 +1271,16 @@ show(0);
     usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
     lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
   };
+  // ぶひんが手に入る順：どの項目をクリアしても、クリアした数の順に、この順で1つずつ手に入る
+  //   ハードウェア → ケーブル → プロトコル → ソフトウェア（hub_config.js の partOrder で変えられる）
+  var DEF_ORDER = ['psu', 'board', 'cpu', 'mem', 'ssd', 'disp', 'kbd', 'mouse', 'router',   // ハードウェア
+    'pwr', 'hdmi', 'usb', 'lan',                                                             // ケーブル
+    'tcpip',                                                                                  // プロトコル
+    'os', 'browser', 'sec', 'mail', 'doc', 'sheet',                                           // ソフトウェア
+    'spk', 'cam', 'hdd'];                                                                     // 項目が増えたとき用
+  var ORDER = (Array.isArray(CFG.partOrder) && CFG.partOrder.length ? CFG.partOrder : DEF_ORDER).filter(function (k, i, a) { return GEAR[k] && a.indexOf(k) === i; });
+  // つぎに手に入るぶひん（もう全部手に入れていたら null）
+  function nextPart() { var k = ORDER[parts().length]; return k ? { id: k, name: GEAR[k].name, can: GEAR[k].can, type: GEAR[k].type } : null; }
   var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
 
   // 絵（viewBox 0 0 360 250）
@@ -1325,18 +1349,18 @@ show(0);
     var it = item(id); if (!it || !it.file) return false;
     return (it.needs || []).every(isCleared);
   }
-  function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
+  function kindOf(id) { var p = part(id); return p && p.type === 'cable' ? 'cable' : 'part'; }
   // 手に入ったもの（手に入れた順）
   function parts() {
-    var got = {};   // 同じぶひんを2つの項目でもらえるとき（えほんかクイズのどちらか）は、1つだけ数える
-    return sync().order.map(item).filter(function (it) { if (!it || !GEAR[it.gives] || got[it.gives]) return false; got[it.gives] = 1; return true; }).map(function (it) {
-      var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
-    });
+    // クリアした順に、ORDER の順でぶひんが1つずつ手に入る（どの項目をクリアしたかは関係ない）
+    return sync().order.map(item).filter(Boolean).map(function (it, i) {
+      var k = ORDER[i], g = GEAR[k]; if (!g) return null;
+      return { item: it.id, kind: g.type === 'cable' ? 'cable' : 'part', id: k, part: { id: k, name: g.name, can: g.can, type: g.type } };
+    }).filter(Boolean);
   }
   // その項目で手に入ったもの（まだなら null）
   function part(id) {
     var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
-    if (!x && it && it.gives && isCleared(id)) x = ps.filter(function (p) { return p.id === it.gives; })[0];   // ほかの項目で、もう手に入れている
     return x ? x.part : null;
   }
   // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
@@ -1365,23 +1389,34 @@ show(0);
     own = own || owned();
     var store = own.ssd || own.hdd;
     var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
-    var shown = boot && own.disp && own.hdmi, usable = shown && own.kbd && own.mouse && own.usb;
+    var screen = post && own.disp && own.hdmi, shown = boot && screen, input = own.kbd && own.mouse && own.usb, usable = shown && input;
     var net = usable && own.lan && own.router && own.tcpip;
     var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
     var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
-    if (!Object.keys(own).length) return m(0, 'まだ ぶひん がない');
-    if (!own.psu) return m(1, '電源が入らない（電源ユニットがない）');
-    if (!own.pwr) return m(1, 'コンセントにつながっていないので、電気が来ない（電源コードがない）');
-    if (!own.board) return m(1, 'ぶひんをつなぐ土台がないので、動かない（マザーボードがない）');
+    var n = Object.keys(own).length;
+    if (!n) return m(0, 'まだ ぶひん がない');
+    // ① ハードウェアを集めているあいだ（まだ電気が来ていない）
+    if (!own.psu) return m(1, 'ぶひんはあるが、電源が入らない（電源ユニットがない）');
+    if (!own.pwr) {
+      var hard = ['board', 'cpu', 'mem', 'ssd', 'hdd', 'disp', 'kbd', 'mouse', 'router'].filter(function (k) { return own[k]; }).map(function (k) { return GEAR[k].name; });
+      return m(1, '組み立て中：ハードウェアが ' + (hard.length + 1) + ' こ そろった。でも、コンセントにつながっていないので、まだ電気が来ない（電源コードがない）');
+    }
+    if (!own.board) return m(1, '電気は来たが、ぶひんをつなぐ土台がないので動かない（マザーボードがない）');
     if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
-    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので起動できない（メモリがない）');
-    if (!store) return m(2, '動き出したが、データをしまう場所がない（SSD か HDD がない）');
-    if (!own.os) return m(2, '動き出したが、OS が入っていないので起動できない（OS がない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので動き出せない（メモリがない）');
+    // ② 電源が入った：ケーブルがつながるたびに、できることが増える
+    if (!own.disp) return m(2, '電源が入って動き出した！ でも、画面がないので何も見えない（ディスプレイがない）');
+    if (!own.hdmi) return m(2, '電源が入って動き出した！ でも、ディスプレイにつながっていないので何も映らない（HDMIケーブルがない）');
+    if (!boot) {
+      var why = !store ? 'データをしまう場所がない（SSD か HDD がない）' : 'OS が入っていないので、「起動できるものがありません」と出るだけ（OS がない）';
+      var more = (input ? ' キーボードとマウスは、本体につながった。' : (own.kbd || own.mouse) && !own.usb ? ' キーボードとマウスは、まだ本体につながっていない（USBケーブルがない）。' : '') +
+        (own.router && own.lan ? ' ルータとも、LANケーブルでつながった。' : '') + (own.tcpip ? ' 通信のきまり（TCP/IP）も用意できた。' : '');
+      return m(3, '画面に文字が映った！ でも、' + why + '。' + more);
+    }
+    // ③ OS が入った：班PCとして使える
     var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
-    if (!own.disp) return m(3, '起動したが、画面がないので何も見えない（ディスプレイがない）' + slow);
-    if (!own.hdmi) return m(3, '起動したが、ディスプレイにつながっていないので映らない（HDMIケーブルがない）');
-    if (!own.kbd || !own.mouse) return m(4, '画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
-    if (!own.usb) return m(4, '画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!own.kbd || !own.mouse) return m(4, '起動して画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '起動して画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
     if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
     if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
     return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
@@ -1410,7 +1445,7 @@ show(0);
     opt = opt || {};
     var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
     return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
-      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
       '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
       '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
@@ -1459,7 +1494,7 @@ show(0);
 
   window.DroneHub = {
     ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
-    part: part, parts: parts, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    part: part, parts: parts, nextPart: nextPart, ORDER: ORDER, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
     autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
     reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
   };
@@ -1483,7 +1518,7 @@ show(0);
       var m = String(pn && pn.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
       if (m && m[1] === m[2] && window.DroneHub) {
         var first = !DroneHub.isCleared(ID);
-        var gv = (DroneHub.item(ID) || {}).gives, had = DroneHub.parts().some(function (p) { return p.id === gv; });   // ほかの項目で、もう手に入れている
+        var had = false;   // クリアするたびに、新しいぶひんが1つ手に入る
         DroneHub.clear(ID);
         if (first) {
           var pt = DroneHub.part(ID);

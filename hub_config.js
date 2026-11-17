@@ -6,17 +6,18 @@
      1. えほんの HTML を、このフォルダに入れる（ファイル名は英数字で）
      2. 下の items の、その行の file: '' に、ファイル名を書く（新しいえほんなら1行足す）
           id      … 半角英数字の名前（ほかと重ならないもの）
-          gives   … クリアで手に入るもの（下の一覧から1つ）
+          ※ 手に入るぶひんは、項目ごとではなく「クリアした数の順」で決まる（下の partOrder）。gives は使わない
      3. えほんの HTML の </body> のすぐ前に、次の3行を入れる（'www' は、その行の id）
           <script src="hub_config.js"></script>
           <script src="hub.js"></script>
           <script>window.DroneHub && DroneHub.autoQuiz('www');</script>
         ※ 確認クイズの点数を id="score" に「〇 / 〇 問正解。全問正解です！」と出すえほんなら、そのまま動きます
-   ■ gives に書けるもの
-     ハード：board(マザーボード) cpu mem(メモリ) psu(電源ユニット) hdd ssd disp(ディスプレイ)
+   ■ ぶひんが手に入る順（partOrder）
+     どの項目をクリアしても、1つクリアするたびに、partOrder の順で1つずつ手に入る
+     ハード：psu(電源ユニット) board(マザーボード) cpu mem(メモリ) ssd hdd disp(ディスプレイ)
              kbd(キーボード) mouse router(ルータ) spk(スピーカー) cam(Webカメラ)
-     ソフト：os browser(Webブラウザ) doc(文書アプリ) sheet(表計算アプリ) tcpip mail(メールアプリ) sec(暗号化)
-     ケーブル（スキル用）：pwr(電源コード) hdmi usb lan
+     ケーブル：pwr(電源コード) hdmi usb lan
+     プロトコル・ソフト：tcpip os browser(Webブラウザ) sec(暗号化) mail(メールアプリ) doc(文書アプリ) sheet(表計算アプリ)
    ■ クラスごとの表示（show）
      クラスの番号: [表示する id の一覧]　と書く。書いていないクラスは default を使う
      'all' は全部表示。生徒がクラス・班を選ぶまでは default
@@ -43,6 +44,12 @@ window.HUB_CONFIG = {
   { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
   { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
 ],
+
+  // ぶひんが手に入る順（ハードウェア → ケーブル → プロトコル → ソフトウェア）
+  partOrder: ['psu', 'board', 'cpu', 'mem', 'ssd', 'disp', 'kbd', 'mouse', 'router',
+              'pwr', 'hdmi', 'usb', 'lan',
+              'tcpip',
+              'os', 'browser', 'sec', 'mail', 'doc', 'sheet', 'spk', 'cam', 'hdd'],
 
   show: {
     default: 'all'

@@ -5074,6 +5074,16 @@ return $.__chunk_javascript;
     usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
     lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
   };
+  // ぶひんが手に入る順：どの項目をクリアしても、クリアした数の順に、この順で1つずつ手に入る
+  //   ハードウェア → ケーブル → プロトコル → ソフトウェア（hub_config.js の partOrder で変えられる）
+  var DEF_ORDER = ['psu', 'board', 'cpu', 'mem', 'ssd', 'disp', 'kbd', 'mouse', 'router',   // ハードウェア
+    'pwr', 'hdmi', 'usb', 'lan',                                                             // ケーブル
+    'tcpip',                                                                                  // プロトコル
+    'os', 'browser', 'sec', 'mail', 'doc', 'sheet',                                           // ソフトウェア
+    'spk', 'cam', 'hdd'];                                                                     // 項目が増えたとき用
+  var ORDER = (Array.isArray(CFG.partOrder) && CFG.partOrder.length ? CFG.partOrder : DEF_ORDER).filter(function (k, i, a) { return GEAR[k] && a.indexOf(k) === i; });
+  // つぎに手に入るぶひん（もう全部手に入れていたら null）
+  function nextPart() { var k = ORDER[parts().length]; return k ? { id: k, name: GEAR[k].name, can: GEAR[k].can, type: GEAR[k].type } : null; }
   var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
 
   // 絵（viewBox 0 0 360 250）
@@ -5142,18 +5152,18 @@ return $.__chunk_javascript;
     var it = item(id); if (!it || !it.file) return false;
     return (it.needs || []).every(isCleared);
   }
-  function kindOf(id) { var it = item(id); return it && it.kind === 'escape' ? 'cable' : 'part'; }
+  function kindOf(id) { var p = part(id); return p && p.type === 'cable' ? 'cable' : 'part'; }
   // 手に入ったもの（手に入れた順）
   function parts() {
-    var got = {};   // 同じぶひんを2つの項目でもらえるとき（えほんかクイズのどちらか）は、1つだけ数える
-    return sync().order.map(item).filter(function (it) { if (!it || !GEAR[it.gives] || got[it.gives]) return false; got[it.gives] = 1; return true; }).map(function (it) {
-      var g = GEAR[it.gives]; return { item: it.id, kind: kindOf(it.id), id: it.gives, part: { id: it.gives, name: g.name, can: g.can, type: g.type } };
-    });
+    // クリアした順に、ORDER の順でぶひんが1つずつ手に入る（どの項目をクリアしたかは関係ない）
+    return sync().order.map(item).filter(Boolean).map(function (it, i) {
+      var k = ORDER[i], g = GEAR[k]; if (!g) return null;
+      return { item: it.id, kind: g.type === 'cable' ? 'cable' : 'part', id: k, part: { id: k, name: g.name, can: g.can, type: g.type } };
+    }).filter(Boolean);
   }
   // その項目で手に入ったもの（まだなら null）
   function part(id) {
     var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
-    if (!x && it && it.gives && isCleared(id)) x = ps.filter(function (p) { return p.id === it.gives; })[0];   // ほかの項目で、もう手に入れている
     return x ? x.part : null;
   }
   // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
@@ -5182,23 +5192,34 @@ return $.__chunk_javascript;
     own = own || owned();
     var store = own.ssd || own.hdd;
     var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
-    var shown = boot && own.disp && own.hdmi, usable = shown && own.kbd && own.mouse && own.usb;
+    var screen = post && own.disp && own.hdmi, shown = boot && screen, input = own.kbd && own.mouse && own.usb, usable = shown && input;
     var net = usable && own.lan && own.router && own.tcpip;
     var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
     var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
-    if (!Object.keys(own).length) return m(0, 'まだ ぶひん がない');
-    if (!own.psu) return m(1, '電源が入らない（電源ユニットがない）');
-    if (!own.pwr) return m(1, 'コンセントにつながっていないので、電気が来ない（電源コードがない）');
-    if (!own.board) return m(1, 'ぶひんをつなぐ土台がないので、動かない（マザーボードがない）');
+    var n = Object.keys(own).length;
+    if (!n) return m(0, 'まだ ぶひん がない');
+    // ① ハードウェアを集めているあいだ（まだ電気が来ていない）
+    if (!own.psu) return m(1, 'ぶひんはあるが、電源が入らない（電源ユニットがない）');
+    if (!own.pwr) {
+      var hard = ['board', 'cpu', 'mem', 'ssd', 'hdd', 'disp', 'kbd', 'mouse', 'router'].filter(function (k) { return own[k]; }).map(function (k) { return GEAR[k].name; });
+      return m(1, '組み立て中：ハードウェアが ' + (hard.length + 1) + ' こ そろった。でも、コンセントにつながっていないので、まだ電気が来ない（電源コードがない）');
+    }
+    if (!own.board) return m(1, '電気は来たが、ぶひんをつなぐ土台がないので動かない（マザーボードがない）');
     if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
-    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので起動できない（メモリがない）');
-    if (!store) return m(2, '動き出したが、データをしまう場所がない（SSD か HDD がない）');
-    if (!own.os) return m(2, '動き出したが、OS が入っていないので起動できない（OS がない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので動き出せない（メモリがない）');
+    // ② 電源が入った：ケーブルがつながるたびに、できることが増える
+    if (!own.disp) return m(2, '電源が入って動き出した！ でも、画面がないので何も見えない（ディスプレイがない）');
+    if (!own.hdmi) return m(2, '電源が入って動き出した！ でも、ディスプレイにつながっていないので何も映らない（HDMIケーブルがない）');
+    if (!boot) {
+      var why = !store ? 'データをしまう場所がない（SSD か HDD がない）' : 'OS が入っていないので、「起動できるものがありません」と出るだけ（OS がない）';
+      var more = (input ? ' キーボードとマウスは、本体につながった。' : (own.kbd || own.mouse) && !own.usb ? ' キーボードとマウスは、まだ本体につながっていない（USBケーブルがない）。' : '') +
+        (own.router && own.lan ? ' ルータとも、LANケーブルでつながった。' : '') + (own.tcpip ? ' 通信のきまり（TCP/IP）も用意できた。' : '');
+      return m(3, '画面に文字が映った！ でも、' + why + '。' + more);
+    }
+    // ③ OS が入った：班PCとして使える
     var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
-    if (!own.disp) return m(3, '起動したが、画面がないので何も見えない（ディスプレイがない）' + slow);
-    if (!own.hdmi) return m(3, '起動したが、ディスプレイにつながっていないので映らない（HDMIケーブルがない）');
-    if (!own.kbd || !own.mouse) return m(4, '画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
-    if (!own.usb) return m(4, '画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!own.kbd || !own.mouse) return m(4, '起動して画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '起動して画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
     if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
     if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
     return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
@@ -5227,7 +5248,7 @@ return $.__chunk_javascript;
     opt = opt || {};
     var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
     return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
-      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 スキルクリア！ 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
       '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
       '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
       '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
@@ -5276,7 +5297,7 @@ return $.__chunk_javascript;
 
   window.DroneHub = {
     ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
-    part: part, parts: parts, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    part: part, parts: parts, nextPart: nextPart, ORDER: ORDER, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
     autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
     reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
   };
@@ -5499,7 +5520,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v98）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v100）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
