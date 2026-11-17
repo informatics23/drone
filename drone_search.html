@@ -4902,7 +4902,7 @@ return $.__chunk_javascript;
     .hexBox { display: inline-block; width: 56px; height: 42px; border: 3px solid currentColor; border-radius: 6px; vertical-align: middle; }
     .msStair > span { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; }
     .msStair em { font-style: normal; font-size: 12px; font-weight: 900; min-height: 14px; line-height: 1; }
-    .msChip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; border: 2px solid rgba(15,23,42,.55); font-size: 20px; font-weight: 900; align-self: center; }
+    .msChip { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; border: 2px solid rgba(15,23,42,.55); box-shadow: 0 0 0 3px #fff; margin: 0 3px; font-size: 20px; font-weight: 900; align-self: center; }
     .msWall { margin-left: 10px; align-self: center; }
     .msCols { display: flex; align-items: flex-end; gap: 10px; }
     .msCol { display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -5500,7 +5500,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v95）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v98）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -10502,6 +10502,11 @@ window.DroneQR = (function () {
       const k1 = choose((o) => o.lock), k2 = noTools ? choose((o) => !o.lock && !o.seat) : choose((o) => o[B]), k0 = choose((o) => o.ctrls.includes('buttons'));   // 1つ目はボタンで開く物
       const roles = [{ kind: k0, give: A }, { kind: k1, need: A, give: B }, { kind: k2, need: B }, { kind: 'safe', need: 'code' }];
       shuf([0, 1, 2, 3]).forEach((m, i) => { roles[i].memo = m; roles[i].role = i; });   // どの手がかりがどこから出るかも班ごと
+      // 金庫の中の手がかりの色は、金庫の番号のヒント（3つの色）に入れない（「金庫を開けないと金庫が開かない」ように見えないように）
+      try {
+        const dd = escData(st), ex = [0, 1, 2, 3].find((k) => !dd.pick.includes(k)), want = dd.order.indexOf(ex), j = roles.findIndex((o) => o.memo === want);
+        if (j >= 0 && j !== 3) { roles[j].memo = roles[3].memo; roles[3].memo = want; }
+      } catch (e) { /* なし */ }
       // 2つ目の物（表面は鍵穴・カード・コインの差しこみ口）を開けると、中にもう1つしかけがあることも：
       //   電子ロック（論理回路）の引き出し ／ クイズ端末の引き出し。表面に問題ははらない（問題は中に）
       const lockRoll = r();
@@ -11252,9 +11257,10 @@ window.DroneQR = (function () {
     function safeClueHtml(st) {
       const d = escData(st);
       if (d.safeMode === 'num') {   // 色の順に、その機体の箱の「最初の数」
+        // 金庫の絵とまちがえないように、箱の絵はやめて「その機体の上に出ている数（？）」の形で示す
         return '<div class="memoSafe"><span class="msLock">🔐</span>' +
-          d.pick.map((k) => `<span class="msChip" style="background:${MEMBER_COLORS[k].css};color:${MEMBER_COLORS[k].dark ? '#0f172a' : '#fff'}">${MEMBER_SHAPES[k]}</span>`).join('') +
-          '<svg class="msWall" viewBox="0 0 64 60" width="64" height="60" fill="none" stroke="currentColor" stroke-width="3"><path d="M8 22 L32 10 L56 22 L56 50 L8 50 Z"/><path d="M8 22 L32 34 L56 22 M32 34 L32 50"/></svg></div>';
+          d.pick.map((k) => `<span style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;margin:0 4px;vertical-align:middle"><span style="background:#f8fafc;color:#0f172a;border:2px solid #0f172a;border-radius:8px;min-width:34px;text-align:center;font-weight:900;font-size:18px;line-height:1.4">？</span><span class="msChip" style="background:${MEMBER_COLORS[k].css};color:${MEMBER_COLORS[k].dark ? '#0f172a' : '#fff'}">${MEMBER_SHAPES[k]}</span></span>`).join('') +
+          '<span style="font-size:.7em;margin-left:6px;letter-spacing:0">それぞれの機体の箱の、最初の数</span></div>';
       }
       if (d.safeMode === 'color') {
         return '<div class="memoSafe"><span class="msLock">🔐</span>' +
@@ -11307,6 +11313,13 @@ window.DroneQR = (function () {
       scheduleFit();
     }
     function openClue(i) {
+      // 金庫やボタンの謎は「箱の最初の数」で解く。プログラムを実行して箱の数が変わっていたら、調べる前に最初の数にもどす
+      try {
+        if (!isRunning && Array.isArray(varState.vals) && varState.vals.join() !== team.data.lsInit.join()) {
+          resetSim();
+          showToast('📦 箱の数を、最初の数にもどした<small>部屋の謎は「最初の数」で解くよ（プログラムはそのまま）</small>', false, 3500);
+        }
+      } catch (e) { /* なし */ }
       if (i === DOOR_ID) { openDoorPanel(); return; }
       const st = varStage(), o = escLayout(st).objs[i], info = OBJ_INFO[o.kind];
       const msg = (t, title) => showEscModal(`<div class="escTitle">${title || '🔎 ' + info.name}</div><div class="escSub">${t}</div>` + ESC_OK);
