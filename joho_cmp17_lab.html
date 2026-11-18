@@ -1,0 +1,1277 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>:root{padding-top:0;padding-bottom:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>データ圧縮と動画ラボ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{
+  --bg:#F3F6FB; --surface:#FFFFFF; --ink:#141C33; --muted:#56617D; --line:#D6DDEB; --line2:#AEB9D1;
+  --cp:#1D6FC9; --im:#0B8A87; --mo:#D4841F; --ok:#0B8A87; --ng:#D9442E; --amber:#D4841F; --ai:#5644D6;
+  --shadow:0 1px 2px rgba(20,28,51,.06),0 8px 24px rgba(20,28,51,.06);
+  --disp:"Zen Maru Gothic","Noto Sans JP",system-ui,sans-serif;
+  --body:"Noto Sans JP",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+    --cp:#5FA8FF; --im:#31C7C2; --mo:#F0A542; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542; --ai:#9A8DFF;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D1324; --surface:#151D33; --ink:#E9EDF7; --muted:#9AA5C0; --line:#28324E; --line2:#46527A;
+  --cp:#5FA8FF; --im:#31C7C2; --mo:#F0A542; --ok:#31C7C2; --ng:#FF7B63; --amber:#F0A542; --ai:#9A8DFF;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font:400 16px/1.8 var(--body);-webkit-text-size-adjust:100%;
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0;line-height:1.35}
+p{margin:0 0 1em;max-width:42em}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--ai);outline-offset:2px;border-radius:4px}
+
+/* nav */
+.pnav{position:fixed;left:0;right:0;top:0;padding-top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);border-bottom:2px solid var(--line);
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.pnav .wrap{display:flex;gap:6px;align-items:center;padding-block:8px}
+.pnav a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-weight:900;font-size:.92rem;padding:6px 8px;border-radius:9px;white-space:nowrap;font-family:var(--disp);border:1.5px solid var(--line2)}
+.pnav a:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,var(--bg))}
+.pnav a[aria-current="page"]{background:var(--accent,var(--ink));color:#fff;border-color:var(--accent,var(--ink))}
+@media(max-width:600px){.pnav{padding-inline:max(8px,env(safe-area-inset-left,0px)) max(8px,env(safe-area-inset-right,0px))}.pnav .wrap{gap:4px}.pnav a{font-size:.68rem;padding:6px 2px;border-width:1px}}
+.cp{--accent:var(--cp)} .im{--accent:var(--im)} .mo{--accent:var(--mo)}
+.pages{height:100vh;height:100dvh}
+.pg{height:100vh;height:100dvh;padding:84px max(16px,calc((100% - 1080px)/2)) 10px;overflow-y:auto;display:none;flex-direction:column;position:relative}
+.pg.on{display:flex}
+.pg>.cols{margin-block:0 auto;width:100%}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px 36px;align-items:start}
+@media(min-width:1000px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.cols.wide-col{display:block;max-width:1080px;margin-inline:auto}
+@media(max-width:999px),(max-height:640px){
+  body{overflow:auto}
+  .pages{height:auto;overflow:visible}
+  .pg{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;padding-block:88px 32px;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+}
+@media(min-width:1000px){.pg{padding-inline:max(16px,calc((100% - 1080px)/2 + env(safe-area-inset-left,0px))) max(16px,calc((100% - 1080px)/2 + env(safe-area-inset-right,0px)))}}
+
+/* 大見出し */
+.bighd{display:flex;align-items:center;gap:14px;margin-top:10px}
+.bsvg svg{display:block;width:72px;height:auto}
+.bw{font-family:var(--disp);font-weight:900;font-size:clamp(30px,4vw,44px);line-height:1.1;color:var(--accent);letter-spacing:.02em}
+.oneline{margin:6px 0 0;font-size:14.5px;line-height:1.6;color:var(--muted);max-width:none}
+.sec-h h2{font-size:clamp(20px,2.4vw,26px);font-weight:900;margin-top:12px}
+.sec-h .lead{margin-top:10px;font-size:15px;line-height:1.75}
+.term{background:#FFE066;color:#28251A;border-radius:4px;padding:1px 5px;font-weight:600}
+h3.sub{font-size:18px;margin:0 0 4px}
+.callout{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:14px;box-shadow:var(--shadow)}
+.callout p{margin:0;font-size:14.5px;line-height:1.7}
+.callout p+p{margin-top:.5em}
+
+/* figure/panel */
+figure{margin:0;padding:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);position:relative}
+.panel+.panel{margin-top:14px}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.7}
+.scroll{overflow-x:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.btn{background:var(--accent);color:#fff;border:1.5px solid var(--accent);border-radius:999px;padding:6px 18px;font-weight:700;font-size:14px;min-height:40px}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+:root[data-theme="dark"] .btn:not(.ghost){color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn:not(.ghost){color:#0D1324}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{background:var(--surface);border:1.5px solid var(--line2);border-radius:999px;padding:4px 14px;font-size:14px;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{color:#0D1324}}
+table.dt{border-collapse:collapse;font-size:13.5px;width:100%;line-height:1.5}
+table.dt th,table.dt td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:center}
+table.dt th{font-family:var(--disp);border-bottom:1.5px solid var(--line2)}
+table.dt td:first-child{text-align:left;font-weight:700}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin-top:14px}
+summary{cursor:pointer;font-weight:700;font-size:15px;line-height:1.6}
+details p{margin:8px 0 2px;font-size:14.5px;line-height:1.75}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:12px}
+.tip{border-top:3px solid var(--accent);padding-top:6px;font-size:13.5px;line-height:1.6}
+.tip b{font-family:var(--disp);display:block;font-size:16px}
+
+/* 構成：たとえ */
+.amap{display:grid;gap:6px;margin-top:8px}
+.arow{display:grid;grid-template-columns:8.2em 1.2em minmax(0,1fr);align-items:center;gap:6px;font-size:14px;line-height:1.5}
+.arow .k{border-radius:8px;padding:3px 8px;font-weight:700;font-family:var(--disp);text-align:center;font-size:13.5px}
+.arow .k.h{background:color-mix(in srgb,var(--amber) 16%,var(--surface));border:1.5px solid var(--amber)}
+.arow .k.s{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1.5px solid var(--accent)}
+.arow .k small{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:1.2}
+.arow .eq{text-align:center;color:var(--muted);font-weight:700}
+.arow .v b{font-family:var(--disp);font-size:16px}
+.arow .v span{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+
+/* 仕分け */
+.sorter{display:grid;gap:10px}
+.sorter .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.chip{cursor:pointer;font-size:14px;padding:3px 13px;border-radius:999px;border:1.5px solid var(--line2);background:var(--surface);font:inherit;color:inherit}
+.chip.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.chip.done{opacity:.4;text-decoration:line-through;cursor:default}
+.bins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bin{border:2px dashed var(--line2);border-radius:12px;padding:6px 10px;min-height:70px;display:grid;align-content:start;gap:4px;background:transparent;text-align:left}
+.bin.ready{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.bin .bt{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--accent)}
+.bin .bl{display:flex;flex-wrap:wrap;gap:4px}
+.bin .bl span{font-size:12.5px;background:color-mix(in srgb,var(--ok) 12%,var(--surface));border:1px solid var(--ok);border-radius:999px;padding:0 8px}
+.feedback{min-height:1.7em;font-weight:700;font-size:14px;line-height:1.6}
+.feedback.ok{color:var(--ok)} .feedback.ng{color:var(--ng)}
+.sorter .row{display:flex;justify-content:flex-end}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* 図版 */
+.dg svg{width:100%;height:auto;display:block;min-width:300px}
+.dg text{font-family:var(--body);fill:var(--ink)}
+.dg text,svg text{stroke:none}
+svg .bx{fill:var(--surface);stroke:var(--line2);stroke-width:1.5;transition:fill .25s,stroke .25s}
+svg .bx.on{stroke:var(--accent);stroke-width:2.5}
+svg .bx.off{opacity:.45}
+svg .line{stroke:var(--line2);fill:none}
+svg .acc{stroke:var(--accent);fill:none}
+svg .accf{fill:var(--accent)}
+svg .bad{stroke:var(--ng)} svg .badf{fill:var(--ng)}
+svg .good{stroke:var(--ok)} svg .goodf{fill:var(--ok)}
+svg .muted{fill:var(--muted)}
+
+/* パネル内ボタン行 */
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.panel-msg{margin-top:10px;font-size:13.5px;line-height:1.7;color:var(--muted);min-height:1.7em}
+.panel-msg b{color:var(--ink)}
+
+/* まとめ：用語カード */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media(max-width:720px){.cards{grid-template-columns:repeat(2,1fr)}}
+.card3{perspective:800px;height:92px}
+.card3 .in{position:relative;width:100%;height:100%;transition:transform .45s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d;cursor:pointer}
+.card3.flip .in{transform:rotateY(180deg)}
+.card3 .fc,.card3 .bc2{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12.5px;background:var(--surface);box-shadow:var(--shadow)}
+.card3 .fc{font-family:var(--disp);font-weight:700;font-size:13.5px}
+.card3 .bc2{transform:rotateY(180deg);color:var(--muted);font-size:11.5px;line-height:1.5}
+
+/* 複数ページの項目：次へボタン */
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding-top:10px}
+.pager .pdots{display:flex;gap:6px}
+.pager .pdots i{width:9px;height:9px;border-radius:50%;background:var(--line2)}
+.pager .pdots i.on{background:var(--accent)}
+.pager .pnum{font-family:var(--disp);font-weight:900;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* クイズ */
+.qz{display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1000px){.qz{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 14px 10px;margin:0;min-width:0}
+.q .qq{font-weight:700;margin:0;font-size:14px;line-height:1.6;max-width:none}
+.qcat{font-weight:700;font-size:12.5px;white-space:nowrap}
+.maru{width:1.7em;height:auto;vertical-align:-.4em;margin-right:3px}
+.q .opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.q .opts button{text-align:left;background:var(--bg);border:1.5px solid var(--line2);border-radius:10px;padding:3px 12px;font-size:14px;line-height:1.5;min-height:34px}
+.q .opts button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--surface))}
+.q .opts button.bad{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 14%,var(--surface))}
+.q .opts button:disabled{cursor:default}
+.q .exp{font-size:13px;margin:6px 0 0;color:var(--muted);max-width:none;line-height:1.6}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#score{font-family:var(--disp);font-weight:900;font-size:18px}
+
+/* クリック時の枠線・選択を抑える */
+html,body,.pages,.pg,.cols{caret-color:transparent}
+.pages:focus,.pg:focus,section:focus,figure:focus,svg:focus{outline:none!important}
+.pages,.pg,svg{-webkit-tap-highlight-color:transparent}
+body{-webkit-user-select:none;user-select:none}
+button,summary{cursor:pointer}
+button{-webkit-tap-highlight-color:transparent}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* 見出しアイコンのアニメーション */
+.m-pulse{animation:mpulse 1.6s ease-in-out infinite}
+@keyframes mpulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ===== この単元用の追加部品 ===== */
+.note{font-size:12.5px;color:var(--muted);margin:0 0 8px;line-height:1.6;max-width:none}
+.src{font-size:12px;color:var(--muted);margin:6px 0 0;line-height:1.6;max-width:none}
+svg .pop{animation:pop .45s both;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.sorter .chip{border-radius:16px;text-align:left}
+.bins.b3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.bins.b3 .bt{font-size:12.5px;line-height:1.4}
+svg text.tagtx{fill:#fff}
+:root[data-theme="dark"] svg text.tagtx{fill:#0D1324}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) svg text.tagtx{fill:#0D1324}}
+
+/* 入力欄 */
+input,textarea{caret-color:auto;-webkit-user-select:text;user-select:text}
+.txtin,.numin{font:inherit;font-size:16px;padding:5px 10px;border:1.5px solid var(--line2);border-radius:10px;background:var(--surface);color:var(--ink);min-height:40px}
+.txtin{width:100%}
+.numin{width:6.5em;font-family:var(--mono);font-size:15px}
+.txtin:focus,.numin:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent)}
+.rng{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;margin:4px 0 6px}
+.rng input{width:100%;accent-color:var(--accent);margin:0}
+.rng output{font-family:var(--disp);font-weight:900;color:var(--accent);min-width:3em;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ランレングス */
+.rl{font-family:var(--mono);font-size:15px;line-height:1.9;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-height:2.6em}
+.rl .run{border-radius:4px;padding:0 1px}
+.rl .run:nth-child(odd){background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.rl .n{color:var(--accent);font-weight:700}
+.cnt{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;margin-top:8px;align-items:baseline}
+.cnt b{font-family:var(--disp);font-size:20px;font-variant-numeric:tabular-nums}
+.cnt .good{color:var(--ok)} .cnt .bad{color:var(--ng)}
+.bwrap{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:520px){.bwrap{grid-template-columns:minmax(0,1fr)}}
+.pxgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:100%;max-width:230px;aspect-ratio:1}
+.px{border:1px solid #AEB9D1;background:#fff;padding:0;min-height:0;border-radius:2px}
+.px[aria-pressed="true"]{background:#1C2233;border-color:#1C2233}
+
+/* 画像 */
+.cvwrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px;align-items:start}
+@media(max-width:520px){.cvwrap{grid-template-columns:minmax(0,1fr)}}
+.cvwrap canvas{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--line)}
+.cvwrap .zoom canvas{image-rendering:pixelated}
+.cvlab{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.meter{display:grid;grid-template-columns:5.5em minmax(0,1fr) 5.5em;gap:6px 8px;align-items:center;font-size:13px;margin-top:10px}
+.meter .bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meter b{font-family:var(--mono);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+.fmt td{font-weight:400!important;text-align:left!important}
+.fmt td:first-child{font-weight:700!important;font-family:var(--mono)}
+
+/* 動画 */
+.anim canvas{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5em,1fr));gap:8px 10px;margin-bottom:10px}
+.calc label{display:grid;gap:2px;font-size:12.5px;color:var(--muted);font-weight:700}
+.steps{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.5;background:color-mix(in srgb,var(--accent) 9%,var(--surface));border-radius:10px;overflow:hidden}
+.steps td{padding:6px 10px;border-bottom:1px solid color-mix(in srgb,var(--accent) 20%,var(--surface))}
+.steps td:last-child{font-family:var(--mono);font-size:13px;text-align:right}
+.steps tr:last-child td{border-bottom:0;font-weight:700}
+.steps tr:last-child td:last-child{color:var(--accent);font-size:15px}
+.ans{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.thumbs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+@media(max-width:520px){.thumbs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.thumbs figure{margin:0}
+.thumbs canvas{width:100%;height:auto;display:block;border-radius:6px;border:1.5px solid var(--line)}
+.thumbs figure.key canvas{border-color:var(--accent)}
+.thumbs figcaption{margin-top:2px;font-size:11px;line-height:1.35;text-align:center;color:var(--muted)}
+.thumbs figure.key figcaption{color:var(--accent);font-weight:700}
+</style>
+
+<nav class="pnav" id="pnav" aria-label="ページ切り替え"><div class="wrap">
+  <a href="#cp1" class="cp" data-g="cp">圧縮</a><a href="#im1" class="im" data-g="im">画像</a><a href="#mo1" class="mo" data-g="mo">動画</a><a href="#sum" data-g="sum">まとめ</a><a href="#check" data-g="check">確認クイズ</a>
+</div></nav>
+
+<main class="pages" id="pages">
+
+<!-- ============ 圧縮 1/2 ============ -->
+<section id="cp1" class="pg sec cp" data-g="cp">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="大きな箱が小さな箱に縮むアニメーション">
+        <rect x="6" y="14" width="56" height="62" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M14 30 h40 M14 44 h40 M14 58 h28" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <path d="M68 45 h14 M76 38 l7 7 l-7 7" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/>
+        <rect class="m-pulse" x="90" y="30" width="26" height="30" rx="5" style="fill:var(--accent)"/>
+      </svg></span><span class="bw">圧縮①</span></div>
+    <p class="oneline">同じものが続く部分をまとめれば、情報を減らさずにデータ量を減らせる。</p>
+    <h2>データ圧縮の考え方</h2>
+    <p class="lead">長い文章でも、同じ文字が続く場合は、それをまとめることで、情報を減らすことなく、データ量を減らすことができる。これが<span class="term">データ圧縮</span>の基本的な考え方である。データ圧縮には完全に元のデータに戻すことができる<span class="term">可逆圧縮</span>と、完全には元に戻せない<span class="term">非可逆圧縮</span>がある。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">たとえると…</h3>
+    <p>買い物メモに「卵、卵、卵、卵、卵、卵」と書かずに「卵×6」と書くようなもの。短くなっても、意味(情報)は何も失われていない。</p>
+  </figure>
+  <div class="tips" style="margin-top:14px">
+    <div class="tip"><b>豆知識</b>ファイル圧縮ソフトは、さまざまなファイルを可逆圧縮するものである。ファイルサイズを小さくする以外に、複数のファイルを1つにまとめるためにも使われる。</div>
+  </div>
+  <details><summary>考えてみよう：<br>圧縮すると、かえって長くなることはある？</summary>
+    <p>ある。右の「文字の圧縮」で「あいうえお」を試してみよう。同じ文字が続かないデータに数を書き足すと、元より長くなってしまう。圧縮しやすいのは、同じものが長く続くデータだ。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">文字の圧縮</h3>
+    <p class="note">文字のあとに、その文字が続く数を書く方法で圧縮する。文字を書きかえてみよう。</p>
+    <input class="txtin" id="rlIn" type="text" value="すもももももももものうち" aria-label="圧縮する文字列" maxlength="40">
+    <div class="seg" id="rlPre" style="margin-top:8px">
+      <button type="button" aria-pressed="false" data-t="すもももももももものうち">すもも…</button>
+      <button type="button" aria-pressed="false" data-t="ああああああいいいいいい">ああ…いい…</button>
+      <button type="button" aria-pressed="false" data-t="あいうえお">あいうえお</button>
+    </div>
+    <p class="note" style="margin:10px 0 4px">圧縮したデータ</p>
+    <div class="rl" id="rlOut" aria-live="polite"></div>
+    <div class="cnt" id="rlCnt"></div>
+  </figure>
+  <figure class="panel">
+    <h3 class="sub">白黒画像の圧縮</h3>
+    <p class="note">マスをクリックして白黒を切りかえよう。左上から横に読み、同じ色が続くときは数をつけくわえる(例：黒黒黒 → 黒3)。</p>
+    <div class="seg" id="pxPre">
+      <button type="button" aria-pressed="false" data-p="a">ア</button>
+      <button type="button" aria-pressed="false" data-p="b">イ</button>
+      <button type="button" aria-pressed="false" data-p="c">ウ</button>
+      <button type="button" aria-pressed="false" data-p="d">エ</button>
+      <button type="button" aria-pressed="false" data-p="w">すべて白</button>
+    </div>
+    <div class="bwrap" style="margin-top:10px">
+      <div class="pxgrid" id="pxGrid" role="group" aria-label="8×8の白黒の画素"></div>
+      <div><p class="note" style="margin:0 0 4px">圧縮した文字列</p><div class="rl" id="pxOut" style="font-size:13.5px"></div><div class="cnt" id="pxCnt"></div></div>
+    </div>
+    <p class="panel-msg" id="pxMsg" aria-live="polite"></p>
+  </figure>
+  </div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i></span><span class="pnum">1 / 2</span><button class="btn" type="button" data-go="cp2">次へ →</button></div>
+</section>
+
+<!-- ============ 圧縮 2/2 ============ -->
+<section id="cp2" class="pg sec cp" data-g="cp">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="大きな箱が小さな箱に縮むアニメーション">
+        <rect x="6" y="14" width="56" height="62" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M14 30 h40 M14 44 h40 M14 58 h28" style="stroke:var(--accent);stroke-width:3;stroke-linecap:round"/>
+        <path d="M68 45 h14 M76 38 l7 7 l-7 7" style="fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"/>
+        <rect class="m-pulse" x="90" y="30" width="26" height="30" rx="5" style="fill:var(--accent)"/>
+      </svg></span><span class="bw">圧縮②</span></div>
+    <p class="oneline">元に完全に戻せるか、戻せないかで、圧縮は2種類に分かれる。</p>
+    <h2>可逆圧縮と非可逆圧縮</h2>
+    <p class="lead"><span class="term">可逆圧縮</span>では、ビット列の規則性をもとに、同じビット列が連続する部分を省略した表現にすることなどで、データ量を圧縮する。</p>
+    <p class="lead"><span class="term">非可逆圧縮</span>は、人間の感覚では違和感がない範囲で情報の一部を省略することで、データ量を圧縮する方法である。省略した分の情報が失われるためデータの品質は劣化するが、データ量の大幅な節約が期待できる。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">たとえると…</h3>
+    <p>可逆圧縮は「折りたたみ傘」。小さくしても、広げれば元どおり。非可逆圧縮は「あらすじ」。ずっと短くなるが、元の文章を一字一句そのままには戻せない。</p>
+  </figure>
+  <details><summary>考えてみよう：<br>非可逆圧縮を使ってはいけないデータは？</summary>
+    <p>文書やプログラム、数値のデータなどは、1文字・1ビットでも変わると意味が変わってしまうため、可逆圧縮を使う。写真や音楽、動画のように、少しの違いなら人が気づきにくいデータには、非可逆圧縮がよく使われる。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">圧縮して、元に戻せる？</h3>
+    <p class="note">画像の1行分(16画素)の明るさの値を圧縮して、元に戻してみよう。</p>
+    <div class="seg" id="lsSeg">
+      <button type="button" aria-pressed="true" data-m="ll">可逆圧縮</button>
+      <button type="button" aria-pressed="false" data-m="ly">非可逆圧縮</button>
+    </div>
+    <div class="scroll dg" style="margin-top:8px"><svg id="lsSvg" viewBox="0 0 400 250" role="img" aria-label="16個の画素の値を圧縮し、復元したデータと元のデータを比べる図"></svg></div>
+    <div class="ctl" style="margin-top:4px"><button class="btn" id="lsGo" type="button">圧縮して元に戻す</button></div>
+    <p class="panel-msg" id="lsMsg" aria-live="polite"></p>
+  </figure>
+  <figure class="panel">
+    <h3 class="sub">可逆？非可逆？ 分けてみよう</h3>
+    <p class="note">選んでから、入れる箱をタップしよう。</p>
+    <div class="sorter" id="lsSort"></div>
+  </figure>
+  </div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="cp1">← 前へ</button><span class="pdots"><i></i><i class="on"></i></span><span class="pnum">2 / 2</span></div>
+</section>
+
+<!-- ============ 画像 ============ -->
+<section id="im1" class="pg sec im" data-g="im">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="写真の中の太陽が光るアニメーション">
+        <rect x="14" y="10" width="92" height="70" rx="8" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M20 72 L46 40 L62 58 L76 46 L100 72 Z" style="fill:color-mix(in srgb,var(--accent) 40%,var(--surface));stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round"/>
+        <circle class="m-pulse" cx="84" cy="28" r="8" style="fill:var(--accent)"/>
+      </svg></span><span class="bw">画像</span></div>
+    <p class="oneline">画像の形式によって、圧縮のしかたや得意なことがちがう。</p>
+    <h2>画像ファイルと圧縮</h2>
+    <p class="lead">画像ファイルの形式としては、JPEG、GIF、PNGなどが広く使われている。これらはラスター画像の形式なのでデータ量が大きくなりやすいため、圧縮がおこなわれている。</p>
+    <p class="lead"><span class="term">JPEG形式</span>は非可逆圧縮で、人間の目で判別しにくい情報を省略することにより、大きな圧縮率を達成できる。圧縮率を上げると輪郭部に<span class="term">モスキートノイズ</span>という独特のノイズが生じやすい。圧縮率を上げるほどデータ量は小さくなるが、画質は低下する。これも、トレードオフである。</p>
+    <p class="lead"><span class="term">GIF形式</span>は同じパターンの繰り返しを短いビット列で置き換える方式の可逆圧縮であるが、256色しか扱えない。簡単なアニメーション機能がある。<span class="term">PNG形式</span>はGIF形式と似た可逆圧縮であるが、GIFと違ってフルカラーも扱える。</p>
+  </header>
+  <div class="scroll" style="margin-top:4px"><table class="dt fmt">
+    <tr><th>形式</th><th style="text-align:left">圧縮</th><th style="text-align:left">特徴</th></tr>
+    <tr><td>JPEG</td><td>非可逆</td><td>写真によく使われる。</td></tr>
+    <tr><td>GIF</td><td>可逆</td><td>256色まで。簡単なアニメーション。</td></tr>
+    <tr><td>PNG</td><td>可逆</td><td>フルカラーが扱える。</td></tr>
+  </table></div>
+  <details><summary>考えてみよう(エクササイズ)：<br>スマホの写真で試すと？</summary>
+    <p>デジタルカメラやスマートフォンで撮影した画像をコピーして、JPEGの圧縮率を変えて保存し、データ量の変化や画質の変化を確認してみよう。右の図でも、同じことを体験できる。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">JPEGの圧縮率を変えてみよう</h3>
+    <div class="seg" id="imFmt">
+      <button type="button" aria-pressed="true" data-f="jpeg">JPEG(非可逆)</button>
+      <button type="button" aria-pressed="false" data-f="png">PNG(可逆)</button>
+    </div>
+    <div class="rng" id="imQrow" style="margin-top:8px"><label for="imQ">画質</label><input id="imQ" type="range" min="1" max="100" step="1" value="80"><output id="imQo" for="imQ">80</output></div>
+    <div class="cvwrap">
+      <div><canvas id="imView" width="320" height="200" aria-label="圧縮して保存した画像"></canvas><div class="cvlab">保存した画像</div></div>
+      <div class="zoom"><canvas id="imZoom" width="160" height="120" aria-label="輪郭部分の拡大"></canvas><div class="cvlab">輪郭部分を拡大(赤い枠の中)</div></div>
+    </div>
+    <div class="meter" id="imMeter"></div>
+    <p class="panel-msg" id="imMsg" aria-live="polite"></p>
+    <p class="src">※ブラウザが実際にJPEG・PNG形式で保存したときのデータ量。</p>
+  </figure>
+  <figure class="panel">
+    <h3 class="sub">どの形式で保存する？</h3>
+    <p class="note">選んでから、入れる箱をタップしよう。</p>
+    <div class="sorter" id="imSort"></div>
+  </figure>
+  </div></div>
+</section>
+
+<!-- ============ 動画 1/3 ============ -->
+<section id="mo1" class="pg sec mo" data-g="mo">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="フィルムのコマが順に光るアニメーション">
+        <rect x="8" y="16" width="104" height="58" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M8 26 h104 M8 64 h104" style="stroke:var(--accent);stroke-width:2"/>
+        <rect class="m-pulse" x="16" y="32" width="24" height="26" rx="3" style="fill:var(--accent)"/>
+        <rect class="m-pulse" x="48" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.4s"/>
+        <rect class="m-pulse" x="80" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.8s"/>
+      </svg></span><span class="bw">動画①</span></div>
+    <p class="oneline">少しずつ違う画像を、すばやく切り替えると動いて見える。</p>
+    <h2>フレームとフレームレート</h2>
+    <p class="lead">連続的な変化をあらわした一連の画像を短い時間間隔で見ると、動いているように見える。コンピュータでは、連続的な変化をあらわした画像を短い時間間隔で切り替えながら表示することで、動画を表現する。動画を構成する連続した画像の1コマを<span class="term">フレーム</span>という。1秒あたりのフレームの枚数を<span class="term">フレームレート</span>といい、単位は<span class="term">fps</span>(frames per second)を用いる。1秒間の変化に使う画像の枚数が多いほど、動きがなめらかに見えるようになる。そのため多くの画像が必要になり、データ量も大きくなる。</p>
+  </header>
+  <div class="tips">
+    <div class="tip"><b>豆知識</b>自然な動きに見せるためには、20〜30fpsのフレームレートが必要だとされている。</div>
+  </div>
+  <details><summary>考えてみよう：<br>パラパラまんがとの共通点は？</summary>
+    <p>パラパラまんがの1枚1枚の絵がフレームにあたる。ページを速くめくるほど(フレームレートが大きいほど)なめらかに動くが、そのぶんたくさんの絵(データ)が必要になる。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">フレームレートを変えてみよう</h3>
+    <div class="seg" id="fpsSeg">
+      <button type="button" aria-pressed="false" data-f="1">1fps</button>
+      <button type="button" aria-pressed="false" data-f="5">5fps</button>
+      <button type="button" aria-pressed="false" data-f="12">12fps</button>
+      <button type="button" aria-pressed="true" data-f="30">30fps</button>
+    </div>
+    <div class="anim" style="margin-top:8px"><canvas id="fpsCv" width="720" height="320" aria-label="ボールがはずむアニメーション。点は直近1秒間に表示したフレームの位置"></canvas></div>
+    <div class="ctl" style="margin-top:8px"><button class="btn" id="fpsPlay" type="button" style="min-width:7em">一時停止</button></div>
+    <p class="panel-msg" id="fpsMsg" aria-live="polite"></p>
+  </figure>
+  </div></div>
+  <div class="pager"><span class="pdots"><i class="on"></i><i></i><i></i></span><span class="pnum">1 / 3</span><button class="btn" type="button" data-go="mo2">次へ →</button></div>
+</section>
+
+<!-- ============ 動画 2/3 ============ -->
+<section id="mo2" class="pg sec mo" data-g="mo">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="フィルムのコマが順に光るアニメーション">
+        <rect x="8" y="16" width="104" height="58" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M8 26 h104 M8 64 h104" style="stroke:var(--accent);stroke-width:2"/>
+        <rect class="m-pulse" x="16" y="32" width="24" height="26" rx="3" style="fill:var(--accent)"/>
+        <rect class="m-pulse" x="48" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.4s"/>
+        <rect class="m-pulse" x="80" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.8s"/>
+      </svg></span><span class="bw">動画②</span></div>
+    <p class="oneline">動画のデータ量は、1枚のデータ量 × 枚数で計算できる。</p>
+    <h2>動画のデータ量</h2>
+    <p class="lead">圧縮を考えない場合、動画のデータ量は次の式で計算できる。</p>
+    <p class="lead" style="font-weight:700;background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-radius:10px;padding:8px 12px">動画のデータ量 ＝ フレーム1枚のデータ量 × フレームレート(fps) × 時間(秒)</p>
+    <p class="lead">たとえば、300ピクセル×200ピクセルのフルカラー画像を用いて、30fpsで20秒の動画にすると、データ量は108メガバイトにもなる。フルカラーでは、1ピクセルあたり24ビット＝3バイトのデータ量が必要である。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">たとえると…</h3>
+    <p>動画は「写真の束」。1枚の写真の重さ × 1秒あたりの枚数 × 秒数で、束全体の重さ(データ量)が決まる。</p>
+  </figure>
+  <details><summary>考えてみよう：<br>データ量を小さくするには？</summary>
+    <p>画素数(解像度)を減らす、フレームレートを下げる、時間を短くする、そして圧縮する、などの方法がある。ただし、画質やなめらかさとはトレードオフになる。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">データ量を計算しよう</h3>
+    <div class="seg" id="calcPre" style="margin-bottom:10px">
+      <button type="button" aria-pressed="true" data-p="0">例：300×200・30fps・20秒</button>
+      <button type="button" aria-pressed="false" data-p="1">フルHD・30fps・60秒</button>
+    </div>
+    <div class="calc">
+      <label>横(ピクセル)<input class="numin" id="cW" type="number" min="1" max="10000" value="300"></label>
+      <label>縦(ピクセル)<input class="numin" id="cH" type="number" min="1" max="10000" value="200"></label>
+      <label>フレームレート(fps)<input class="numin" id="cF" type="number" min="1" max="240" value="30"></label>
+      <label>時間(秒)<input class="numin" id="cS" type="number" min="1" max="36000" value="20"></label>
+    </div>
+    <table class="steps" id="cSteps"></table>
+    <p class="src">フルカラー(1ピクセル＝24ビット＝3バイト)、1kB＝1000B、1MB＝1000kB として計算。</p>
+  </figure>
+  <figure class="panel">
+    <h3 class="sub">練習問題</h3>
+    <p style="font-size:14.5px;line-height:1.7;margin:0 0 8px">500×600ピクセルのフルカラー画像を用いて、動画を作成する。30fpsで10秒の動画にしたときのデータ量は何MBか。(1MB＝10<sup>6</sup>B とする)</p>
+    <div class="ans"><input class="numin" id="exAns" type="number" aria-label="答え(MB)"><span>MB</span><button class="btn" id="exChk" type="button">確かめる</button><button class="btn ghost" id="exHint" type="button">ヒント</button></div>
+    <p class="panel-msg" id="exMsg" aria-live="polite"></p>
+  </figure>
+  </div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="mo1">← 前へ</button><span class="pdots"><i></i><i class="on"></i><i></i></span><span class="pnum">2 / 3</span><button class="btn" type="button" data-go="mo3">次へ →</button></div>
+</section>
+
+<!-- ============ 動画 3/3 ============ -->
+<section id="mo3" class="pg sec mo" data-g="mo">
+  <div class="cols"><div class="cl"><header class="sec-h">
+    <div class="bighd"><span class="bsvg"><svg viewBox="0 0 120 90" role="img" aria-label="フィルムのコマが順に光るアニメーション">
+        <rect x="8" y="16" width="104" height="58" rx="6" style="fill:color-mix(in srgb,var(--accent) 14%,var(--surface));stroke:var(--accent);stroke-width:3"/>
+        <path d="M8 26 h104 M8 64 h104" style="stroke:var(--accent);stroke-width:2"/>
+        <rect class="m-pulse" x="16" y="32" width="24" height="26" rx="3" style="fill:var(--accent)"/>
+        <rect class="m-pulse" x="48" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.4s"/>
+        <rect class="m-pulse" x="80" y="32" width="24" height="26" rx="3" style="fill:var(--accent);animation-delay:.8s"/>
+      </svg></span><span class="bw">動画③</span></div>
+    <p class="oneline">となりのフレームとの「ちがい」だけを保存して、データを減らす。</p>
+    <h2>MPEG形式</h2>
+    <p class="lead">2つの隣り合うフレームの間では、画像の一部だけしか違いがないことも多い。この性質を利用した圧縮の方法に<span class="term">MPEG形式</span>があり、広く使われている。この形式では、フレーム全体の情報を保持するのは一定間隔の一部のフレームだけ(<span class="term">キーフレーム</span>)として、その間にあるフレームは直前のフレームから変化している部分(<span class="term">差分</span>)だけを保持する。</p>
+  </header>
+  <figure class="callout">
+    <h3 class="sub">たとえると…</h3>
+    <p>パラパラまんがで、背景の山や道を毎ページ描き直さず、最初の1枚にだけ描いて、あとは動く人物だけを描き足していくようなもの。</p>
+  </figure>
+  <details><summary>考えてみよう：<br>差分が大きくなるのはどんな場面？</summary>
+    <p>カメラを大きく動かしたり、場面が切り替わったりすると、画面全体が変化するため差分が大きくなる。このようなときは、新しいキーフレームを入れたほうが効率がよい。</p>
+  </details>
+  </div><div class="cr">
+  <figure class="panel">
+    <h3 class="sub">保存するデータをくらべよう</h3>
+    <div class="seg" id="mpSeg">
+      <button type="button" aria-pressed="true" data-m="all">すべてのフレームを保存</button>
+      <button type="button" aria-pressed="false" data-m="mpeg">MPEG(キーフレーム＋差分)</button>
+    </div>
+    <div class="thumbs" id="mpThumbs" style="margin-top:10px"></div>
+    <div class="meter" id="mpMeter"></div>
+    <p class="panel-msg" id="mpMsg" aria-live="polite"></p>
+    <p class="src">※5フレーム(各160×100画素)の画素を実際に比べて、変化した画素の数を数えている。</p>
+  </figure>
+  </div></div>
+  <div class="pager"><button class="btn ghost" type="button" data-go="mo2">← 前へ</button><span class="pdots"><i></i><i></i><i class="on"></i></span><span class="pnum">3 / 3</span></div>
+</section>
+
+<!-- ============ まとめ ============ -->
+<section id="sum" class="pg sec" data-g="sum">
+  <div class="cols wide-col"><div class="cl"><header class="sec-h">
+    <h2>重要用語をカードで確認しよう</h2>
+    <p class="lead" style="margin-top:14px">カードをクリックすると裏返り、意味が確認できる。データ圧縮には、元に戻せる可逆圧縮と、元に戻せないが大きく圧縮できる非可逆圧縮がある。画像ではJPEG・GIF・PNG、動画ではMPEGなど、データの性質に合わせた圧縮の方法が使われている。</p>
+  </header>
+  <div class="cards" id="sumCards"></div>
+  </div></div>
+</section>
+
+<!-- ============ 確認クイズ ============ -->
+<section id="check" class="pg sec" data-g="check">
+  <div class="cols wide-col"><div class="cl">
+    <div class="qhead"><h2>確認クイズ</h2><div id="score" aria-live="polite"></div></div>
+    <div class="qz" id="qz"></div>
+  </div></div>
+</section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,p){return (p||document).querySelector(s)};
+var $$=function(s,p){return Array.prototype.slice.call((p||document).querySelectorAll(s))};
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mk(t,a,p,txt){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;if(p)p.appendChild(e);return e}
+function wait(ms){return new Promise(function(r){setTimeout(r,RM?0:ms)})}
+function press(group,btn){$$(group+' button').forEach(function(x){x.setAttribute('aria-pressed',x===btn)})}
+function easeIO(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+function moveAlong(g,pts,ms){
+  return new Promise(function(resolve){
+    if(RM||pts.length<2){var last=pts[pts.length-1];g.setAttribute('transform','translate('+last[0]+','+last[1]+')');resolve();return}
+    var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d}
+    var t0=performance.now();
+    function frame(now){
+      var p=Math.min(1,(now-t0)/ms),e=easeIO(p),d=e*total,i=0;
+      while(i<segs.length-1&&d>segs[i]){d-=segs[i];i++}
+      var a=pts[i],b=pts[i+1]||pts[i],sl=segs[i]||1,f=sl?d/sl:0;
+      var x=a[0]+(b[0]-a[0])*f,y=a[1]+(b[1]-a[1])*f;
+      g.setAttribute('transform','translate('+x+','+y+')');
+      if(p<1)requestAnimationFrame(frame);else resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+function tag(g,text,color){
+  var grp=mk('g',{},g),w=14+text.split('').reduce(function(a,c){return a+(c.charCodeAt(0)<128?6.6:11.2)},0);
+  mk('rect',{x:-w/2,y:-11,width:w,height:22,rx:11,fill:color},grp);
+  mk('text',{x:0,y:4,'text-anchor':'middle','font-size':'11','font-weight':'700','class':'tagtx'},grp,text);
+  return grp;
+}
+function icon(p,kind,x,y,s){
+  var sc=s/22;
+  var g=mk('g',{transform:'translate('+(x-11*sc)+','+(y-11*sc)+') scale('+sc+')'},p);
+  var k={stroke:'var(--ink)','stroke-width':1.6,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'};
+  if(kind==='pc'){mk('rect',Object.assign({x:2,y:3,width:18,height:12,rx:1.6},k),g);mk('line',Object.assign({x1:8,y1:19,x2:14,y2:19},k),g);mk('line',Object.assign({x1:11,y1:15,x2:11,y2:19},k),g)}
+  else if(kind==='phone'){mk('rect',Object.assign({x:6,y:1.5,width:10,height:19,rx:2.2},k),g);mk('line',Object.assign({x1:9.5,y1:17,x2:12.5,y2:17},k),g)}
+  else if(kind==='server'){mk('rect',Object.assign({x:3,y:2,width:16,height:7,rx:1.4},k),g);mk('rect',Object.assign({x:3,y:12,width:16,height:7,rx:1.4},k),g);mk('circle',{cx:6,cy:5.5,r:.9,fill:'var(--ink)',stroke:'none'},g);mk('circle',{cx:6,cy:15.5,r:.9,fill:'var(--ink)',stroke:'none'},g)}
+  else if(kind==='router'){mk('circle',Object.assign({cx:11,cy:14,r:3},k),g);mk('path',Object.assign({d:'M6 9a7 7 0 0 1 10 0M3.3 6.3a11 11 0 0 1 15.4 0'},k),g)}
+  else if(kind==='cloud'){mk('path',Object.assign({d:'M6 16a4 4 0 0 1 .4-8 5 5 0 0 1 9.6 1.6A3.6 3.6 0 0 1 16 16Z'},k),g)}
+  else if(kind==='sensor'){mk('circle',Object.assign({cx:11,cy:11,r:5},k),g);mk('path',Object.assign({d:'M11 7v4l3 2'},k),g)}
+  else if(kind==='ai'){mk('rect',Object.assign({x:4,y:4,width:14,height:14,rx:4},k),g);mk('circle',{cx:8.5,cy:11,r:1,fill:'var(--ink)',stroke:'none'},g);mk('circle',{cx:13.5,cy:11,r:1,fill:'var(--ink)',stroke:'none'},g);mk('path',Object.assign({d:'M8 15q3 2 6 0'},k),g)}
+  else if(kind==='drop'){mk('path',Object.assign({d:'M11 2c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11Z'},k),g)}
+  else if(kind==='fan'){mk('circle',Object.assign({cx:11,cy:11,r:2},k),g);[0,90,180,270].forEach(function(a){mk('path',Object.assign({d:'M11 11 q4 -1 4 -5',transform:'rotate('+a+' 11 11)'},k),g)})}
+  else if(kind==='bell'){mk('path',Object.assign({d:'M6 15c0-5 1.5-8 5-8s5 3 5 8H6Z'},k),g);mk('line',Object.assign({x1:9,y1:18,x2:13,y2:18},k),g)}
+  else if(kind==='block'){mk('rect',Object.assign({x:3,y:7,width:7,height:7,rx:1.3},k),g);mk('rect',Object.assign({x:12,y:7,width:7,height:7,rx:1.3},k),g);mk('line',Object.assign({x1:10,y1:10.5,x2:12,y2:10.5},k),g)}
+  else if(kind==='hmd'){mk('rect',Object.assign({x:2,y:7,width:18,height:9,rx:4},k),g);mk('circle',{cx:7.5,cy:11.5,r:1.3,fill:'var(--ink)',stroke:'none'},g);mk('circle',{cx:14.5,cy:11.5,r:1.3,fill:'var(--ink)',stroke:'none'},g)}
+  else if(kind==='eye'){mk('path',Object.assign({d:'M2 11s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z'},k),g);mk('circle',Object.assign({cx:11,cy:11,r:2.6},k),g)}
+  return g;
+}
+function node(p,o){
+  var g=mk('g',{'class':'bx'+(o.cls?' '+o.cls:''),'data-id':o.id||''},p),x=o.x,y=o.y,w=o.w,h=o.h;
+  mk('rect',{x:x-w/2,y:y-h/2,width:w,height:h,rx:12,'class':'bx'},g);
+  icon(g,o.icon,x,y-h/2+16,18);
+  mk('text',{x:x,y:y+h/2-16,'text-anchor':'middle','font-size':'11.5','font-weight':'700',fill:'var(--ink)'},g,o.label);
+  g._s=mk('text',{x:x,y:y+h/2-4,'text-anchor':'middle','font-size':'10','class':'muted',fill:'var(--muted)'},g,o.sub||'');
+  return g;
+}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* ========== 仕分け（共通） ========== */
+function makeSorter(el,items,bins,notes){
+  el.innerHTML='<ul class="chips"></ul><div class="bins"></div><div class="feedback" aria-live="polite"></div><div class="row"><button class="btn ghost" type="button">もう一度</button></div>';
+  var chips=el.querySelector('.chips'),binsEl=el.querySelector('.bins'),fb=el.querySelector('.feedback'),sel=null,done=0;
+  function build(){
+    chips.innerHTML='';binsEl.innerHTML='';fb.textContent='';fb.className='feedback';sel=null;done=0;
+    shuffle(items).forEach(function(it){
+      var li=document.createElement('li'),c=document.createElement('button');c.type='button';c.className='chip';c.textContent=it[0];c.setAttribute('data-a',it[1]);
+      c.addEventListener('click',function(){if(c.disabled)return;chips.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel')});c.classList.add('sel');sel=c;binsEl.querySelectorAll('.bin').forEach(function(b){b.classList.add('ready')})});
+      li.appendChild(c);chips.appendChild(li);
+    });
+    bins.forEach(function(bn){
+      var b=document.createElement('button');b.type='button';b.className='bin';b.innerHTML='<span class="bt">'+bn[1]+'</span><span class="bl"></span>';
+      b.addEventListener('click',function(){
+        if(!sel)return;
+        binsEl.querySelectorAll('.bin').forEach(function(x){x.classList.remove('ready')});
+        if(sel.getAttribute('data-a')===bn[0]){
+          var s=document.createElement('span');s.textContent=sel.textContent;b.querySelector('.bl').appendChild(s);
+          sel.classList.remove('sel');sel.classList.add('done');sel.disabled=true;done++;
+          fb.className='feedback ok';fb.textContent=notes[sel.textContent]||'正解！';
+          if(done===items.length)fb.textContent='全部正解！よくできました。';
+        }else{
+          fb.className='feedback ng';fb.textContent='「'+sel.textContent+'」はそこではないよ。もう一度考えてみよう。';
+          b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');sel.classList.remove('sel');
+        }
+        sel=null;
+      });
+      binsEl.appendChild(b);
+    });
+  }
+  el.querySelector('.row .btn').addEventListener('click',build);
+  build();
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function cssv(el,n){return getComputedStyle(el).getPropertyValue(n).trim()}
+
+/* ========== cp1: 文字の圧縮 ========== */
+(function(){
+var inp=$('#rlIn'),out=$('#rlOut'),cnt=$('#rlCnt');
+function runs(a){var r=[];a.forEach(function(c){if(r.length&&r[r.length-1][0]===c)r[r.length-1][1]++;else r.push([c,1])});return r}
+function render(){
+  var a=Array.from(inp.value),r=runs(a),len=0;
+  out.innerHTML=r.map(function(x){len+=1+String(x[1]).length;return '<span class="run">'+esc(x[0])+'<span class="n">'+x[1]+'</span></span>'}).join('')||'<span style="color:var(--muted)">(文字を入力してください)</span>';
+  var d=a.length-len;
+  cnt.innerHTML='<span>元の文字数 <b>'+a.length+'</b></span><span>圧縮後 <b>'+len+'</b></span><span class="'+(d>0?'good':d<0?'bad':'')+'">'+(a.length?(d>0?d+'文字短くなった':d<0?(-d)+'文字長くなった！':'同じ長さ'):'')+'</span>';
+}
+inp.addEventListener('input',function(){$$('#rlPre button').forEach(function(b){b.setAttribute('aria-pressed','false')});render()});
+$$('#rlPre button').forEach(function(b){b.addEventListener('click',function(){press('#rlPre',b);inp.value=b.getAttribute('data-t');render()})});
+render();
+})();
+
+/* ========== cp1: 白黒画像の圧縮 ========== */
+(function(){
+var g=$('#pxGrid'),S=[],cells=[];
+for(var i=0;i<64;i++){(function(i){var b=document.createElement('button');b.type='button';b.className='px';b.setAttribute('aria-label',(Math.floor(i/8)+1)+'行'+(i%8+1)+'列');b.addEventListener('click',function(){S[i]=!S[i];$$('#pxPre button').forEach(function(x){x.setAttribute('aria-pressed','false')});render()});g.appendChild(b);cells.push(b)})(i)}
+var P={a:function(r,c){return c>=4},b:function(r,c){return c%2===1},c:function(r,c){return r%2===1},d:function(r,c){return (r+c)%2===1},w:function(){return false}};
+function setP(k){for(var i=0;i<64;i++)S[i]=P[k](Math.floor(i/8),i%8)}
+function render(){
+  cells.forEach(function(b,i){b.setAttribute('aria-pressed',!!S[i])});
+  var r=[];S.forEach(function(v){var c=v?'黒':'白';if(r.length&&r[r.length-1][0]===c)r[r.length-1][1]++;else r.push([c,1])});
+  var len=0;
+  $('#pxOut').innerHTML=r.map(function(x){var t=x[1]>=2?String(x[1]):'';len+=1+t.length;return '<span class="run">'+x[0]+'<span class="n">'+t+'</span></span>'}).join('');
+  var d=64-len;
+  $('#pxCnt').innerHTML='<span>元の文字数 <b>64</b></span><span>圧縮後 <b>'+len+'</b></span><span class="'+(d>0?'good':'bad')+'">'+(d>0?d+'文字短くなった':d<0?(-d)+'文字長くなった':'短くならない')+'</span>';
+  $('#pxMsg').innerHTML=d>0?'同じ色が3つ以上続く部分があるので、文字数を減らせる。':'同じ色が3つ以上続く部分がないため、文字数を減らせない(2つ続く「黒黒」は「黒2」としても同じ長さ)。';
+}
+$$('#pxPre button').forEach(function(b){b.addEventListener('click',function(){press('#pxPre',b);setP(b.getAttribute('data-p'));render()})});
+setP('a');press('#pxPre',$('#pxPre button'));render();
+})();
+
+/* ========== cp2: 可逆・非可逆 ========== */
+(function(){
+var svg=$('#lsSvg'),msg=$('#lsMsg'),btn=$('#lsGo'),mode='ll',busy=false;
+var V=[200,200,200,200,201,199,200,200,90,90,90,92,90,90,90,90];
+function runs(a){var r=[];a.forEach(function(v){if(r.length&&r[r.length-1][0]===v)r[r.length-1][1]++;else r.push([v,1])});return r}
+function row(vals,y,cmp){
+  var g=mk('g',{},svg);
+  vals.forEach(function(v,i){
+    var x=8+i*24,bad=cmp&&cmp[i]!==v;
+    mk('rect',{x:x,y:y,width:22,height:26,rx:3,style:'fill:rgb('+v+','+v+','+v+');stroke:'+(bad?'var(--ng)':'var(--line2)')+';stroke-width:'+(bad?2.5:1)},g);
+    mk('text',{x:x+11,y:y+40,'text-anchor':'middle','font-size':'9.5','font-weight':bad?'800':'400',style:'fill:'+(bad?'var(--ng)':'var(--muted)')},g,v);
+  });
+  return g;
+}
+function draw(stage){
+  svg.innerHTML='';
+  var q=mode==='ll'?V:V.map(function(v){return Math.round(v/10)*10}),r=runs(q),dec=[];
+  r.forEach(function(x){for(var k=0;k<x[1];k++)dec.push(x[0])});
+  mk('text',{x:8,y:16,'font-size':'12','font-weight':'700'},svg,'元のデータ(16個の値)');
+  row(V,22);
+  if(stage>=1){
+    var g=mk('g',{'class':'pop'},svg);
+    mk('text',{x:8,y:94,'font-size':'12','font-weight':'700',style:'fill:var(--accent)'},g,mode==='ll'?'圧縮したデータ(値×続く数)':'細かい差を省略して圧縮したデータ');
+    mk('rect',{x:8,y:100,width:384,height:30,rx:8,style:'fill:color-mix(in srgb,var(--accent) 10%,var(--surface));stroke:var(--accent);stroke-width:1.5'},g);
+    mk('text',{x:200,y:120,'text-anchor':'middle','font-size':'12','font-weight':'700',style:'font-family:var(--mono)'},g,r.map(function(x){return x[0]+'×'+x[1]}).join('  '));
+  }
+  if(stage>=2){
+    var g2=mk('g',{'class':'pop'},svg);
+    mk('text',{x:8,y:156,'font-size':'12','font-weight':'700'},g2,'元に戻したデータ');
+    svg.appendChild(g2);
+    var rg=row(dec,162,V);rg.setAttribute('class','pop');
+    var same=dec.every(function(v,i){return v===V[i]});
+    mk('text',{x:8,y:242,'font-size':'12.5','font-weight':'800',style:'fill:'+(same?'var(--ok)':'var(--ng)')},svg,'数値の個数：16個 → '+(r.length*2)+'個　／　'+(same?'元のデータと完全に一致':'元のデータと一部がちがう'));
+  }
+}
+function run(){
+  if(busy)return;busy=true;btn.disabled=true;draw(0);
+  wait(300).then(function(){draw(1);return wait(900)}).then(function(){draw(2);
+    msg.innerHTML=mode==='ll'?'<b>可逆圧縮</b>同じ値が続く部分を「値×続く数」にまとめた(16個→14個)。元に戻すと、すべての値が完全に一致する。':'<b>非可逆圧縮</b>人の目ではわかりにくい細かい差(201、199、92)を省略し、近い値にそろえてからまとめた(16個→4個)。データ量は大きく減ったが、元に戻しても一部の値がちがう(赤い枠)。';
+    busy=false;btn.disabled=false});
+}
+btn.addEventListener('click',run);
+$$('#lsSeg button').forEach(function(b){b.addEventListener('click',function(){if(busy)return;press('#lsSeg',b);mode=b.getAttribute('data-m');draw(0);msg.innerHTML='「圧縮して元に戻す」を押してみよう。'})});
+draw(0);msg.innerHTML='「圧縮して元に戻す」を押してみよう。';
+makeSorter($('#lsSort'),[['文書のファイルを圧縮してまとめる','ll'],['プログラムのファイルを圧縮する','ll'],['図をPNG形式で保存する','ll'],['GIF形式でアニメーションを保存する','ll'],['写真をJPEG形式で保存する','ly'],['動画をMPEG形式で保存する','ly']],
+ [['ll','可逆圧縮'],['ly','非可逆圧縮']],
+ {'文書のファイルを圧縮してまとめる':'文書は1文字でも変わると困るので、可逆圧縮を使う。','プログラムのファイルを圧縮する':'プログラムは1ビットでも変わると動かなくなるので、可逆圧縮。','図をPNG形式で保存する':'PNG形式は可逆圧縮。','GIF形式でアニメーションを保存する':'GIF形式は可逆圧縮(ただし256色まで)。','写真をJPEG形式で保存する':'JPEG形式は非可逆圧縮。','動画をMPEG形式で保存する':'MPEG形式は非可逆圧縮。'});
+})();
+
+/* ========== im1: JPEGとPNG ========== */
+(function(){
+var W=320,H=200,src=document.createElement('canvas');src.width=W;src.height=H;
+var c=src.getContext('2d');
+var sky=c.createLinearGradient(0,0,0,150);sky.addColorStop(0,'#2F64B5');sky.addColorStop(1,'#A9CDF0');c.fillStyle=sky;c.fillRect(0,0,W,150);
+c.fillStyle='#3F6B2A';for(var i=0;i<14;i++){c.beginPath();c.arc(i*25+8,150,18+(i%3)*5,Math.PI,0);c.fill()}
+c.fillStyle='#6E8F3C';c.fillRect(0,150,W,50);c.fillStyle='#8A6B45';c.fillRect(0,168,W,10);
+c.strokeStyle='#2B2118';c.lineWidth=1.6;
+c.beginPath();c.moveTo(0,120);c.quadraticCurveTo(80,70,146,22);c.moveTo(146,22);c.quadraticCurveTo(170,110,196,22);c.moveTo(196,22);c.quadraticCurveTo(260,70,320,120);c.stroke();
+c.lineWidth=1;for(var x=10;x<320;x+=14){if(x>138&&x<204)continue;var y=x<146?120-(x/146)*98+Math.pow((x-73)/73,2)*0:0;c.beginPath();c.moveTo(x,x<146?22+ (146-x)*0.62:22+(x-196)*0.79);c.lineTo(x,160);c.stroke()}
+c.fillStyle='#F08A1C';c.fillRect(140,14,12,150);c.fillRect(190,14,12,150);c.fillRect(140,40,62,8);c.fillRect(140,96,62,8);
+c.fillStyle='#4A3A2A';c.fillRect(0,158,W,5);
+c.fillStyle='#fff';c.font='bold 18px sans-serif';c.fillText('BRIDGE',230,60);
+var view=$('#imView').getContext('2d'),zoom=$('#imZoom').getContext('2d'),fmt='jpeg',tok=0,RAW=W*H*3;
+var ZX=128,ZY=8,ZW=40,ZH=30;
+function kb(b){return (b/1000).toFixed(1)+' kB'}
+function render(){
+  var q=+$('#imQ').value,my=++tok;$('#imQo').textContent=q;
+  var url=fmt==='jpeg'?src.toDataURL('image/jpeg',q/100):src.toDataURL('image/png');
+  var size=Math.round((url.length-url.indexOf(',')-1)*3/4);
+  var img=new Image();
+  img.onload=function(){
+    if(my!==tok)return;
+    view.drawImage(img,0,0);view.strokeStyle='#E5262B';view.lineWidth=2;view.strokeRect(ZX-1,ZY-1,ZW+2,ZH+2);
+    zoom.imageSmoothingEnabled=false;zoom.drawImage(img,ZX,ZY,ZW,ZH,0,0,160,120);
+  };
+  img.src=url;
+  var pct=size/RAW*100;
+  $('#imMeter').innerHTML='<span>元のデータ</span><span class="bar"><i style="width:100%;background:var(--line2)"></i></span><b>'+kb(RAW)+'</b><span>'+(fmt==='jpeg'?'JPEG':'PNG')+'で保存</span><span class="bar"><i style="width:'+Math.max(1,Math.min(100,pct))+'%"></i></span><b>'+kb(size)+'</b>';
+  var p=Math.round(pct*10)/10;
+  if(fmt==='png')$('#imMsg').innerHTML='<b>PNG(可逆圧縮)</b>画質は元のまま完全に保たれ、データ量は元の約'+p+'%。写真のような画像では、JPEGよりデータ量が大きくなりやすい。';
+  else if(q>=75)$('#imMsg').innerHTML='<b>画質'+q+'</b>見た目はほとんど変わらないのに、データ量は元の約'+p+'%になった。';
+  else if(q>=30)$('#imMsg').innerHTML='<b>画質'+q+'</b>データ量は元の約'+p+'%。拡大すると、輪郭のまわりにノイズが見え始める。';
+  else $('#imMsg').innerHTML='<b>画質'+q+'</b>データ量は元の約'+p+'%ととても小さいが、輪郭部にモスキートノイズやブロック状のゆがみがはっきり出ている。データ量と画質はトレードオフ。';
+}
+$('#imQ').addEventListener('input',render);
+$$('#imFmt button').forEach(function(b){b.addEventListener('click',function(){press('#imFmt',b);fmt=b.getAttribute('data-f');$('#imQrow').style.visibility=fmt==='jpeg'?'visible':'hidden';render()})});
+render();
+makeSorter($('#imSort'),[['旅行先の風景写真','jpg'],['スマホで撮った人物写真','jpg'],['数コマで動く簡単なアイコン','gif'],['色数の少ない、動くスタンプ','gif'],['フルカラーのロゴを劣化させずに保存','png'],['文字をくっきり残したい画面のスクリーンショット','png']],
+ [['jpg','JPEG'],['gif','GIF'],['png','PNG']],
+ {'旅行先の風景写真':'写真には、大きく圧縮できるJPEGがよく使われる。','スマホで撮った人物写真':'写真には、大きく圧縮できるJPEGがよく使われる。','数コマで動く簡単なアイコン':'GIFは簡単なアニメーション機能をもつ。','色数の少ない、動くスタンプ':'256色までで足りる簡単なアニメーションにはGIFが向く。','フルカラーのロゴを劣化させずに保存':'PNGは可逆圧縮で、フルカラーも扱える。','文字をくっきり残したい画面のスクリーンショット':'PNGなら可逆圧縮なので、文字の輪郭にノイズが出ない。'});
+$('#imSort .bins').classList.add('b3');
+})();
+
+/* ========== mo1: フレームレート ========== */
+(function(){
+var cv=$('#fpsCv'),c=cv.getContext('2d'),sec=$('#mo1'),fps=30,playing=!RM,t=0,last=null;
+var MSG={1:'<b>1fps</b>1秒間に1枚。ボールが瞬間移動しているように見え、動きとして感じにくい。',5:'<b>5fps</b>1秒間に5枚。動いてはいるが、カクカクして見える。',12:'<b>12fps</b>1秒間に12枚。かなり動きらしくなったが、まだ少しぎこちない。',30:'<b>30fps</b>1秒間に30枚。なめらかで自然な動きに見える。そのぶん、5fpsの6倍の画像(データ)が必要になる。'};
+function pos(tt){var P=3,u=(tt%P)/P;return [50+u*620,270-24-Math.abs(Math.sin(u*Math.PI*3))*150]}
+function draw(){
+  var acc=cssv(sec,'--accent'),mu=cssv(sec,'--muted'),ln=cssv(sec,'--line2'),bg=cssv(sec,'--surface');
+  c.fillStyle=bg;c.fillRect(0,0,720,320);
+  c.strokeStyle=ln;c.lineWidth=3;c.beginPath();c.moveTo(20,272);c.lineTo(700,272);c.stroke();
+  var f=Math.floor(t/1000*fps),tq=f/fps,n=Math.min(fps,30);
+  for(var k=n;k>=1;k--){var tk=tq-k/fps;if(tk<0)continue;var p=pos(tk);c.globalAlpha=0.12+0.4*(1-k/(n+1));c.fillStyle=acc;c.beginPath();c.arc(p[0],p[1],7,0,7);c.fill()}
+  c.globalAlpha=1;var p0=pos(tq);
+  c.fillStyle=acc;c.beginPath();c.arc(p0[0],p0[1],24,0,7);c.fill();
+  c.fillStyle=mu;c.font='bold 24px sans-serif';c.fillText(fps+'fps：1秒間に'+fps+'枚の画像を表示',24,40);
+  c.font='18px sans-serif';c.fillText('点 ＝ 直近1秒間に表示したフレームの位置',24,70);
+}
+function loop(now){
+  if(last==null)last=now;var dt=now-last;last=now;
+  if(playing&&sec.classList.contains('on')){t+=dt;draw()}
+  requestAnimationFrame(loop);
+}
+$$('#fpsSeg button').forEach(function(b){b.addEventListener('click',function(){press('#fpsSeg',b);fps=+b.getAttribute('data-f');$('#fpsMsg').innerHTML=MSG[fps];draw()})});
+$('#fpsPlay').addEventListener('click',function(){playing=!playing;this.textContent=playing?'一時停止':'再生'});
+$('#fpsPlay').textContent=playing?'一時停止':'再生';
+$('#fpsMsg').innerHTML=MSG[fps];
+draw();requestAnimationFrame(loop);
+var mq=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)');if(mq&&mq.addEventListener)mq.addEventListener('change',draw);
+})();
+
+/* ========== mo2: データ量の計算 ========== */
+(function(){
+var I=['cW','cH','cF','cS'].map(function(id){return $('#'+id)});
+var PR=[[300,200,30,20],[1920,1080,30,60]];
+function f(n){return n.toLocaleString('ja-JP')}
+function u(b){
+  function t(x){return f(Math.round(x*1000)/1000)}
+  if(b>=1e9)return t(b/1e9)+' GB';if(b>=1e6)return t(b/1e6)+' MB';if(b>=1e3)return t(b/1e3)+' kB';return f(b)+' B';
+}
+function render(){
+  var v=I.map(function(x){return Math.floor(+x.value)});
+  if(v.some(function(x){return !(x>0)})){$('#cSteps').innerHTML='<tr><td>正の整数を入力してください。</td><td></td></tr>';return}
+  var px=v[0]*v[1],fr=px*3,ps=fr*v[2],tot=ps*v[3];
+  $('#cSteps').innerHTML=
+    '<tr><td>必要な画像の枚数</td><td>'+v[2]+' × '+v[3]+' ＝ '+f(v[2]*v[3])+' 枚</td></tr>'+
+    '<tr><td>1枚の画像のピクセル数</td><td>'+f(v[0])+' × '+f(v[1])+' ＝ '+f(px)+' ピクセル</td></tr>'+
+    '<tr><td>1枚の画像のデータ量</td><td>'+f(px)+' × 3バイト ＝ '+u(fr)+'</td></tr>'+
+    '<tr><td>1秒あたりのデータ量</td><td>'+u(fr)+' × '+v[2]+' ＝ '+u(ps)+'</td></tr>'+
+    '<tr><td>動画全体のデータ量</td><td>'+u(ps)+' × '+v[3]+'秒 ＝ '+u(tot)+'</td></tr>';
+}
+I.forEach(function(x){x.addEventListener('input',function(){$$('#calcPre button').forEach(function(b){b.setAttribute('aria-pressed','false')});render()})});
+$$('#calcPre button').forEach(function(b){b.addEventListener('click',function(){press('#calcPre',b);PR[+b.getAttribute('data-p')].forEach(function(n,i){I[i].value=n});render()})});
+render();
+var em=$('#exMsg');
+$('#exChk').addEventListener('click',function(){
+  var a=parseFloat($('#exAns').value);
+  if(isNaN(a)){em.innerHTML='答えを数字で入力しよう。';return}
+  if(Math.abs(a-270)<1e-6)em.innerHTML='<b style="color:var(--ok)">正解！</b>500×600＝300000ピクセル → ×3＝900000B＝0.9MB(1枚) → ×30＝27MB(1秒) → ×10＝<b>270MB</b>';
+  else if(Math.abs(a-270000000)<1||Math.abs(a-270000)<1e-6)em.innerHTML='<b style="color:var(--ng)">単位に注意！</b>計算は合っていそう。答えはMB(1MB＝10<sup>6</sup>B)で書こう。';
+  else if(Math.abs(a-90)<1e-6)em.innerHTML='<b style="color:var(--ng)">おしい</b>フルカラーは1ピクセルあたり3バイト。かけ忘れていないかな？';
+  else em.innerHTML='<b style="color:var(--ng)">もう一度</b>1枚のデータ量 → 1秒あたり → 全体の順に計算してみよう。上の計算機で確かめてもよい。';
+});
+$('#exHint').addEventListener('click',function(){em.innerHTML='<b>ヒント</b>まず、フレーム1枚のデータ量を求めよう。500×600×3 ＝ ？ バイト';});
+})();
+
+/* ========== mo3: MPEG ========== */
+(function(){
+var N=5,W=160,H=100,frames=[],mode='all';
+function scene(c,i){
+  c.fillStyle='#EAF3FF';c.fillRect(0,0,W,H);
+  c.fillStyle='#86C46F';c.beginPath();c.ellipse(40,72,72,38,0,0,7);c.fill();c.fillStyle='#6FB35A';c.beginPath();c.ellipse(132,70,62,34,0,0,7);c.fill();
+  c.fillStyle='#E9D2A6';c.beginPath();c.moveTo(20,100);c.quadraticCurveTo(80,62,150,30);c.lineTo(160,36);c.quadraticCurveTo(98,72,62,100);c.closePath();c.fill();
+  var x=124-i*17,y=40+i*12;
+  c.strokeStyle='#2B2B33';c.lineWidth=1.8;c.beginPath();c.arc(x-8,y+10,6,0,7);c.stroke();c.beginPath();c.arc(x+8,y+10,6,0,7);c.stroke();
+  c.beginPath();c.moveTo(x-8,y+10);c.lineTo(x,y+2);c.lineTo(x+8,y+10);c.stroke();
+  c.fillStyle='#F2A93B';c.fillRect(x-3,y-8,7,10);c.fillStyle='#F3CFA8';c.beginPath();c.arc(x+1,y-11,4,0,7);c.fill();
+}
+for(var i=0;i<N;i++){var cv=document.createElement('canvas');cv.width=W;cv.height=H;scene(cv.getContext('2d'),i);frames.push(cv.getContext('2d').getImageData(0,0,W,H))}
+var diffs=[W*H],masks=[null];
+for(var j=1;j<N;j++){var a=frames[j].data,b=frames[j-1].data,m=new Uint8Array(W*H),n=0;
+  for(var p=0;p<W*H;p++){var k=p*4;if(Math.abs(a[k]-b[k])>8||Math.abs(a[k+1]-b[k+1])>8||Math.abs(a[k+2]-b[k+2])>8){m[p]=1;n++}}
+  diffs.push(n);masks.push(m)}
+var box=$('#mpThumbs');
+for(var q=0;q<N;q++){var fg=document.createElement('figure');fg.innerHTML='<canvas width="'+W+'" height="'+H+'"></canvas><figcaption></figcaption>';box.appendChild(fg)}
+function render(){
+  var figs=$$('figure',box),total=0;
+  figs.forEach(function(fg,i){
+    var c=fg.querySelector('canvas').getContext('2d'),cap=fg.querySelector('figcaption');
+    var full=mode==='all'||i===0;
+    if(full){c.putImageData(frames[i],0,0)}
+    else{var o=c.createImageData(W,H),s=frames[i].data,d=o.data,m=masks[i];
+      for(var p=0;p<W*H;p++){var k=p*4;if(m[p]){d[k]=s[k];d[k+1]=s[k+1];d[k+2]=s[k+2]}else{var ck=((Math.floor(p%W/8)+Math.floor(p/W/8))%2)?236:246;d[k]=ck;d[k+1]=ck;d[k+2]=ck+4}d[k+3]=255}
+      c.putImageData(o,0,0)}
+    var px=full?W*H:diffs[i];total+=px;
+    fg.className=(mode==='mpeg'&&i===0)?'key':'';
+    cap.innerHTML=(i+1)+'枚目'+(mode==='mpeg'?(i===0?'：キーフレーム':'：差分'):'')+'<br>'+px.toLocaleString('ja-JP')+'画素';
+  });
+  var all=W*H*N,mp=W*H+diffs.slice(1).reduce(function(a,b){return a+b},0),pct=Math.round(mp/all*1000)/10;
+  $('#mpMeter').innerHTML='<span>すべて保存</span><span class="bar"><i style="width:100%;background:'+(mode==='all'?'var(--accent)':'var(--line2)')+'"></i></span><b>'+all.toLocaleString('ja-JP')+'</b><span>MPEG</span><span class="bar"><i style="width:'+(mp/all*100)+'%;background:'+(mode==='mpeg'?'var(--accent)':'var(--line2)')+'"></i></span><b>'+mp.toLocaleString('ja-JP')+'</b>';
+  $('#mpMsg').innerHTML=mode==='all'?'<b>すべてのフレームを保存</b>背景の山や道は5枚とも同じなのに、毎回すべての画素を保存している。':'<b>MPEG形式</b>最初のキーフレームだけ全体を保存し、2枚目以降は直前のフレームから変化した部分(差分)だけを保存する。保存する画素は約'+pct+'%に減った(灰色の部分は保存しない)。';
+}
+$$('#mpSeg button').forEach(function(b){b.addEventListener('click',function(){press('#mpSeg',b);mode=b.getAttribute('data-m');render()})});
+render();
+})();
+
+/* ========== sum ========== */
+(function(){
+var T=[
+  ['データ圧縮','情報を減らさずに(または少しだけ省いて)データ量を減らすこと。'],
+  ['可逆圧縮','完全に元のデータに戻すことができる圧縮。同じビット列の連続を省略するなど。'],
+  ['非可逆圧縮','人間の感覚で違和感のない範囲で情報を省略する圧縮。完全には元に戻せない。'],
+  ['JPEG形式','非可逆圧縮の画像形式。写真によく使われ、大きな圧縮率を達成できる。'],
+  ['GIF形式','可逆圧縮の画像形式。256色まで。簡単なアニメーション機能がある。'],
+  ['PNG形式','GIFと似た可逆圧縮の画像形式。フルカラーも扱える。'],
+  ['モスキートノイズ','JPEGの圧縮率を上げると輪郭部に生じやすい、独特のノイズ。'],
+  ['フレーム','動画を構成する、連続した画像の1コマ。'],
+  ['フレームレート','1秒あたりのフレームの枚数。単位はfps。大きいほど動きがなめらか。'],
+  ['MPEG形式','隣り合うフレームの違いが少ない性質を利用した動画の圧縮方法。'],
+  ['キーフレーム','MPEG形式で、フレーム全体の情報を保持する一定間隔のフレーム。'],
+  ['差分','直前のフレームから変化している部分。MPEG形式ではこれだけを保持する。']
+];
+var wrap=$('#sumCards');
+T.forEach(function(t){var c=document.createElement('div');c.className='card3';c.innerHTML='<div class="in"><div class="fc">'+t[0]+'</div><div class="bc2">'+t[1]+'</div></div>';c.addEventListener('click',function(){c.classList.toggle('flip')});wrap.appendChild(c)});
+})();
+
+/* ========== 確認クイズ ========== */
+(function(){
+var QCAT={cp:'データの圧縮',im:'画像ファイル',mo:'動画'};
+var Q=[
+ {q:'○か×か：可逆圧縮の場合、完全に元のデータに戻すことができる。',o:['○','×'],a:0,e:'可逆圧縮は、元のデータを完全に復元できます。',c:'cp'},
+ {q:'○か×か：非可逆圧縮は、同じビット列が連続する部分を省略した表現にすることで圧縮する。',o:['○','×'],a:1,e:'それは可逆圧縮の説明です。非可逆圧縮は、人間の感覚で違和感のない範囲で情報の一部を省略します。',c:'cp'},
+ {q:'「すもももももももものうち」(12文字)を、文字と続く数で表す方法で圧縮すると「す1も8の1う1ち1」になる。何文字短くなったか。',o:['2文字','4文字','短くならない'],a:0,e:'12文字が10文字になったので、2文字短くなりました。',c:'cp'},
+ {q:'同じ色が続くときだけ数をつける方法(例：黒黒黒→黒3)で「黒黒黒黒黒黒白白白黒黒黒白黒黒黒」を圧縮すると、何文字短くなるか。',o:['5文字','7文字','9文字'],a:1,e:'「黒6白3黒3白黒3」の9文字になるので、16−9＝7文字短くなります。',c:'cp'},
+ {q:'同じ色が続くときだけ数をつける方法で、文字数を減らせない画像はどれか。',o:['白黒が1マスずつ交互に並ぶ市松模様','左半分が白、右半分が黒の画像','1行ごとに白と黒が入れかわる横じま'],a:0,e:'同じ色が3つ以上続かないと、文字数を減らせません。',c:'cp'},
+ {q:'人間の目で判別しにくい情報を省略することにより、大きな圧縮率を達成できる画像形式はどれか。',o:['GIF','PNG','JPEG'],a:2,e:'JPEG形式は非可逆圧縮で、写真によく使われます。',c:'im'},
+ {q:'○か×か：JPEG形式は日本独自の画像ファイル形式である。',o:['○','×'],a:1,e:'JPEGは Joint Photographic Experts Group の略で、国際的に広く使われている形式です。',c:'im'},
+ {q:'○か×か：GIF形式はアニメーション機能をもっている。',o:['○','×'],a:0,e:'GIF形式には、簡単なアニメーション機能があります。',c:'im'},
+ {q:'可逆圧縮であるが、256色しか扱えない画像形式はどれか。',o:['GIF','PNG','JPEG'],a:0,e:'GIF形式は256色まで。PNG形式はフルカラーも扱えます。',c:'im'},
+ {q:'GIF形式と似た可逆圧縮で、フルカラーも扱える画像形式はどれか。',o:['JPEG','PNG','MPEG'],a:1,e:'PNG形式は可逆圧縮で、フルカラーを扱えます。',c:'im'},
+ {q:'JPEGで圧縮率を上げたときに、輪郭部に生じやすいノイズを何というか。',o:['モスキートノイズ','ハウリング','エコー'],a:0,e:'圧縮率を上げるほどデータ量は小さくなりますが、画質は低下します(トレードオフ)。',c:'im'},
+ {q:'動画を構成する、連続した画像の1コマを何というか。',o:['ピクセル','フレーム','差分'],a:1,e:'フレームを短い時間間隔で切り替えることで、動画を表現します。',c:'mo'},
+ {q:'1秒あたりのフレームの枚数を何というか。',o:['フレームレート','解像度','圧縮率'],a:0,e:'フレームレートの単位はfps(frames per second)です。',c:'mo'},
+ {q:'○か×か：動画はフレームレートが大きくなると、再生スピードが遅くなってしまう。',o:['○','×'],a:1,e:'フレームレートが大きいと、再生スピードは変わらず、動きがなめらかになります。そのぶんデータ量は大きくなります。',c:'mo'},
+ {q:'300×200ピクセルのフルカラー画像を用いて、30fpsで20秒の動画を作成した。圧縮しない場合のデータ量はどれか(1MB＝10⁶B)。',o:['108MB','3.6MB','1080MB'],a:0,e:'60000ピクセル×3B＝180kB、×30×20＝108000kB＝108MBです。',c:'mo'},
+ {q:'500×600ピクセルのフルカラー画像を用いて、30fpsで10秒の動画を作成した。圧縮しない場合のデータ量はどれか(1MB＝10⁶B)。',o:['27MB','270MB','900MB'],a:1,e:'300000ピクセル×3B＝0.9MB、×30＝27MB(1秒)、×10＝270MBです。',c:'mo'},
+ {q:'○か×か：2つの隣り合うフレームの間では、画像の一部だけしか違いがないことを利用した圧縮の方法にMPEG形式がある。',o:['○','×'],a:0,e:'MPEG形式は、キーフレームと差分を使って動画を圧縮します。',c:'mo'},
+ {q:'MPEG形式で、フレーム全体の情報を保持する一定間隔のフレームを何というか。',o:['差分','キーフレーム','フレームレート'],a:1,e:'キーフレームの間にあるフレームは、直前のフレームからの差分だけを保持します。',c:'mo'}
+];
+var MARU='<svg class="maru" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 6C25 6 8 24 8 46C8 66 26 82 50 82C72 82 90 68 90 48C90 30 76 16 58 14" style="fill:none;stroke:#E31E24;stroke-width:11;stroke-linecap:round;stroke-linejoin:round"/></svg>';
+var qz=$('#qz'),done=0,score=0;
+Q.forEach(function(q,qi){
+  var fs=document.createElement('div');fs.className='q';
+  fs.innerHTML='<p class="qq">Q'+(qi+1)+'. '+q.q+' <span class="qcat" hidden style="color:var(--'+q.c+')">【'+QCAT[q.c]+'】</span></p><div class="opts"></div><p class="exp" hidden></p>';
+  var box=fs.querySelector('.opts');
+  q.o.forEach(function(t,oi){
+    var b=document.createElement('button');b.type='button';b.textContent=t;
+    b.addEventListener('click',function(){
+      var bs=box.querySelectorAll('button');bs.forEach(function(x){x.disabled=true});
+      bs[q.a].classList.add('ok');if(oi!==q.a)b.classList.add('bad');else score++;
+      var ex=fs.querySelector('.exp');ex.hidden=false;
+      ex.innerHTML=(oi===q.a?MARU+'正解！ ':'おしい。 ')+q.e;
+      fs.querySelector('.qcat').hidden=false;
+      done++;$('#score').textContent=score+' / '+Q.length+' 問正解'+(done===Q.length?(score===Q.length?'。全問正解です！':'。色のついたページにもどって確かめよう。'):'');
+    });
+    box.appendChild(b);
+  });
+  qz.appendChild(fs);
+});
+})();
+
+/* ページ切り替え */
+var ids=['cp1','cp2','im1','mo1','mo2','mo3','sum','check'],links=$$('#pnav a');
+function show(id){
+  if(ids.indexOf(id)<0)id=ids[0];
+  var g=$('#'+id).getAttribute('data-g');
+  ids.forEach(function(k){$('#'+k).classList.toggle('on',k===id)});
+  links.forEach(function(a){if(a.getAttribute('data-g')===g)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  $('#'+id).scrollTop=0;window.scrollTo(0,0);
+}
+function curPage(){for(var i=0;i<ids.length;i++)if($('#'+ids[i]).classList.contains('on'))return i;return 0}
+links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();show(a.getAttribute('href').slice(1))})});
+$$('[data-go]').forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-go'))})});
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey)return;var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA')return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();show(ids[Math.min(ids.length-1,curPage()+1)])}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(ids[Math.max(0,curPage()-1)])}
+});
+show((location.hash||'').slice(1));
+})();
+</script>
+
+<script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
+/* =====================================================================
+   Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
+   ・項目の一覧と、クラスごとの表示は hub_config.js に書く（そちらを直す）
+   ・hub_config.js が読めないとき（zip を展開せずに開いたなど）は、下の DEF_ITEMS を使う
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var DEF_ITEMS = [
+    // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
+    { id: 'tech08', kind: 'note', title: '情報社会を支える技術', file: 'joho_tech08_lab.html', gives: 'os' },
+    { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
+    { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
+    { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
+    { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
+    { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
+    { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
+    { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'protocolEhon', kind: 'note', title: 'プロトコルのえほん', sub: 'よみもの', file: 'protocol-ehon.html', gives: 'tcpip' },
+    { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
+    { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: '暗号のえほん', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
+    { id: 'progEhon1', kind: 'note', title: 'プログラムのえほん1', sub: 'よみもの', file: 'programming-ehon-1.html', gives: 'cpu' },
+    { id: 'progEhon2', kind: 'note', title: 'プログラムのえほん2', sub: 'よみもの', file: 'programming-ehon-2.html', gives: 'cpu' },
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
+    { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
+    { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
+    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
+  ];
+  var CFG = window.HUB_CONFIG || {};
+  var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
+  var SHOW = CFG.show || {};
+
+  // 班PCにつくもの。type：hard（ハード）・soft（ソフト）・cable（ケーブル）。can：できるようになること
+  var GEAR = {
+    board:   { type: 'hard',  name: 'マザーボード', can: 'ぶひんをつなぐ土台ができた' },
+    cpu:     { type: 'hard',  name: 'CPU',         can: 'プログラムの命令を実行できるようになった' },
+    mem:     { type: 'hard',  name: 'メモリ',       can: '作業中のデータを、一時的におぼえておけるようになった' },
+    psu:     { type: 'hard',  name: '電源ユニット', can: 'コンセントの電気を、班PCで使える電気に変えられるようになった' },
+    hdd:     { type: 'hard',  name: 'HDD',         can: 'データを保存できるようになった（でも読み書きは少しおそい）' },
+    ssd:     { type: 'hard',  name: 'SSD',         can: 'データを保存できるようになった（HDDより速く読み書きできる）' },
+    disp:    { type: 'hard',  name: 'ディスプレイ', can: '結果を画面に映せるようになった' },
+    kbd:     { type: 'hard',  name: 'キーボード',   can: '文字を入力できるようになった' },
+    mouse:   { type: 'hard',  name: 'マウス',       can: '画面の中を指して、操作できるようになった' },
+    router:  { type: 'hard',  name: 'ルータ',       can: '班PCのネットワークと、インターネットを中継できるようになった' },
+    spk:     { type: 'hard',  name: 'スピーカー',   can: '音を出せるようになった' },
+    cam:     { type: 'hard',  name: 'Webカメラ',    can: '映像を取りこめるようになった' },
+    os:      { type: 'soft',  name: 'OS',          can: 'ハードウェアとアプリの仲立ちをする、基本のソフトが入った' },
+    browser: { type: 'soft',  name: 'Webブラウザ', can: 'Webページを見られるようになった（HTTPで通信）' },
+    doc:     { type: 'soft',  name: '文書アプリ',   can: '文章を書いて、保存できるようになった' },
+    sheet:   { type: 'soft',  name: '表計算アプリ', can: '表やグラフを作れるようになった' },
+    tcpip:   { type: 'soft',  name: 'TCP/IP',      can: 'インターネットの通信のきまり（プロトコル）で、データをやりとりできるようになった' },
+    mail:    { type: 'soft',  name: 'メールアプリ', can: 'メールサーバとやりとりして、メールを送ったり受け取ったりできるようになった' },
+    sec:     { type: 'soft',  name: '暗号化（HTTPS）', can: '通信を暗号にして、安全にやりとりできるようになった' },
+    pwr:     { type: 'cable', name: '電源コード',   can: 'コンセントから、班PCに電気が来るようになった' },
+    hdmi:    { type: 'cable', name: 'HDMIケーブル', can: '本体とディスプレイがつながった' },
+    usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
+    lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
+  };
+  // ぶひんが手に入る順：どの項目をクリアしても、クリアした数の順に、この順で1つずつ手に入る
+  //   ハードウェア → ケーブル → プロトコル → ソフトウェア（hub_config.js の partOrder で変えられる）
+  var DEF_ORDER = ['psu', 'board', 'cpu', 'mem', 'ssd', 'disp', 'kbd', 'mouse', 'router',   // ハードウェア
+    'pwr', 'hdmi', 'usb', 'lan',                                                             // ケーブル
+    'tcpip',                                                                                  // プロトコル
+    'os', 'browser', 'sec', 'mail', 'doc', 'sheet',                                           // ソフトウェア
+    'spk', 'cam', 'hdd'];                                                                     // 項目が増えたとき用
+  var ORDER = (Array.isArray(CFG.partOrder) && CFG.partOrder.length ? CFG.partOrder : DEF_ORDER).filter(function (k, i, a) { return GEAR[k] && a.indexOf(k) === i; });
+  // つぎに手に入るぶひん（もう全部手に入れていたら null）
+  function nextPart() { var k = ORDER[parts().length]; return k ? { id: k, name: GEAR[k].name, can: GEAR[k].can, type: GEAR[k].type } : null; }
+  var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
+
+  // 絵（viewBox 0 0 360 250）
+  var PART_SVG = {
+    disp:  '<rect x="16" y="18" width="178" height="118" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="3"/><rect class="pcScreen" x="26" y="28" width="158" height="96" rx="3" fill="#0ea5e9"/><rect x="92" y="136" width="26" height="16" fill="#334155"/><rect x="70" y="150" width="70" height="8" rx="3" fill="#475569"/>',
+    cam:   '<rect x="95" y="8" width="20" height="10" rx="4" fill="#334155"/><circle cx="105" cy="13" r="3" fill="#38bdf8"/>',
+    spk:   '<rect x="200" y="96" width="22" height="58" rx="5" fill="#475569"/><circle cx="211" cy="112" r="6" fill="#1e293b"/><circle cx="211" cy="137" r="8" fill="#1e293b"/>',
+    router:'<rect x="198" y="44" width="34" height="16" rx="3" fill="#334155"/><g fill="#4ade80"><circle cx="205" cy="52" r="1.6"/><circle cx="211" cy="52" r="1.6"/><circle cx="217" cy="52" r="1.6"/></g><line x1="204" y1="44" x2="201" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/><line x1="226" y1="44" x2="229" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
+    kbd:   '<rect x="22" y="172" width="160" height="30" rx="5" fill="#cbd5e1"/><g fill="#94a3b8"><rect x="30" y="178" width="144" height="5" rx="1"/><rect x="30" y="186" width="144" height="5" rx="1"/><rect x="60" y="194" width="84" height="4" rx="1"/></g>',
+    mouse: '<ellipse cx="204" cy="188" rx="10" ry="15" fill="#cbd5e1"/><line x1="204" y1="174" x2="204" y2="184" stroke="#94a3b8" stroke-width="2"/>',
+    board: '<rect x="244" y="34" width="90" height="120" rx="3" fill="#15803d"/><g stroke="#4ade80" stroke-width="1.2" opacity=".7"><path d="M250 44 h30 v20 M326 44 v40 h-20 M252 140 h40 v-12 M320 146 h-16"/></g>',
+    cpu:   '<rect x="266" y="54" width="30" height="30" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/><rect x="273" y="61" width="16" height="16" rx="2" fill="#334155"/>',
+    mem:   '<rect x="306" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><rect x="317" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><g fill="#facc15"><rect x="307" y="96" width="5" height="6"/><rect x="318" y="96" width="5" height="6"/></g>',
+    ssd:   '<rect x="248" y="162" width="34" height="14" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/><rect x="253" y="166" width="14" height="6" fill="#38bdf8"/>',
+    hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
+    psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
+    // ソフト（左下の棚。ディスクの形）
+    os:      '<circle cx="12" cy="232" r="9" fill="#e2e8f0"/><circle cx="12" cy="232" r="2.5" fill="#94a3b8"/><text x="24" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="48" cy="232" r="9" fill="#38bdf8"/><circle cx="48" cy="232" r="2.5" fill="#0369a1"/><text x="60" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="90" cy="232" r="9" fill="#60a5fa"/><circle cx="90" cy="232" r="2.5" fill="#1d4ed8"/><text x="102" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="132" cy="232" r="9" fill="#4ade80"/><circle cx="132" cy="232" r="2.5" fill="#15803d"/><text x="144" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    tcpip:   '<circle cx="183" cy="232" r="9" fill="#a78bfa"/><circle cx="183" cy="232" r="2.5" fill="#6d28d9"/><text x="195" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">TCP/IP</text>',
+    mail:    '<circle cx="237" cy="232" r="9" fill="#fbbf24"/><circle cx="237" cy="232" r="2.5" fill="#b45309"/><text x="249" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">メール</text>',
+    sec:     '<circle cx="288" cy="232" r="9" fill="#f472b6"/><circle cx="288" cy="232" r="2.5" fill="#be185d"/><text x="300" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">暗号化</text>',
+    // ケーブル
+    pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
+    hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
+    usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
+    lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
+  };
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'tcpip', 'mail', 'sec', 'pwr', 'hdmi', 'usb', 'lan'];
+  var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
+  var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
+
+  var KEY = 'droneHub_v1';
+  var TEAM_KEY = 'droneLessonTeam_set5';   // 脱出ゲームの記録（班・名前・ポイント）
+
+  function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function rec() { var r = read(KEY); if (!r || typeof r !== 'object') r = {}; if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = []; return r; }
+  function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できない環境 */ } }
+  function item(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
+
+  // 脱出ゲームの「自分」の記録（部屋2のクリア）
+  function ledgerCleared(key) {
+    var t = read(TEAM_KEY);
+    if (!t || t.me === null || t.me === undefined || !t.ledger) return false;
+    var l = t.ledger[t.me] || {};
+    return !!l[key];
+  }
+  function rawCleared(r, it) { return !!(r.cleared[it.id] || (it.ledger && ledgerCleared(it.ledger))); }
+  // クリアした順（ぶひんの順）を記録にそろえる
+  function sync() {
+    var r = rec(), changed = false;
+    ITEMS.forEach(function (it) { if (rawCleared(r, it) && r.order.indexOf(it.id) < 0) { r.order.push(it.id); changed = true; } });
+    if (changed) save(r);
+    return r;
+  }
+  function isCleared(id) { var it = item(id); return !!it && rawCleared(rec(), it); }
+  function clear(id) {
+    var r = rec();
+    if (!r.cleared[id]) r.cleared[id] = Date.now();
+    if (r.order.indexOf(id) < 0) r.order.push(id);
+    save(r);
+  }
+  function isOpen(id) {
+    var it = item(id); if (!it || !it.file) return false;
+    return (it.needs || []).every(isCleared);
+  }
+  function kindOf(id) { var p = part(id); return p && p.type === 'cable' ? 'cable' : 'part'; }
+  // 手に入ったもの（手に入れた順）
+  function parts() {
+    // クリアした順に、ORDER の順でぶひんが1つずつ手に入る（どの項目をクリアしたかは関係ない）
+    return sync().order.map(item).filter(Boolean).map(function (it, i) {
+      var k = ORDER[i], g = GEAR[k]; if (!g) return null;
+      return { item: it.id, kind: g.type === 'cable' ? 'cable' : 'part', id: k, part: { id: k, name: g.name, can: g.can, type: g.type } };
+    }).filter(Boolean);
+  }
+  // その項目で手に入ったもの（まだなら null）
+  function part(id) {
+    var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
+    return x ? x.part : null;
+  }
+  // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
+  var LOCK = 'droneGroupLock';
+  function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
+  function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
+  function team() {
+    var t = read(TEAM_KEY) || {};
+    var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
+    var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
+  }
+  // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
+  function visible(id) {
+    var c = team().cls, list = (c && SHOW[c]) || SHOW['default'];
+    if (!list || list === 'all') return true;
+    return list.indexOf(id) >= 0;
+  }
+
+  // 班PCの絵：手に入れたものは色つき、まだのものは点線。hi のものは光らせる
+  // 実際のパソコンと同じように、そろったもので動き方が決まる
+  //   電源（電源ユニット＋電源コード）→ マザーボード・CPU・メモリ で動き出す → SSD（OS）で起動
+  //   → ディスプレイ＋HDMIケーブル で画面に映る → キーボード・マウス＋USBケーブル で操作できる
+  function owned() { var own = {}; parts().forEach(function (p) { own[p.id] = 1; }); return own; }
+  function pcState(own) {
+    own = own || owned();
+    var store = own.ssd || own.hdd;
+    var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
+    var screen = post && own.disp && own.hdmi, shown = boot && screen, input = own.kbd && own.mouse && own.usb, usable = shown && input;
+    var net = usable && own.lan && own.router && own.tcpip;
+    var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
+    var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
+    var n = Object.keys(own).length;
+    if (!n) return m(0, 'まだ ぶひん がない');
+    // ① ハードウェアを集めているあいだ（まだ電気が来ていない）
+    if (!own.psu) return m(1, 'ぶひんはあるが、電源が入らない（電源ユニットがない）');
+    if (!own.pwr) {
+      var hard = ['board', 'cpu', 'mem', 'ssd', 'hdd', 'disp', 'kbd', 'mouse', 'router'].filter(function (k) { return own[k]; }).map(function (k) { return GEAR[k].name; });
+      return m(1, '組み立て中：ハードウェアが ' + (hard.length + 1) + ' こ そろった。でも、コンセントにつながっていないので、まだ電気が来ない（電源コードがない）');
+    }
+    if (!own.board) return m(1, '電気は来たが、ぶひんをつなぐ土台がないので動かない（マザーボードがない）');
+    if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので動き出せない（メモリがない）');
+    // ② 電源が入った：ケーブルがつながるたびに、できることが増える
+    if (!own.disp) return m(2, '電源が入って動き出した！ でも、画面がないので何も見えない（ディスプレイがない）');
+    if (!own.hdmi) return m(2, '電源が入って動き出した！ でも、ディスプレイにつながっていないので何も映らない（HDMIケーブルがない）');
+    if (!boot) {
+      var why = !store ? 'データをしまう場所がない（SSD か HDD がない）' : 'OS が入っていないので、「起動できるものがありません」と出るだけ（OS がない）';
+      var more = (input ? ' キーボードとマウスは、本体につながった。' : (own.kbd || own.mouse) && !own.usb ? ' キーボードとマウスは、まだ本体につながっていない（USBケーブルがない）。' : '') +
+        (own.router && own.lan ? ' ルータとも、LANケーブルでつながった。' : '') + (own.tcpip ? ' 通信のきまり（TCP/IP）も用意できた。' : '');
+      return m(3, '画面に文字が映った！ でも、' + why + '。' + more);
+    }
+    // ③ OS が入った：班PCとして使える
+    var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
+    if (!own.kbd || !own.mouse) return m(4, '起動して画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '起動して画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
+    if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
+    return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
+  }
+  function pcSvg(hi, cls) {
+    var own = owned(), st = pcState(own);
+    var order = DRAW_ORDER;
+    var g = order.map(function (k) {
+      var has = !!own[k];
+      return '<g class="' + (has ? 'pcHas' : 'pcGhost') + (k === hi ? ' pcHi' : '') + '">' + PART_SVG[k] + '</g>';
+    }).join('');
+    return '<svg class="' + (cls || 'pcSvg') + '" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班PCの完成状況">' +
+      '<style>.pcGhost *{fill:none!important;stroke:#64748b!important;stroke-width:1.3!important;stroke-dasharray:4 3}.pcGhost{opacity:.55}.pcGhost text{fill:#64748b!important;stroke:none!important}' +
+      '.pcHi{animation:pcHi 1.2s ease-in-out infinite}.pcHi path{stroke-width:5!important}@keyframes pcHi{0%,100%{filter:drop-shadow(0 0 0 #facc15)}50%{filter:drop-shadow(0 0 6px #facc15)}}' +
+      (st.shown ? '' : '.pcHas .pcScreen{fill:#020617!important}') + '@media (prefers-reduced-motion:reduce){.pcHi{animation:none;filter:drop-shadow(0 0 4px #facc15)}}</style>' +
+      OUTLETS + CASE_SVG + g +
+      (own.disp && own.hdmi && st.post && !st.boot ? '<text x="34" y="46" font-size="9" font-weight="700" fill="#e2e8f0" font-family="ui-monospace,Consolas,monospace">No bootable device.</text><text x="34" y="60" font-size="9" fill="#94a3b8" font-family="ui-monospace,Consolas,monospace">Insert boot disk_</text>' : '') +
+      (st.shown ? '<g font-family="system-ui,sans-serif"><text x="105" y="80" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">' + (st.usable ? '班PC Ready!' : 'Hello!') + '</text><g fill="#e0f2fe" opacity=".85"><rect x="34" y="34" width="14" height="12" rx="2"/><rect x="34" y="52" width="14" height="12" rx="2"/><rect x="34" y="70" width="14" height="12" rx="2"/></g><rect x="26" y="114" width="158" height="10" fill="#0369a1"/></g>' : '') +
+      (st.power && own.board ? '<circle cx="330" cy="30" r="3" fill="' + (st.post ? '#4ade80' : '#f59e0b') + '"/>' : '') + (st.shown && st.web ? '<text x="180" y="121" text-anchor="end" font-size="9" fill="#fff" font-family="system-ui,sans-serif">🌐</text>' : '') + (st.shown ? '<text x="30" y="121" font-size="7" fill="#e0f2fe" font-family="system-ui,sans-serif">' + (st.fast ? 'SSD' : 'HDD') + '</text>' : '') +
+      '</svg>';
+  }
+
+  // ぶひんのカード（どのページのデザインにも合うよう、スタイルは中に書く）
+  function partCard(id, opt) {
+    var p = part(id); if (!p) return '';
+    opt = opt || {};
+    var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
+    return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
+      '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
+      '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
+      '<div style="margin-top:6px;font-size:13px;color:#94a3b8">いまの班PC：' + pcState().msg + '</div>' +
+      (opt.link === false ? '' : '<a href="index.html" style="display:inline-block;margin-top:8px;background:#0ea5e9;color:#fff;border-radius:10px;padding:6px 16px;text-decoration:none">📱 Tの端末にもどる</a>') +
+      '</div>';
+  }
+
+  // えほん：確認クイズを見張って、全問正解ならぶひんを出す。まちがいがあれば「もう一度」
+  function autoQuiz(id) {
+    function setup() {
+      var score = document.getElementById('score');
+      if (!score) return;
+      var box = document.createElement('div');
+      box.id = 'hubBox';
+      var host = score.closest ? score.closest('.qhead') : null;
+      (host && host.parentNode ? host.parentNode : score.parentNode).insertBefore(box, host ? host.nextSibling : score.nextSibling);
+      var page = score.parentNode && score.parentNode.closest ? score.parentNode.closest('[id]') : null;
+      function retry() {
+        location.hash = page ? page.id : '';
+        location.reload();
+      }
+      var note = function (t) { return '<div style="margin:10px auto;max-width:560px;text-align:center;font:700 14px/1.6 system-ui,sans-serif;color:#64748b">' + t + '</div>'; };
+      function update() {
+        var t = score.textContent || '';
+        if (t.indexOf('全問正解') >= 0) { clear(id); box.innerHTML = partCard(id); return; }
+        if (/問正解。/.test(t)) {
+          box.innerHTML = '<div style="margin:12px auto;max-width:560px;text-align:center;font:700 15px/1.7 system-ui,sans-serif;color:#475569">全問正解で、班PCの ぶひん が手に入る。' +
+            '<br><button type="button" id="hubRetryBtn" style="margin-top:6px;font:inherit;background:#0ea5e9;color:#fff;border:0;border-radius:10px;padding:6px 18px;cursor:pointer">🔁 もう一度ちょうせんする</button></div>';
+          var b = document.getElementById('hubRetryBtn'); if (b) b.onclick = retry;
+          return;
+        }
+        var p = part(id);
+        box.innerHTML = p ? note('✓ クリアずみ（ぶひん：' + p.name + '）') : note('🔧 全問正解すると、班PCの ぶひん が手に入る');
+      }
+      new MutationObserver(update).observe(score, { childList: true, characterData: true, subtree: true });
+      update();
+      // Tの端末へもどるボタン（右下）
+      var a = document.createElement('a');
+      a.href = 'index.html'; a.textContent = '📱 Tの端末';
+      a.setAttribute('style', 'position:fixed;right:12px;bottom:12px;z-index:9999;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:6px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+      document.body.appendChild(a);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  }
+
+  window.DroneHub = {
+    ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
+    part: part, parts: parts, nextPart: nextPart, ORDER: ORDER, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
+  };
+})();
+
+/* ==== HUB END ==== */</script>
+<script>window.DroneHub && DroneHub.autoQuiz('cmp17');</script>
+</body></html>

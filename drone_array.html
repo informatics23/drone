@@ -5028,6 +5028,8 @@ return $.__chunk_javascript;
     // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
     { id: 'tech08', kind: 'note', title: '情報社会を支える技術', file: 'joho_tech08_lab.html', gives: 'os' },
     { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
+    { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
+    { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
     { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
     { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
@@ -5521,7 +5523,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v102）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v106）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -9154,7 +9156,7 @@ window.DroneQR = (function () {
         box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
       }
       updateTeamBox();
-      if (stage) { try { await escapeDoorAnim(stage); } catch (e) { if (e === CANCELLED) return; console.warn(e); } }
+      if (stage) { try { await escapeDoorAnim(stage); } catch (e) { if (e !== CANCELLED) console.warn(e); } }   // 扉のアニメーションのとちゅうで別の操作をしても、クリアの保存はする
       const head = `<span class="tHead">${stage ? `🚪 ${roomName(stage)} 脱出成功！` : '🎉 ミッションクリア！'}</span>` +
         (stage ? `<small>⏱ ${fmtMS(escClearTime(stage))}　🔧💡 ${coinsUsed(stage)}回　<span style="color:#facc15">${escStars(stage)}</span></small>` : '');
       const next = stage === 1 ? '<br>つぎは 部屋2（発進ゲート・配列で）へ！' : stage === 2 ? '<br>格納庫から脱出成功！' : '';
@@ -9164,17 +9166,26 @@ window.DroneQR = (function () {
       if (stage === 1) {
         // 部屋1をクリア：ポイント情報（_1st_）を自動で保存して、「部屋2へ」のボタンを出す
         setTimeout(() => {
-          if (currentUnit !== u || curStep() !== 3 || varStage() !== 1) return;
-          if (hasMe() && typeof makeSubmission === 'function') makeSubmission('stage1');
-          else { showToast('「班の設定」で自分の機体を選ぶと、ポイント情報を保存できるよ', true, 5000); setVarStage(2); }
+          // ポイント情報（_1st_）の保存は、そのあと別の画面に移っていても必ずする
+          if (hasMe()) { clearSave('stage1'); return; }
+          showToast('「班の設定」で自分の機体を選ぶと、ポイント情報を保存できるよ', true, 5000);
+          if (currentUnit === u && curStep() === 3 && varStage() === 1) setVarStage(2);
         }, 1800);
         return;
       }
       // 部屋2（またはほかの項目）をクリア：④へ。変数はポイント情報（_2nd_）を自動で保存して、Teams への送り方を出す
       setTimeout(() => {
         if (currentUnit === u && curStep() === 3) setStep(4);
-        if (stage === 2 && hasMe() && typeof makeSubmission === 'function') makeSubmission('stage2');
+        if (stage === 2 && hasMe()) clearSave('stage2');
       }, 1800);
+    }
+    // クリアしたときのポイント情報の保存：実行中（もう一度「実行」を押したときなど）なら、終わるのを待ってから保存する
+    function clearSave(mode, tries) {
+      tries = tries || 0;
+      if (typeof makeSubmission !== 'function' || !hasMe()) return;
+      if (isRunning && tries < 120) { setTimeout(() => clearSave(mode, tries + 1), 500); return; }
+      if (isRunning) { try { stopRun(); } catch (e) { /* なし */ } }
+      makeSubmission(mode);
     }
 
     // ==================== 見本 ====================
@@ -9614,7 +9625,7 @@ window.DroneQR = (function () {
       const order = all.map((b) => ({ b, y: b.getRelativeToSurfaceXY().y })).sort((u, v) => u.y - v.y);
       let best = null;
       canons.forEach((cn) => { canon = cn; wrongBlocks.loose = 0;
-      const used = new Set(), bad = [];
+      const used = new Set(), bad = [], last = {};   // last：その入口で、さいごに合ったブロックの番号（順番が前にもどったら、まちがい）
       order.forEach(({ b }) => {
         const key = keyOf(b.type, valOf(b)), cont = where(b), pk = prevKey(b), rt = b.getRootBlock();
         // まだつないでいないブロック（プログラムのかたまりの外）は、パラメータだけを見る（まちがいにはしない）
@@ -9622,8 +9633,11 @@ window.DroneQR = (function () {
         // すぐ上のブロックのパラメータがまちがっているだけなら、そのブロックの種類で見る（下のブロックまで、まちがいにしない）
         const pkBad = pk && !canon.some((c) => c.key === pk), pkType = pk.split('|')[0];
         const prevFits = (c) => c.prevOk.has(pk) || (pkBad && [...c.prevOk].some((x) => x.split('|')[0] === pkType));
-        const k = canon.findIndex((c, i) => !used.has(i) && c.t === b.type && c.key === key && c.cont === cont && prevFits(c));
-        if (k >= 0) used.add(k); else bad.push(b);
+        const k = canon.findIndex((c, i) => !used.has(i) && c.t === b.type && c.key === key && c.cont === cont && prevFits(c) && (c.free || i > (last[cont] ?? -1)));
+        // その入口で次に来るはずのブロックと種類が同じなのに、パラメータがちがう → このブロックのまちがい（先の同じブロックに飛ばない）
+        const e = canon.findIndex((c, i) => !used.has(i) && c.cont === cont && !c.free && i > (last[cont] ?? -1));
+        if (e >= 0 && k !== e && canon[e].t === b.type && !(k >= 0 && canon[k].free)) { used.add(e); last[cont] = e; bad.push(b); }
+        else if (k >= 0) { used.add(k); if (!canon[k].free) last[cont] = k; } else bad.push(b);
       });
       if (!best || bad.length < best.bad.length) best = { bad, loose: wrongBlocks.loose };
       });
@@ -9652,7 +9666,7 @@ window.DroneQR = (function () {
     function useCoinHint(solved) {
       const st = varStage();
       const next = topWrongBlock();
-      if (next && hintBad.has(next.id)) { closeEscModal(); showToast('💡 いちばん上のまちがいは、もう赤く光っている<small>そのブロック（つなぐ場所・順番か、パラメータ）を直してから、もう一度ヒントを使おう</small>', false, 4500); return; }
+      if (next && hintBad.has(next.id)) { try { next.getSvgRoot().classList.add('blockHintBad'); next.bringToFront(); } catch (e) { /* なし */ } closeEscModal(); showToast('💡 いちばん上のまちがいは、もう赤く光っている<small>そのブロック（つなぐ場所・順番か、パラメータ）を直してから、もう一度ヒントを使おう</small>', false, 4500); return; }
       if (!solved) { openGate({ kind: 'hint' }); return; }
       const loose = wrongBlocks.loose || 0;
       if (!next) {   // まちがいがなければ、そのまま実行してよい（つないでいないブロックがあれば、それを知らせる）
@@ -9663,7 +9677,7 @@ window.DroneQR = (function () {
         return;
       }
       escSteps()['array:hc' + st] = hintCoins(st) + 1; saveTeam();
-      hintBad.add(next.id); next.getSvgRoot().classList.add('blockHintBad');
+      hintBad.add(next.id); next.getSvgRoot().classList.add('blockHintBad'); try { next.bringToFront(); } catch (e) { /* なし */ }   // ほかのブロックの下にかくれないように
       closeEscModal();
       try { if (wsScroll.on) { const P = BLOCK_ROW_WS * wsUi, xy = next.getRelativeToSurfaceXY(); wsScrollBy((wsScroll.baseY + xy.y * workspace.scale - wsScroll.y) - (document.getElementById('blocklyDiv').clientHeight * 0.4 + 0 * pyHeadRows() * P + P)); } } catch (e) { /* なし */ }
       showToast('💡 赤く光っているのが、いちばん上にあるまちがいのブロック<small>つなぐ場所・順番か、パラメータ（プルダウン）を直そう</small>', false, 4500);
