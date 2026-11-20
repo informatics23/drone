@@ -1445,7 +1445,7 @@
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v110 試作・軽量版）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v112 試作・軽量版）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -6726,7 +6726,7 @@
         else { btnKind = 'num'; safeMode = safeMode0; }
       }
       const objetX = [0, 1, 2, 3].map((k) => X4[k] + 1);   // 置物（色のポール）は、その色の機体の右どなり      // 金庫は、色の順に「最初の数」を並べる（高さは使わない）
-      if (src !== 'dir') { btnKind = 'height'; if (safeMode === 'num') safeMode = 'color'; }   // 高さが見える部屋は、ボタンも金庫も高さで解く（二分探索では、機体ごとの箱がないので）
+      if (src !== 'dir') { btnKind = 'height'; if (safeMode === 'num' || safeMode === 'stack') safeMode = 'color'; }   // 高さが見える部屋は、ボタンも金庫も高さで解く（二分探索では、機体ごとの箱がないので）
       const code2 = safeMode === 'color' ? code : pick.map((k) => stg.init[k]).join('');
       return (escCache[key] = { order, goal, lamps, prog, hex, code: code2, lift, pick, rows, safeMode, heightAt, facing, btnKind, heightSrc, objetX });
     }
@@ -7448,9 +7448,9 @@
     }
     function openInner(st, i, first) {
       if (escLayout(st).objs[i].inner === 'logic') { logicSel = {}; openLogic(st, i, '', first); }
-      else { quizSel = {}; quizCur = null; openQuiz(st, i, '', false, first); }
+      else { quizSel = {}; openQuiz(st, i, '', false, first); }
     }
-    // クイズ端末：3問すべて正解でロックが外れる。まちがえると5秒待って、別の問題になる
+    // クイズ端末：3問すべて正解でロックが外れる。まちがえると5秒待って、同じ問題にもう一度答える
     let quizSel = {}, quizCool = 0;
     // ==== ひねり問題（脱出ゲームらしい問題。知識をそのまま聞くのではなく、読みとる・並べる・つなぐ・計算する） ====
     //   kind：choice（えらぶ）／ order（順にタップ）／ match（それぞれえらぶ）／ input（文字や数を入れる）。数や組み合わせは毎回変わる
@@ -7641,11 +7641,12 @@
       if (q.kind === 'insert') return v !== undefined && q.outs[v] === q.target;   // 同じ表示になる所なら正解
       return v === q.a;
     }
-    // 出す問題・問題の順・選択肢の順は、引き出しを開けるたび（まちがえたときも）に変わる。答えているあいだは同じ
+    // 出す問題・問題の順・選択肢の順は、班・部屋ごとに決まっていて、開き直しても・まちがえても変わらない
     let quizCur = null;
     function quizSet(st) {
-      if (quizCur && quizCur.st === st) return quizCur.qs;
-      const r = Math.random;
+      const qkey = `${team.group}|${team.round || 0}|${st}`;
+      if (quizCur && quizCur.key === qkey) return quizCur.qs;
+      const r = seededRand(`${team.group}|quiz|${currentUnit}|${st}|${team.round || 0}|${PROBLEM_SET}`);   // ステージごとにもちがう問題
       // 出題の分野（データの圧縮と動画・情報デザイン・社会における情報デザイン・情報デザインの工夫・ハードウェアとソフトウェア・
       //   プログラムが動くしくみ・インターネットのしくみ・パケットとプロトコル・クライアント・サーバとDNS）から、ちがう分野の3問
       const topics = [...new Set(QUIZ_BANK.map((q) => q.t))], tp = [];
@@ -7661,7 +7662,7 @@
         return { kind: 'choice', q: escapeHtml(q.q), o: ord.map((j) => q.o[j]), a: ord.indexOf(q.a), t: q.t };
       });
       for (let j = qs.length - 1; j > 0; j--) { const t = Math.floor(r() * (j + 1)); [qs[j], qs[t]] = [qs[t], qs[j]]; }   // ひねり問題の位置もばらばらに
-      quizCur = { st, qs };
+      quizCur = { key: qkey, qs };
       return qs;
     }
     function openQuiz(st, i, note, bad, first) {
@@ -7764,8 +7765,8 @@
         return;
       }
       escSteps()['bs:qa' + st] = (Number(escSteps()['bs:qa' + st]) || 0) + 1; saveTeam();
-      quizSel = {}; quizCool = Date.now() + 5000; quizCur = null;
-      openQuiz(st, i, 'ブーッ！ まちがいがある。5秒たつと、別の問題が出る', true);
+      quizSel = {}; quizCool = Date.now() + 5000;   // 問題は変えない（同じ問題に、もう一度答える）
+      openQuiz(st, i, 'ブーッ！ まちがいがある。5秒たつと、もう一度答えられる（問題は同じ）', true);
       setTimeout(() => { const m = document.getElementById('escModal'); if (m && !document.getElementById('escOverlay').classList.contains('viewHidden') && m.querySelector('.qzPanel')) openQuiz(st, i); }, 5100);
     }
     // 電子ロック（論理回路）：左はしのオレンジの丸（入力 A・B・C）に 0／1 を入れる。NOT の出口・ゲートの出口は、入力で自動で決まる。
