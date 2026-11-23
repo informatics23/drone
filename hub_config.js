@@ -29,6 +29,9 @@ window.HUB_CONFIG = {
   { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
   { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
   { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
+  { id: 'dsn18', kind: 'note', title: '情報デザインの手法', file: 'joho_dsn18_lab.html', gives: 'os' },
+  { id: 'dsnTerms', kind: 'note', title: '情報デザイン用語', file: 'joho_design_terms_lab.html', gives: 'os' },
+  { id: 'iro', kind: 'note', title: '図と色のデザイン', file: 'iro_lab.html', gives: 'os' },
   { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
   { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
   { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
@@ -46,7 +49,9 @@ window.HUB_CONFIG = {
   { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
   { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
   { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
-  { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
+  { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] },
+  { id: 'bub', kind: 'escape', title: '応用ステージ（バブルソート）', sub: '仕分け室の謎', rooms: '仕分け室 → 管制室', file: 'drone_bubble.html', ledger: 'bb2', gives: 'ssd', needs: ['bin'] },
+  { id: 'sel', kind: 'escape', title: '応用ステージ（選択ソート）', sub: '選別室の謎', rooms: '選別室 → 発令所', file: 'drone_select.html', ledger: 'sl2', gives: 'kbd', needs: ['bub'] }
 ],
 
   // ぶひんが手に入る順（ハードウェア → ケーブル → プロトコル → ソフトウェア）

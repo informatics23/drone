@@ -4996,6 +4996,9 @@ return $.__chunk_javascript;
     { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
     { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
     { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
+    { id: 'dsn18', kind: 'note', title: '情報デザインの手法', file: 'joho_dsn18_lab.html', gives: 'os' },
+    { id: 'dsnTerms', kind: 'note', title: '情報デザイン用語', file: 'joho_design_terms_lab.html', gives: 'os' },
+    { id: 'iro', kind: 'note', title: '図と色のデザイン', file: 'iro_lab.html', gives: 'os' },
     { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
     { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
@@ -5012,7 +5015,9 @@ return $.__chunk_javascript;
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
     { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
-    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
+    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] },
+    { id: 'bub', kind: 'escape', title: '応用ステージ（バブルソート）', sub: '仕分け室の謎', rooms: '仕分け室 → 管制室', file: 'drone_bubble.html', ledger: 'bb2', gives: 'ssd', needs: ['bin'] },
+    { id: 'sel', kind: 'escape', title: '応用ステージ（選択ソート）', sub: '選別室の謎', rooms: '選別室 → 発令所', file: 'drone_select.html', ledger: 'sl2', gives: 'kbd', needs: ['bub'] }
   ];
   var CFG = window.HUB_CONFIG || {};
   var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
@@ -5280,14 +5285,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 /* ==== 記録コード（QR）：画像のスクリーンショットや写真からでも、記録を読みこめるようにする ====
    画像に見えない形で入れた記録（PNG の中のデータ）は、スクショすると消える。
    そこで、ポイント情報・記録カードの画像に、記録の要点を QR コードでも描いておく。
-   QR に入れるもの：クラス・班、自分の機体、ラウンド、班員ごとのクリア（変数・配列・関数・線形探索・二分探索の①②）、手入力の印、
+   QR に入れるもの：クラス・班、自分の機体、ラウンド、班員ごとのクリア（変数・配列・関数・線形探索・二分探索・バブルソート・選択ソートの①②）、手入力の印、
    Tの端末のクリア（えほん・スキル）、保存した時刻。名前は入らない（表紙で入れ直す）。
-   形式 2（24バイト）で書く。前の形式 1（20バイト・変数〜関数だけ）も読める。 */
+   形式 3（バブルソート・選択ソートも入る）で書く。前の形式 1・2 も読める。 */
 window.DroneQR = (function () {
-  var KEYS = ['var', 'var2', 'array', 'array2', 'fn', 'fn2', 'ls', 'ls2', 'bs', 'bs2'];   // 順番は変えない（あとに足すだけ）
+  var KEYS = ['var', 'var2', 'array', 'array2', 'fn', 'fn2', 'ls', 'ls2', 'bs', 'bs2', 'bb', 'bb2', 'sl', 'sl2'];   // 順番は変えない（あとに足すだけ）
   var KEYS1 = KEYS.slice(0, 6);                                                         // 形式 1 の項目
-  var PMAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2 };
-  var HUB_IDS = ['hw', 'prog', 'net', 'pkt', 'cs', 'www', 'crypto', 'var', 'arr', 'func', 'app', 'lin', 'bin', 'cryptoEhon', 'protocolEhon'];   // 16 こまで。あとに足すだけ
+  var KEYS2 = KEYS.slice(0, 10);                                                        // 形式 2 の項目
+  var PMAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2, bb: 1, bb2: 2, sl: 1, sl2: 2 };
+  var HUB_IDS = ['hw', 'prog', 'net', 'pkt', 'cs', 'www', 'crypto', 'var', 'arr', 'func', 'app', 'lin', 'bin', 'cryptoEhon', 'protocolEhon', 'bub', 'sel'];   // 24 こまで（形式 3）。あとに足すだけ
   var T0 = Date.UTC(2026, 0, 1) / 60000;
   function sig(b, n) {
     var h = 2166136261, salt = 'drone-qr|v1|';
@@ -5300,51 +5306,56 @@ window.DroneQR = (function () {
   // バイト列の off バイト目から数えて n ビット目
   function setBit(b, off, n) { b[off + (n >> 3)] |= 1 << (n & 7); }
   function getBit(b, off, n) { return !!(b[off + (n >> 3)] & (1 << (n & 7))); }
+  // 形式 3 の並び：[0]形式 [1]クラス・班 [2]自分・ラウンド [3〜]クリア（班員4人×項目） [ ]自分で入れた印 [ ]手入力の印 [3バイト]Tの端末 [3バイト]時刻 [1]予備 [4]しるし
+  function lay3() { var NK = KEYS.length, LB = Math.ceil(NK * 4 / 8); return { NK: NK, LB: LB, c: 3, s: 3 + LB, x: 4 + LB, h: 4 + 2 * LB, t: 7 + 2 * LB, n: 11 + 2 * LB }; }
   // o：{ g:'4組7班', m:1, r:0, l:{0:{var:1}}, s:[1,3], x:['2:var'], h:['hw','var'], t:時刻(ms) }
   function encode(o) {
     var mm = String(o.g || '').match(/^(\d)組(\d)班$/);
     if (!mm) return '';
-    var NK = KEYS.length, b = new Uint8Array(24);
-    b[0] = 2;
+    var L = lay3(), NK = L.NK, b = new Uint8Array(L.n + 4);
+    b[0] = 3;
     b[1] = (Number(mm[1]) << 4) | Number(mm[2]);
     var m = Number.isInteger(o.m) && o.m >= 0 && o.m <= 3 ? o.m : 7;
     b[2] = m | (Math.min(31, Math.max(0, Number(o.r) || 0)) << 3);
-    for (var k = 0; k < 4; k++) { var row = (o.l || {})[k] || {}; KEYS.forEach(function (u, i) { if (Number(row[u]) > 0) setBit(b, 3, k * NK + i); }); }   // b[3]〜b[7]
-    (o.s || []).forEach(function (k) { if (k >= 0 && k <= 3) b[8] |= 1 << k; });
-    (o.x || []).forEach(function (s) { var p = String(s).split(':'), i = KEYS.indexOf(p[1]); if (i >= 0 && Number(p[0]) >= 0 && Number(p[0]) <= 3) setBit(b, 9, Number(p[0]) * NK + i); });   // b[9]〜b[13]
+    for (var k = 0; k < 4; k++) { var row = (o.l || {})[k] || {}; KEYS.forEach(function (u, i) { if (Number(row[u]) > 0) setBit(b, L.c, k * NK + i); }); }
+    (o.s || []).forEach(function (k) { if (k >= 0 && k <= 3) b[L.s] |= 1 << k; });
+    (o.x || []).forEach(function (s) { var p = String(s).split(':'), i = KEYS.indexOf(p[1]); if (i >= 0 && Number(p[0]) >= 0 && Number(p[0]) <= 3) setBit(b, L.x, Number(p[0]) * NK + i); });
     var hub = 0;
-    (o.h || []).forEach(function (id) { var i = HUB_IDS.indexOf(id); if (i >= 0) hub |= 1 << i; });
-    b[14] = hub & 255; b[15] = (hub >>> 8) & 255;
+    (o.h || []).forEach(function (id) { var i = HUB_IDS.indexOf(id); if (i >= 0 && i < 24) hub |= 1 << i; });
+    b[L.h] = hub & 255; b[L.h + 1] = (hub >>> 8) & 255; b[L.h + 2] = (hub >>> 16) & 255;
     var t = Math.max(0, Math.min(16777215, Math.round((Number(o.t) || Date.now()) / 60000 - T0)));
-    b[16] = t & 255; b[17] = (t >>> 8) & 255; b[18] = (t >>> 16) & 255;
-    b[19] = 0;
-    var h = sig(b, 20);
-    b[20] = h & 255; b[21] = (h >>> 8) & 255; b[22] = (h >>> 16) & 255; b[23] = (h >>> 24) & 255;
+    b[L.t] = t & 255; b[L.t + 1] = (t >>> 8) & 255; b[L.t + 2] = (t >>> 16) & 255;
+    var h = sig(b, L.n);
+    b[L.n] = h & 255; b[L.n + 1] = (h >>> 8) & 255; b[L.n + 2] = (h >>> 16) & 255; b[L.n + 3] = (h >>> 24) & 255;
     return 'DQ1.' + b64e(b);
   }
-  // QR の文字 → ドローンアプリの記録コードと同じ形のもの（読めなければ null）
+  // QR の文字 → ドローンアプリの記録コードと同じ形のもの（読めなければ null）。形式 1・2・3 を読める
   function decode(str) {
     var m = String(str || '').match(/DQ1\.([A-Za-z0-9_-]+)/);
     if (!m) return null;
     var b; try { b = b64d(m[1]); } catch (e) { return null; }
-    var v2 = b[0] === 2, n = v2 ? 20 : 16;
-    if (!(b[0] === 1 && b.length >= 20) && !(v2 && b.length >= 24)) return null;
+    var ver = b[0], L;
+    if (ver === 3) L = lay3();
+    else if (ver === 2) L = { NK: 10, c: 3, s: 8, x: 9, h: 14, hb: 2, t: 16, n: 20 };
+    else if (ver === 1) L = { NK: 6, c: 3, s: -1, x: 7, h: 10, hb: 2, t: 12, n: 16 };
+    else return null;
+    var n = L.n;
+    if (b.length < n + 4) return null;
     var h = sig(b, n);
     if (b[n] !== (h & 255) || b[n + 1] !== ((h >>> 8) & 255) || b[n + 2] !== ((h >>> 16) & 255) || b[n + 3] !== ((h >>> 24) & 255)) return null;
     var g = (b[1] >> 4) + '組' + (b[1] & 15) + '班', me = b[2] & 7, r = b[2] >> 3;
-    var keys = v2 ? KEYS : KEYS1, NK = keys.length;
-    var cOff = 3, sOff = v2 ? 8 : 6, xOff = v2 ? 9 : 7, hOff = v2 ? 14 : 10, tOff = v2 ? 16 : 12;
+    var keys = ver === 3 ? KEYS : ver === 2 ? KEYS2 : KEYS1, NK = keys.length;
     var l = {}, s = [], x = [], hl = [];
     for (var k = 0; k < 4; k++) {
       keys.forEach(function (u, i) {
-        if (getBit(b, cOff, k * NK + i)) { (l[k] || (l[k] = {}))[u] = PMAX[u]; }
-        if (getBit(b, xOff, k * NK + i)) x.push(k + ':' + u);
+        if (getBit(b, L.c, k * NK + i)) { (l[k] || (l[k] = {}))[u] = PMAX[u]; }
+        if (getBit(b, L.x, k * NK + i)) x.push(k + ':' + u);
       });
-      if (v2 ? (b[sOff] & (1 << k)) : getBit(b, 3, 24 + k)) s.push(k);
+      if (L.s >= 0 ? (b[L.s] & (1 << k)) : getBit(b, 3, 24 + k)) s.push(k);
     }
-    var hub = b[hOff] | (b[hOff + 1] << 8);
-    HUB_IDS.forEach(function (id, i) { if (hub & (1 << i)) hl.push(id); });
-    var t = (b[tOff] | (b[tOff + 1] << 8) | (b[tOff + 2] << 16)) + T0;
+    var hub = b[L.h] | (b[L.h + 1] << 8) | (ver === 3 ? (b[L.h + 2] << 16) : 0);
+    HUB_IDS.forEach(function (id, i) { if (i < (ver === 3 ? 24 : 16) && (hub & (1 << i))) hl.push(id); });
+    var t = (b[L.t] | (b[L.t + 1] << 8) | (b[L.t + 2] << 16)) + T0;
     return { g: g, n: ['', '', '', ''], m: me <= 3 ? me : -1, l: l, r: r, p: 5, s: s, x: x, h: hl, t: t * 60000, qr: 1 };
   }
   // QR を描く（size：まわりの余白こみの一辺）
@@ -5480,7 +5491,7 @@ window.DroneQR = (function () {
         <span id="coverCardMsg">「📂 続きから」で、ダウンロードフォルダの いちばん新しい「ポイント情報」を選ぶと、ポイント・クリア・組んだプログラムがもどって続きから始められます。<br>はじめての人は、読み込まなくてOK</span></div>
       <button id="coverStart" type="button" onclick="startTeam()">はじめる</button>
       <div style="text-align:center;margin-top:8px"><button id="coverRestart" type="button" onclick="restartStage()" style="font:800 14px system-ui,-apple-system,'Hiragino Sans',sans-serif;padding:6px 16px;border-radius:999px;border:1px solid #64748b;background:transparent;color:#cbd5e1;cursor:pointer">🔁 このステージを最初から始める<small style="display:block;font-weight:600;font-size:11px;color:#94a3b8">ポイントはそのまま</small></button></div>
-      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v114）</div>
+      <div id="appVer" style="margin-top:6px;font-size:11px;color:#64748b;text-align:center">版 2026-11-23（v117）</div>
       <!-- 記録を消すボタンは隠しておく（先生用：入力欄の外で r e s e t と打つ） -->
     </div>
   </div>
@@ -8084,10 +8095,10 @@ window.DroneQR = (function () {
     // 同じカードを何度読み込んでも、二重には数えない（項目ごとに大きいほうを残す）。
     const POINTS_PER_MISSION = 1;
     // 変数は2段階：部屋1（var）1pt、部屋2（var2）2pt
-    const POINT_MAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2 };
+    const POINT_MAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2, bb: 1, bb2: 2, sl: 1, sl2: 2 };
     const ptMax = (key) => POINT_MAX[key] || POINTS_PER_MISSION;
     const keyUnit = (key) => String(key).replace(/\d+$/, '');
-    const POINT_ITEMS = [['var', '変数①'], ['var2', '変数②'], ['array', '配列①'], ['array2', '配列②'], ['fn', '関数①'], ['fn2', '関数②'], ['ls', '線形探索①'], ['ls2', '線形探索②'], ['bs', '二分探索①'], ['bs2', '二分探索②']];
+    const POINT_ITEMS = [['var', '変数①'], ['var2', '変数②'], ['array', '配列①'], ['array2', '配列②'], ['fn', '関数①'], ['fn2', '関数②'], ['ls', '線形探索①'], ['ls2', '線形探索②'], ['bs', '二分探索①'], ['bs2', '二分探索②'], ['bb', 'バブルソート①'], ['bb2', 'バブルソート②'], ['sl', '選択ソート①'], ['sl2', '選択ソート②']];
     function ledgerOf(k) {
       if (!team.ledger) team.ledger = {};
       if (!team.ledger[k]) team.ledger[k] = {};
@@ -10576,7 +10587,7 @@ window.DroneQR = (function () {
       if (o.need === 'code') { openSafe(st, i); return; }
       if (o.ctrl === 'buttons') { btnSeq = []; openButtons(st, i); return; }
       if (o.need === 'logic') { logicIn = [0, 0, 0]; openLogic(st, i); return; }
-      if (o.need === 'quiz') { quizSel = {}; openQuiz(st, i); return; }
+      if (o.need === 'quiz') { const keep = {}; quizOk.forEach((n) => { keep[n] = quizSel[n]; }); quizSel = keep; openQuiz(st, i); return; }   // 正解した問題の答えは残す
       if (o.need && invSel !== o.need) {
         const t = o.need === 'uv' ? `${info.name}の${info.spot}に、白い紙がはさまっている。でも、何も書かれていない…？`
           : o.need === 'cable' ? `${info.name}の画面は真っ暗だ。電源ケーブルの差しこみ口がある。`
@@ -10587,7 +10598,7 @@ window.DroneQR = (function () {
       if (o.need) { escSetBit(st, 'u', Object.keys(ITEM_INFO).indexOf(o.need)); invSel = null; }
       escOpen(st, i);
     }
-    // クイズ端末：3問すべて正解でロックが外れる。まちがえると5秒待って、別の問題になる
+    // クイズ端末：3問すべて正解でロックが外れる。まちがえると5秒待って、まちがえた問題だけ答え直す（問題は変えない）
     // 変数編の出題範囲：コンピュータのしくみ（ハードウェア・ソフトウェア・CPU・メモリ・2進数・プログラム）
     //   変数＝メモリの中の箱、というつながり。問題の文で選ぶので、問題集の順番が変わっても大丈夫
     const QUIZ_POOL = (() => {
@@ -10595,10 +10606,155 @@ window.DroneQR = (function () {
       const p = QUIZ_BANK.map((q, k) => re.test(q.q) ? k : -1).filter((k) => k >= 0);
       return p.length >= 6 ? p : QUIZ_BANK.map((_, k) => k);
     })();
-    let quizSel = {}, quizCool = 0;
+    // クイズの解説（問題文 → 解説）。まちがえた問題を、あとで正解したときに見せる
+    const QUIZ_EXP = {
+      "コンピュータを構成する、物理的な装置のことを何という？": "CPU・メモリ・ディスプレイなど、手でさわれる装置がハードウェア。プログラムやデータはソフトウェア。",
+      "「写真のデータ」は、ハードウェアとソフトウェアのどちらにふくまれる？": "データはさわれる装置ではないので、ソフトウェアのなかま。プログラムやデータをまとめてソフトウェアという。",
+      "演算と制御を受け持つ装置はどれ？": "CPU（中央処理装置）が計算（演算）と、ほかの装置への指示（制御）をする。ストレージは記憶、ディスプレイは出力。",
+      "主記憶装置(メモリ)の特徴は？(速さ・容量・電源を切ったとき)": "メモリは読み書きが速いが、容量は小さく、電源を切ると中身が消える。ずっと残すのは SSD や HDD。",
+      "データの読み書きがいちばん速いのはどれ？": "速い順に、主記憶装置（メモリ）→ SSD → HDD。CPU はメモリとデータをやりとりしながら動く。",
+      "次のうち、出力装置はどれ？": "スピーカーは音を出す出力装置。マイクとイメージスキャナは、外から取りこむ入力装置。",
+      "イヤホンなどの周辺装置を、無線でつなぐときによく使われるのは？": "Bluetooth は近くの機器を無線でつなぐ規格。USB はケーブルでつなぐ規格、HDD は記憶装置。",
+      "ハードウェアとほかのソフトウェアの仲立ちをし、起動中は常に動いているのは？": "OS（Windows・iOS など）は、アプリとハードウェアの間に立って、装置をまとめて管理している。",
+      "APIの説明として正しいものは？": "API は、アプリが OS（やほかのソフト）に「これをして」と頼むための決まった窓口。アプリはハードを直接動かさない。",
+      "ワープロ、表計算、Webブラウザなどをまとめて何という？": "目的に合わせて使うソフトウェアをアプリケーション（アプリ）という。OS の上で動く。",
+      "ディスプレイで、赤の光と緑の光を重ねると何色に見える?": "光は重ねるほど明るくなる（加法混色）。赤＋緑＝黄、緑＋青＝シアン、赤＋青＝マゼンタ、3つで白。",
+      "R・G・Bの光をすべて重ねると白になる。これはどちらの混色?": "光を重ねると明るくなるのが加法混色（ディスプレイ）。インクを重ねると暗くなるのが減法混色（印刷）。",
+      "印刷でC・M・Yに黒(K)のインクを加える理由として正しいのは?": "C・M・Y を重ねても、にごった暗い色になり、きれいな黒にならない。そこで黒（K）のインクを足す。",
+      "「あざやかさ」を表す色の属性はどれ?": "色の三属性：色相（色み）・明度（明るさ）・彩度（あざやかさ）。",
+      "色相環で、真向かいにある２色の関係は?": "色相環で向かい合う色が補色。となりどうしの色は類似色。",
+      "白・灰・黒のように、色みがなく明度だけをもつ色を何という?": "色みのない白・灰・黒は無彩色。赤や青など色みのある色は有彩色。",
+      "赤と緑だけで見分けさせているグラフの、最も適切な改善は?": "赤と緑は見分けにくい人がいる。色だけにたよらず、形・線の種類・直接ラベルでも区別できるようにする。",
+      "文字を読みやすくするために、まず必要なのは?": "文字と背景の明るさのちがい（明度差）が大きいほど読みやすい。色相がちがっても明るさが近いと読みにくい。",
+      "ログインの手順のように、分かれ道のある「流れ」を伝えるのに向く図は?": "手順や分かれ道（もし〜なら）は、フローチャートで表すとわかりやすい。",
+      "R・G・Bを各8ビットで表すとき、１画素で表せる色の数は?": "8ビットは 256 通り。256 × 256 × 256 ＝ 約1677万色。",
+      "ガラスの壁は、通り抜けることができない。　これは、アフォーダンス・シグニファイア のどちら？": "物そのものがもつ「できる・できない」の性質がアフォーダンス。通り抜けられないのはガラスの性質。",
+      "ガラスの壁に貼られた、ぶつからないための目印のシール。　これは、アフォーダンス・シグニファイア のどちら？": "どうすればよいかを人に知らせる手がかりがシグニファイア。シールは「ここに壁がある」と知らせている。",
+      "ボタンの出っ張りや影が、「押せそう」と感じさせる。　これは、アフォーダンス・シグニファイア のどちら？": "「押せそう」と人に伝える見た目の手がかりなので、シグニファイア。",
+      "いすには、座るという行為ができる。　これは、アフォーダンス・シグニファイア のどちら？": "いすがもともともつ「座れる」という性質なので、アフォーダンス。",
+      "操作できないボタンが、灰色になっている。　これは、アフォーダンス・シグニファイア のどちら？": "灰色は「いまは押せない」と知らせる手がかりなので、シグニファイア。",
+      "目的の商品にたどり着くまでのクリック数が多く、時間がかかるショッピングサイト。　これは、ユーザビリティ・アクセシビリティ のどちら？": "使いやすさ（速く・まちがえずに目的を果たせるか）の問題なので、ユーザビリティ。",
+      "画像に代替テキストがなく、スクリーンリーダー(読み上げソフト)を使う人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？": "障がいなどがあっても情報にたどり着けるかの問題なので、アクセシビリティ。",
+      "動画に字幕がなく、耳が聞こえにくい人は内容がわからない。　これは、ユーザビリティ・アクセシビリティ のどちら？": "聞こえにくい人が情報を得られるかの問題なので、アクセシビリティ。",
+      "申込みフォームの入力欄の順番がわかりにくく、入力ミスをして何度もやり直してしまう。　これは、ユーザビリティ・アクセシビリティ のどちら？": "だれにとっても使いにくい・ミスしやすいという問題なので、ユーザビリティ。",
+      "マウスが使えない人のために、キーボードだけでもすべての操作ができるようにした。　これは、ユーザビリティ・アクセシビリティ のどちら？": "マウスを使えない人も利用できるようにする工夫なので、アクセシビリティ。",
+      "停電すると、踏切の遮断かんが自然に下りる。　これは、フェイルセーフ・フールプルーフ のどちら？": "こわれたり止まったりしても、安全な側に動くのがフェイルセーフ。",
+      "電子レンジは、扉が開いていると加熱が始まらない。　これは、フェイルセーフ・フールプルーフ のどちら？": "人がまちがった使い方をしても危なくないようにするのがフールプルーフ。",
+      "ガソリンスタンドで、軽油用のノズルはガソリン車の給油口に入らない太さになっている。　これは、フェイルセーフ・フールプルーフ のどちら？": "まちがった燃料を入れるミスを、形でふせいでいるのでフールプルーフ。",
+      "エレベーターのワイヤーが切れても、非常止め装置が働いてカゴが落下しない。　これは、フェイルセーフ・フールプルーフ のどちら？": "故障（ワイヤーが切れる）が起きても安全な側に止まるので、フェイルセーフ。",
+      "ファイルを削除する前に「本当に削除しますか?」と確認画面が出る。　これは、フェイルセーフ・フールプルーフ のどちら？": "人のうっかりミス（まちがって削除）をふせぐ工夫なので、フールプルーフ。",
+      "路線図が、駅の実際の距離や線の曲がり具合をあえて省いているのは、どの考え方？": "目的（乗りかえ・駅の順番）に必要なことだけを残して、ほかを省くのが抽象化。",
+      "「月ごとのスマホ使用時間の変化」を見せたい。いちばん向いているグラフは？": "時間とともにどう変わったかは折れ線グラフ。割合は円グラフ、2つの量の関係は散布図。",
+      "棒グラフの縦軸を、途中(たとえば50)から始めるとどうなる？": "棒の長さの比がくずれて、小さな差が大きく見える。グラフを見るときは軸の始まりを確かめよう。",
+      "フォルダの中にフォルダがあり、その中にファイルがある。この整理の形はどれ？": "親の中に子があり、さらにその中に…と枝分かれする形が木構造（階層構造）。",
+      "SNSの友達関係のように、多対多のつながりを表すのに向いている構造は？": "たくさんのものが、たがいに複雑につながる関係はネットワーク構造で表す。",
+      "学校や家など、限定された範囲でコンピュータを結んだネットワークを何という？": "LAN（Local Area Network）は、建物の中など限られた範囲のネットワーク。",
+      "都市や国など、広い範囲のコンピュータを結ぶネットワークを何という？": "WAN（Wide Area Network）は、離れた場所どうしを結ぶ広い範囲のネットワーク。",
+      "東京の本社と大阪の支社のネットワークを結ぶのは？": "離れた場所の LAN どうしを結ぶのは WAN。",
+      "インターネットの説明として正しいものは？": "インターネットは、世界中の多くのネットワーク（WAN）をつないでできた、ネットワークのネットワーク。",
+      "インターネットについて正しいものは？": "持ち主が1つではなく、たくさんの組織のネットワークがつながってできている。",
+      "LANとWANの間に置き、通信を中継して適切な宛先に送る装置は？": "ルータは、ネットワークとネットワークの間で、宛先に向けてデータを中継する。",
+      "ISP(インターネットサービスプロバイダ)とは？": "ISP は、家や学校をインターネットにつなぐサービスを提供する事業者。",
+      "光ファイバー回線の光の信号を、コンピュータ通信のデジタル信号に変換する装置は？": "回線終端装置（ONU）が、光の信号と電気のデジタル信号を変換する。",
+      "外出中のスマートフォンが、無線で通信する相手の装置は？": "スマートフォンは、携帯電話会社の基地局と電波でやりとりする。",
+      "家のパソコンからインターネットへ。データが通る順として正しいのは？": "パソコン → ルータ → 回線終端装置 → ISP のネットワーク の順に外へ出ていく。",
+      "ケーブルで、複数のコンピュータやプリンタをつなぐための装置は？": "ハブは、LAN ケーブルで複数の機器をつなぐ集線装置。",
+      "スマートフォンなどを、家のLANに無線でつなぐための装置は？": "アクセスポイントは、無線（Wi-Fi）の機器を LAN につなぐ装置。",
+      "家庭用のルータについて正しいものは？": "家庭用ルータは、ハブやアクセスポイント（Wi-Fi）の機能がいっしょになっていることが多い。",
+      "ルータの働きとして正しいものは？": "ルータは、宛先までのいくつかの道の中から、送り先を選んで転送する（ルーティング）。",
+      "インターネットで、データを細かく分割して送るときの単位を何という？": "データを小さく分けたひとまとまりがパケット。パケットにはヘッダ（宛先や順番）がつく。",
+      "通信のあいだ、1本の回線を独り占めして通信する方式は？": "回線交換方式は回線を独り占めする（昔の電話）。パケット交換方式は1本の回線をみんなで分けあう。",
+      "パケットのうち、送り主や送り先、データの順番などの情報を含む部分は？": "ヘッダには、送信元・宛先・順番などの情報が書かれている。",
+      "届いたパケットの順番がばらばらでも、元のデータにもどせるのはなぜ？": "ヘッダに順番の番号があるので、受け取った側で並べなおせる。",
+      "インターネット上で、コンピュータごとに割り振られる固有の番号は？": "IP アドレスは、ネットワーク上の住所のような番号。",
+      "IPv4のIPアドレスは何ビットで表す？": "IPv4 は 32 ビット（8 ビット × 4）。IPv6 は 128 ビット。",
+      "IPアドレスの一部、2進数 11000000 を10進数にすると？": "11000000 は 128 ＋ 64 ＝ 192。左から 128・64・32・16・8・4・2・1 の重み。",
+      "ルータが宛先や混雑状況をふまえて、パケットを次のネットワークへ転送する処理は？": "宛先までの道を選んで転送することをルーティングという。",
+      "偶数パリティで、データ 1011001 につけるパリティビットは？": "1011001 の 1 は 4 個で、もう偶数。だからパリティビットは 0。",
+      "偶数パリティで、末尾がパリティビットの 10110011 を受け取った。判定は？": "10110011 の 1 は 5 個で奇数。偶数パリティなのに奇数なので、エラーあり。",
+      "エラーが見つかり、訂正もできないとき、どうする？": "直せないときは、送信元にもう一度送ってもらう（再送）。",
+      "通信をするための約束ごとを何という？": "通信のための約束ごとがプロトコル。HTTP・TCP・IP などがある。",
+      "TCP/IPモデルで、Webページの閲覧に使うHTTPはどの層？": "HTTP は、アプリどうしの約束ごとなのでアプリケーション層。",
+      "TCP/IPモデルで、IPはどの層？": "IP は、宛先までパケットを届ける役目なのでインターネット層。",
+      "CPUに複数のコアがあると、どうなる？": "コアは計算をする部分。コアが多いと、いくつもの処理を同時に進められる。",
+      "CPUが1秒間に基本的な動作を何回おこなうかを示す値は？": "クロック周波数（単位 Hz）。1GHz なら 1 秒に約 10 億回。",
+      "クロック周波数が1GHzのCPUは、1秒間に約何回の基本的な動作をおこなう？": "G（ギガ）は 10 億。1GHz ＝ 1 秒に約 10 億回。",
+      "クロック周波数が2倍になると、同じ時間にできる基本的な動作の回数は？": "1 秒あたりの回数が 2 倍になるので、同じ時間にできる動作も 2 倍。",
+      "1GHzのCPUで、基本的な動作1回にかかる時間は？": "1 秒に 10 億回なので、1 回は 10 億分の 1 秒（1 ナノ秒）。",
+      "CPUに与える命令で、数字の羅列で書かれ、CPUの種類によって異なるものは？": "機械語は CPU が直接実行できる 0 と 1（数字）の命令。CPU の種類ごとにちがう。",
+      "プログラムの「設計図」にたとえられるものは？": "人がプログラミング言語で書いたソースコードが、プログラムの設計図。",
+      "プログラミング言語を使うと、人間にもわかりやすくプログラムを書くことができる。": "機械語は人には読みにくい。プログラミング言語なら人にもわかりやすく書ける。",
+      "インタプリタは、ソースコードを機械語に翻訳してから実行する。": "先にまとめて翻訳してから実行するのはコンパイラ。インタプリタは 1 行ずつ解釈しながら実行する。",
+      "高速な処理やハードウェアの制御によく使われ、コンパイラで機械語に翻訳してから実行することが多い言語は？": "C・C++ はコンパイルして使い、速くハードウェアに近い処理が得意。",
+      "表計算ソフトの処理を自動化するのに使われる言語は？": "VBA は Excel などの操作を自動化するための言語。",
+      "おもにWebページのなかで動作するプログラムの作成に用いられる言語は？": "JavaScript は Web ブラウザの中で動き、ページに動きをつける。",
+      "圧縮したデータを、元とまったく同じデータにもどせる圧縮を何という？": "完全に元にもどせるのが可逆圧縮（ZIP・PNG など）。",
+      "元にもどしたとき、元のデータと完全には同じにならない圧縮を何という？": "一部の情報を捨てるので完全にはもどらないのが非可逆圧縮（JPEG・MP3 など）。",
+      "プログラムや文書のファイルを圧縮するのに向いているのはどちら？": "プログラムや文書は 1 文字でも変わると困るので、可逆圧縮を使う。",
+      "「AAAABBBCCD」を、文字と続く個数で表す（ランレングス圧縮）と？": "A が 4 個、B が 3 個、C が 2 個、D が 1 個なので A4B3C2D1。",
+      "100KBのファイルを圧縮したら25KBになった。圧縮率（圧縮後÷圧縮前）は？": "25 ÷ 100 ＝ 0.25 ＝ 25%。",
+      "写真によく使われる、非可逆圧縮の画像の形式は？": "JPEG は写真向きの非可逆圧縮。PNG は可逆圧縮、ZIP はファイルをまとめる可逆圧縮。",
+      "可逆圧縮の画像の形式はどれ？": "PNG は可逆圧縮の画像形式。JPEG（画像）と MP3（音声）は非可逆圧縮。",
+      "音楽によく使われる、非可逆圧縮の音声の形式は？": "MP3 は聞こえにくい音を省いて小さくする、非可逆圧縮の音声形式。",
+      "非可逆圧縮でデータ量を大きく減らせるのは、なぜ？": "人の目や耳では気づきにくい細かい情報を捨てるので、大きく減らせる。",
+      "動画は、何を次々に切りかえて表示している？": "動画は、少しずつちがう静止画（フレーム）を次々に表示している。",
+      "1秒間に表示するフレームの数を表す単位は？": "fps（frames per second）＝ 1 秒あたりのフレーム数。bps は通信速度、dpi は解像度。",
+      "30fpsの動画、10秒間のフレームの数は？": "30 枚 × 10 秒 ＝ 300 枚。",
+      "動画の圧縮で、前のフレームとの「ちがい（差分）」だけを記録するとデータ量が減るのはなぜ？": "となりあうフレームはほとんど同じなので、変わった所だけ記録すればよい。",
+      "常に稼働していて、要求に応じてサービスを提供するシステムは？": "サーバは、いつも動いていて、クライアントの要求にこたえてサービスを提供する。",
+      "サーバにサービスを要求して、利用する側を何という？": "サービスを頼んで使う側がクライアント（ブラウザ・スマホのアプリなど）。",
+      "サーバを置かず、端末どうしが対等の立場で直接データをやりとりする方式は？": "端末どうしが対等にやりとりするのがピアツーピア（P2P）型。",
+      "コンサートのチケット予約のように、情報を1か所でまとめて管理したいときに向く方式は？": "予約の情報をサーバ1か所で管理すれば、二重予約などを防げる。クライアントサーバ型。",
+      "メールアドレス taro@example.jp の「example.jp」が表すのは？": "@ の左がユーザ名、右がメールサーバのドメイン名。",
+      "メールを送信するときや、メールサーバどうしで転送するときのプロトコルは？": "送る・転送するのは SMTP。受け取って読むのは POP や IMAP。",
+      "メールをサーバに置いたまま読み、パソコンとスマホで同じメールを見られるプロトコルは？": "IMAP はサーバに置いたまま読むので、複数の端末で同じメールを見られる。POP は端末に取りこむ。",
+      "相手のパソコンの電源が切れているときに送ったメールは、どうなる？": "メールは相手のメールサーバのメールボックスに届いて保管され、あとで受け取れる。",
+      "ドメイン名をIPアドレスに変換するしくみを何という？": "DNS が、ドメイン名（example.jp）を IP アドレスに変換する。",
+      "ドメイン名 www.example.co.jp で、いちばん大きな範囲を表す部分は？": "ドメイン名は右ほど大きな範囲。いちばん右の jp（日本）がトップレベルドメイン。",
+      "「jp」の下の第2レベルドメインで、「ac」が表すのは？": "ac は academic（大学など）。co は企業、go は政府機関、ed は小・中・高校など。",
+      "「jp」の下の第2レベルドメインで、「go」が表すのは？": "go は government（政府機関）。",
+      "URLの先頭の「https」が表すものは？": "https は、通信を暗号化した Web のプロトコル（HTTP ＋ 暗号化）。",
+      "DNSサーバが止まってしまうと、どうなる？": "ドメイン名から IP アドレスを調べられないので、ドメイン名でページを開けなくなる。",
+      "URLを入力してからWebページが表示されるまでで、最初におこなわれるのは？": "まず DNS サーバに IP アドレスを問い合わせ、それから Web サーバにページを要求する。",
+      "ことばのかわりに、絵や図で情報を伝える記号を何という？": "ピクトグラムは、ことばがわからなくても伝わる絵記号（非常口のマークなど）。",
+      "年齢・国・障がいの有無などにかかわらず、だれもが使いやすいように設計する考え方は？": "はじめから、だれもが使いやすいように設計するのがユニバーサルデザイン。",
+      "色の見え方がちがう人にも情報が正しく伝わるように、配色などを工夫することを何という？": "色の見え方のちがいに配慮した配色の工夫が、カラーユニバーサルデザイン。",
+      "データや情報を、図やイラストを使ってひと目でわかるように表したものを何という？": "図・イラスト・グラフを組み合わせて、ひと目でわかるようにしたものがインフォグラフィック。",
+      "たくさんの情報を、時間・場所・五十音・分類・連続量などの基準で整理することを何という？": "基準を決めて情報を整理することが構造化。"
+    };
+    // 分野ごとの解説（決まった解説がない問題用）
+    const QUIZ_TIP = { hw: '入力・出力・記憶・演算・制御の5つの装置と、ハードウェア／ソフトウェアのちがいを思い出そう。',
+      design: '光の三原色（R・G・B）は重ねるほど明るくなる。グラフは伝えたいこと（変化・割合・くらべ・関係）で選ぶ。',
+      design_soc: 'アフォーダンス＝物がもつ性質、シグニファイア＝人に知らせる手がかり。ユーザビリティ＝使いやすさ、アクセシビリティ＝だれでも利用できるか。フェイルセーフ＝故障しても安全、フールプルーフ＝ミスしても安全。',
+      design_kufu: '情報は、目的に合わせて表・木構造・ネットワークなどの形で整理する。グラフの軸の始まりにも注意。',
+      net: '家のパソコン → ルータ → 回線終端装置 → ISP の順に外へつながる。ハブ・アクセスポイント・ルータの役目を区別しよう。',
+      pkt: 'パケットにはヘッダ（宛先・順番）がつく。2進数は右から 1・2・4・8…の重み。偶数パリティは 1 の数を偶数にする。',
+      prog: '1GHz ＝ 1 秒に約 10 億回。人が書いたソースコードは、翻訳されて機械語になってから CPU が実行する。',
+      comp: 'ランレングス圧縮は「文字＋続く数」。動画のフレーム数 ＝ fps × 秒数。',
+      cs: 'DNS でドメイン名から IP アドレスを調べてから、Web サーバにページを要求する。メールは送る SMTP、読む POP・IMAP。' };
+    const quizPlain = (s) => String(s || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    function quizAnswerText(q) {
+      const k = q.kind || 'choice';
+      if (k === 'choice') return q.o[q.a];
+      if (k === 'input') return q.ans[0] + (q.unit || '');
+      if (k === 'keypad' || k === 'bits') return q.ans + (q.unit || '');
+      if (k === 'order') return q.ans.map((i) => q.items[i]).join(' → ');
+      if (k === 'match') return q.rows.map((r, j) => `${r} → ${q.ans[j]}`).join('／');
+      if (k === 'spot') return (q.why || []).join('／');
+      if (k === 'insert') return `${q.stmt} を入れて、表示が ${q.target}`;
+      return '';
+    }
+    function quizExplainHtml(q) {
+      const a = quizAnswerText(q), ex = q.ex || QUIZ_EXP[quizPlain(q.q)] || (['order', 'match', 'spot'].includes(q.kind) ? '' : QUIZ_TIP[q.t]) || '';   // 並べる・つなぐ・さがすは、正解そのものが解説
+      return `<div style="margin-top:6px;padding:6px 10px;border-radius:8px;background:#0f2a1c;border-left:4px solid #22c55e;color:#dcfce7;font-size:14px;line-height:1.6;text-align:left">` +
+        `<b>📖 解説</b>${a ? `　正解：<b>${escapeHtml(String(a))}</b>` : ''}${ex ? `<br>${escapeHtml(ex)}` : ''}</div>`;
+    }
+    let quizWas = new Set();   // 一度まちがえた問題（あとで正解したら解説を出す）
+    let quizSel = {}, quizCool = 0, quizOk = new Set(), quizBad = new Set(), quizKey = '';   // quizOk：正解した問題（答えたまま固定）
     function quizSet(st) {
-      const at = Number(escSteps()['var:qa' + st]) || 0;
-      const r = seededRand(`${team.group}|quiz|${st}|${team.round || 0}|${at}`);
+      const key = `${team.group}|${team.round || 0}|${st}`;
+      if (key !== quizKey) { quizKey = key; quizOk = new Set(); quizBad = new Set(); quizWas = new Set(); quizSel = {}; }
+      const r = seededRand(`${team.group}|quiz|${st}|${team.round || 0}|0`);   // 班・部屋ごとに決まった問題（まちがえても変えない）
       const idx = [];
       while (idx.length < 3) { const k = QUIZ_POOL[Math.floor(r() * QUIZ_POOL.length)]; if (!idx.includes(k)) idx.push(k); }
       return idx.map((k) => {
@@ -10609,23 +10765,33 @@ window.DroneQR = (function () {
     }
     function openQuiz(st, i, note, bad) {
       const o = escLayout(st).objs[i], info = OBJ_INFO[o.kind], qs = quizSet(st), cool = quizCool > Date.now();
-      const body = qs.map((q, n) => `<div class="qzItem"><div class="qzQ">Q${n + 1}. ${escapeHtml(q.q)}</div><div class="qzOpts">` +
-        q.o.map((t, j) => `<button class="qzOpt${quizSel[n] === j ? ' sel' : ''}" onclick="pickQuiz(${i},${n},${j})"${cool ? ' disabled' : ''}>${escapeHtml(t)}</button>`).join('') + '</div></div>').join('');
+      const body = qs.map((q, n) => { const lock = quizOk.has(n), ng = !lock && quizBad.has(n);
+        return `<div class="qzItem"${lock ? ' style="border:2px solid #22c55e;pointer-events:none"' : ng ? ' style="border:2px solid #ef4444"' : ''}><div class="qzQ">${lock ? '<span style="color:#4ade80">✅ 正解</span>　' : ng ? '<span style="color:#f87171">❌ 答え直す</span>　' : ''}Q${n + 1}. ${escapeHtml(q.q)}</div><div class="qzOpts">` +
+        q.o.map((t, j) => `<button class="qzOpt${quizSel[n] === j ? ' sel' : ''}" onclick="pickQuiz(${i},${n},${j})"${cool || lock ? ' disabled' : ''}>${escapeHtml(t)}</button>`).join('') + '</div>' + (lock && quizWas.has(n) ? quizExplainHtml(q) : '') + '</div>'; }).join('');
       const ready = Object.keys(quizSel).length === 3 && !cool;
       showEscModal(`<div class="escTitle">🧾 ${info.name}のクイズ端末</div><div class="escSub">画面には「<b>Tのえほん</b>」が開いていて、3つの問題が出ている。3問とも正解すると、ロックが外れる。</div>` +
         `<div class="cpanel qzPanel${bad ? ' shake' : ''}">${body}<div class="safeMsg">${note || ''}</div>` +
         `<button class="qzGo" onclick="answerQuiz(${i})"${ready ? '' : ' disabled'}>答える</button></div>` +
         '<div class="escActions"><button onclick="closeEscModal()">とじる</button></div>', 'safeModal wideModal');
     }
-    function pickQuiz(i, n, j) { quizSel[n] = j; openQuiz(varStage(), i); }
+    function pickQuiz(i, n, j) { if (quizOk.has(n)) return; quizSel[n] = j; openQuiz(varStage(), i); }
     function answerQuiz(i) {
       const st = varStage(), qs = quizSet(st);
       const wrong = qs.filter((q, n) => quizSel[n] !== q.a).length;
-      if (!wrong) { quizSel = {}; escOpen(st, i); return; }
+      if (!wrong) {
+        const was = [...quizWas].sort(); quizSel = {}; quizOk = new Set(); quizBad = new Set(); quizWas = new Set(); escOpen(st, i);
+        if (was.length) setTimeout(() => {   // 答え直して正解した問題の解説
+          const m = document.getElementById('escModal'), t = m && m.querySelector('.escTitle');
+          if (t) t.insertAdjacentHTML('afterend', '<div class="escSub" style="text-align:left;background:#1e293b;border:2px solid #22c55e;border-radius:10px;padding:8px 12px"><b style="color:#4ade80;font-size:17px">📖 まちがえた問題の解説</b><br><small style="color:#cbd5e1">このクイズで一度まちがえて、答え直して正解した問題の、正解と解説</small>' + was.map((n) => `<div style="margin-top:6px"><div style="font-weight:800">Q${n + 1}. ${escapeHtml(qs[n].q)}</div>${quizExplainHtml(qs[n])}</div>`).join('') + '</div>');
+        }, 0);
+        return;
+      }
       escSteps()['var:qa' + st] = (Number(escSteps()['var:qa' + st]) || 0) + 1; saveTeam();
-      quizSel = {}; quizCool = Date.now() + 5000;
-      openQuiz(st, i, 'ブーッ！ まちがいがある。5秒たつと、別の問題が出る', true);
-      setTimeout(() => { const m = document.getElementById('escModal'); if (m && !document.getElementById('escOverlay').classList.contains('viewHidden') && m.querySelector('.qzPanel')) openQuiz(st, i); }, 5100);
+      qs.forEach((q, n) => { if (quizSel[n] === q.a) quizOk.add(n); });
+      quizBad = new Set(qs.map((q, n) => n).filter((n) => !quizOk.has(n)));
+      quizBad.forEach((n) => { delete quizSel[n]; quizWas.add(n); });
+      quizCool = 0;   // 待たずに、すぐ答え直せる
+      openQuiz(st, i, `ブーッ！ ${wrong}問まちがいがある。✅ の問題は正解なので、そのまま。❌ の問題だけ答え直そう`, true);
     }
     // 電子ロック（論理回路）：スイッチ A・B・C を 0/1 に切りかえて、ランプをつける
     let logicIn = [0, 0, 0], logicBusy = false;
@@ -11401,7 +11567,7 @@ window.DroneQR = (function () {
     function wipeDroneRecords() {   // 班を入れかえるとき：この端末のドローンのステージの記録を全部消す（えほんのクリアは残す）
       try {
         localStorage.removeItem('droneLessonTeam_set5'); localStorage.removeItem('droneLessonGroups_set5'); localStorage.removeItem('droneMagic_v1');
-        var ST = ['var', 'arr', 'func', 'app'], hr = JSON.parse(localStorage.getItem('droneHub_v1') || 'null');
+        var ST = ['var', 'arr', 'func', 'app', 'lin', 'bin', 'bub', 'sel'], hr = JSON.parse(localStorage.getItem('droneHub_v1') || 'null');
         if (hr && typeof hr === 'object') {
           ST.forEach(function (id) { if (hr.cleared) delete hr.cleared[id]; });
           if (Array.isArray(hr.order)) hr.order = hr.order.filter(function (id) { return ST.indexOf(id) < 0; });

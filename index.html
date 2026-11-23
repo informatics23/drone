@@ -23,6 +23,9 @@
     { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
     { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
     { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
+    { id: 'dsn18', kind: 'note', title: '情報デザインの手法', file: 'joho_dsn18_lab.html', gives: 'os' },
+    { id: 'dsnTerms', kind: 'note', title: '情報デザイン用語', file: 'joho_design_terms_lab.html', gives: 'os' },
+    { id: 'iro', kind: 'note', title: '図と色のデザイン', file: 'iro_lab.html', gives: 'os' },
     { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
     { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
     { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
@@ -39,7 +42,9 @@
     { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
     { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
     { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
-    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] }
+    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] },
+    { id: 'bub', kind: 'escape', title: '応用ステージ（バブルソート）', sub: '仕分け室の謎', rooms: '仕分け室 → 管制室', file: 'drone_bubble.html', ledger: 'bb2', gives: 'ssd', needs: ['bin'] },
+    { id: 'sel', kind: 'escape', title: '応用ステージ（選択ソート）', sub: '選別室の謎', rooms: '選別室 → 発令所', file: 'drone_select.html', ledger: 'sl2', gives: 'kbd', needs: ['bub'] }
   ];
   var CFG = window.HUB_CONFIG || {};
   var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
@@ -513,7 +518,7 @@
     記録（ぶひん・班・名前・ポイント）は、<b>同じ端末・同じブラウザ</b>のときだけ引きつがれます。<br>
     ポイント情報のファイルは、iPad では「ファイル」アプリの「ダウンロード」に保存されます。
   </div>
-<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-10-25（v114）</div>
+<div id="appVer" style="margin:14px 0 4px;font-size:11px;color:#64748b;text-align:center">版 2026-11-23（v117）</div>
 </main>
 
 <script>
@@ -604,7 +609,7 @@
   function wipeDroneRecords() {   // 班を入れかえるとき：この端末のドローンのステージの記録を全部消す（えほんのクリアは残す）
     try {
       localStorage.removeItem('droneLessonTeam_set5'); localStorage.removeItem('droneLessonGroups_set5'); localStorage.removeItem('droneMagic_v1');
-      var ST = ['var', 'arr', 'func', 'app'], hr = JSON.parse(localStorage.getItem('droneHub_v1') || 'null');
+      var ST = ['var', 'arr', 'func', 'app', 'lin', 'bin', 'bub', 'sel'], hr = JSON.parse(localStorage.getItem('droneHub_v1') || 'null');
       if (hr && typeof hr === 'object') {
         ST.forEach(function (id) { if (hr.cleared) delete hr.cleared[id]; });
         if (Array.isArray(hr.order)) hr.order = hr.order.filter(function (id) { return ST.indexOf(id) < 0; });
@@ -634,14 +639,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 /* ==== 記録コード（QR）：画像のスクリーンショットや写真からでも、記録を読みこめるようにする ====
    画像に見えない形で入れた記録（PNG の中のデータ）は、スクショすると消える。
    そこで、ポイント情報・記録カードの画像に、記録の要点を QR コードでも描いておく。
-   QR に入れるもの：クラス・班、自分の機体、ラウンド、班員ごとのクリア（変数・配列・関数・線形探索・二分探索の①②）、手入力の印、
+   QR に入れるもの：クラス・班、自分の機体、ラウンド、班員ごとのクリア（変数・配列・関数・線形探索・二分探索・バブルソート・選択ソートの①②）、手入力の印、
    Tの端末のクリア（えほん・スキル）、保存した時刻。名前は入らない（表紙で入れ直す）。
-   形式 2（24バイト）で書く。前の形式 1（20バイト・変数〜関数だけ）も読める。 */
+   形式 3（バブルソート・選択ソートも入る）で書く。前の形式 1・2 も読める。 */
 window.DroneQR = (function () {
-  var KEYS = ['var', 'var2', 'array', 'array2', 'fn', 'fn2', 'ls', 'ls2', 'bs', 'bs2'];   // 順番は変えない（あとに足すだけ）
+  var KEYS = ['var', 'var2', 'array', 'array2', 'fn', 'fn2', 'ls', 'ls2', 'bs', 'bs2', 'bb', 'bb2', 'sl', 'sl2'];   // 順番は変えない（あとに足すだけ）
   var KEYS1 = KEYS.slice(0, 6);                                                         // 形式 1 の項目
-  var PMAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2 };
-  var HUB_IDS = ['hw', 'prog', 'net', 'pkt', 'cs', 'www', 'crypto', 'var', 'arr', 'func', 'app', 'lin', 'bin', 'cryptoEhon', 'protocolEhon'];   // 16 こまで。あとに足すだけ
+  var KEYS2 = KEYS.slice(0, 10);                                                        // 形式 2 の項目
+  var PMAX = { var: 1, var2: 2, array: 1, array2: 2, fn: 1, fn2: 2, ls: 1, ls2: 2, bs: 1, bs2: 2, bb: 1, bb2: 2, sl: 1, sl2: 2 };
+  var HUB_IDS = ['hw', 'prog', 'net', 'pkt', 'cs', 'www', 'crypto', 'var', 'arr', 'func', 'app', 'lin', 'bin', 'cryptoEhon', 'protocolEhon', 'bub', 'sel'];   // 24 こまで（形式 3）。あとに足すだけ
   var T0 = Date.UTC(2026, 0, 1) / 60000;
   function sig(b, n) {
     var h = 2166136261, salt = 'drone-qr|v1|';
@@ -654,51 +660,56 @@ window.DroneQR = (function () {
   // バイト列の off バイト目から数えて n ビット目
   function setBit(b, off, n) { b[off + (n >> 3)] |= 1 << (n & 7); }
   function getBit(b, off, n) { return !!(b[off + (n >> 3)] & (1 << (n & 7))); }
+  // 形式 3 の並び：[0]形式 [1]クラス・班 [2]自分・ラウンド [3〜]クリア（班員4人×項目） [ ]自分で入れた印 [ ]手入力の印 [3バイト]Tの端末 [3バイト]時刻 [1]予備 [4]しるし
+  function lay3() { var NK = KEYS.length, LB = Math.ceil(NK * 4 / 8); return { NK: NK, LB: LB, c: 3, s: 3 + LB, x: 4 + LB, h: 4 + 2 * LB, t: 7 + 2 * LB, n: 11 + 2 * LB }; }
   // o：{ g:'4組7班', m:1, r:0, l:{0:{var:1}}, s:[1,3], x:['2:var'], h:['hw','var'], t:時刻(ms) }
   function encode(o) {
     var mm = String(o.g || '').match(/^(\d)組(\d)班$/);
     if (!mm) return '';
-    var NK = KEYS.length, b = new Uint8Array(24);
-    b[0] = 2;
+    var L = lay3(), NK = L.NK, b = new Uint8Array(L.n + 4);
+    b[0] = 3;
     b[1] = (Number(mm[1]) << 4) | Number(mm[2]);
     var m = Number.isInteger(o.m) && o.m >= 0 && o.m <= 3 ? o.m : 7;
     b[2] = m | (Math.min(31, Math.max(0, Number(o.r) || 0)) << 3);
-    for (var k = 0; k < 4; k++) { var row = (o.l || {})[k] || {}; KEYS.forEach(function (u, i) { if (Number(row[u]) > 0) setBit(b, 3, k * NK + i); }); }   // b[3]〜b[7]
-    (o.s || []).forEach(function (k) { if (k >= 0 && k <= 3) b[8] |= 1 << k; });
-    (o.x || []).forEach(function (s) { var p = String(s).split(':'), i = KEYS.indexOf(p[1]); if (i >= 0 && Number(p[0]) >= 0 && Number(p[0]) <= 3) setBit(b, 9, Number(p[0]) * NK + i); });   // b[9]〜b[13]
+    for (var k = 0; k < 4; k++) { var row = (o.l || {})[k] || {}; KEYS.forEach(function (u, i) { if (Number(row[u]) > 0) setBit(b, L.c, k * NK + i); }); }
+    (o.s || []).forEach(function (k) { if (k >= 0 && k <= 3) b[L.s] |= 1 << k; });
+    (o.x || []).forEach(function (s) { var p = String(s).split(':'), i = KEYS.indexOf(p[1]); if (i >= 0 && Number(p[0]) >= 0 && Number(p[0]) <= 3) setBit(b, L.x, Number(p[0]) * NK + i); });
     var hub = 0;
-    (o.h || []).forEach(function (id) { var i = HUB_IDS.indexOf(id); if (i >= 0) hub |= 1 << i; });
-    b[14] = hub & 255; b[15] = (hub >>> 8) & 255;
+    (o.h || []).forEach(function (id) { var i = HUB_IDS.indexOf(id); if (i >= 0 && i < 24) hub |= 1 << i; });
+    b[L.h] = hub & 255; b[L.h + 1] = (hub >>> 8) & 255; b[L.h + 2] = (hub >>> 16) & 255;
     var t = Math.max(0, Math.min(16777215, Math.round((Number(o.t) || Date.now()) / 60000 - T0)));
-    b[16] = t & 255; b[17] = (t >>> 8) & 255; b[18] = (t >>> 16) & 255;
-    b[19] = 0;
-    var h = sig(b, 20);
-    b[20] = h & 255; b[21] = (h >>> 8) & 255; b[22] = (h >>> 16) & 255; b[23] = (h >>> 24) & 255;
+    b[L.t] = t & 255; b[L.t + 1] = (t >>> 8) & 255; b[L.t + 2] = (t >>> 16) & 255;
+    var h = sig(b, L.n);
+    b[L.n] = h & 255; b[L.n + 1] = (h >>> 8) & 255; b[L.n + 2] = (h >>> 16) & 255; b[L.n + 3] = (h >>> 24) & 255;
     return 'DQ1.' + b64e(b);
   }
-  // QR の文字 → ドローンアプリの記録コードと同じ形のもの（読めなければ null）
+  // QR の文字 → ドローンアプリの記録コードと同じ形のもの（読めなければ null）。形式 1・2・3 を読める
   function decode(str) {
     var m = String(str || '').match(/DQ1\.([A-Za-z0-9_-]+)/);
     if (!m) return null;
     var b; try { b = b64d(m[1]); } catch (e) { return null; }
-    var v2 = b[0] === 2, n = v2 ? 20 : 16;
-    if (!(b[0] === 1 && b.length >= 20) && !(v2 && b.length >= 24)) return null;
+    var ver = b[0], L;
+    if (ver === 3) L = lay3();
+    else if (ver === 2) L = { NK: 10, c: 3, s: 8, x: 9, h: 14, hb: 2, t: 16, n: 20 };
+    else if (ver === 1) L = { NK: 6, c: 3, s: -1, x: 7, h: 10, hb: 2, t: 12, n: 16 };
+    else return null;
+    var n = L.n;
+    if (b.length < n + 4) return null;
     var h = sig(b, n);
     if (b[n] !== (h & 255) || b[n + 1] !== ((h >>> 8) & 255) || b[n + 2] !== ((h >>> 16) & 255) || b[n + 3] !== ((h >>> 24) & 255)) return null;
     var g = (b[1] >> 4) + '組' + (b[1] & 15) + '班', me = b[2] & 7, r = b[2] >> 3;
-    var keys = v2 ? KEYS : KEYS1, NK = keys.length;
-    var cOff = 3, sOff = v2 ? 8 : 6, xOff = v2 ? 9 : 7, hOff = v2 ? 14 : 10, tOff = v2 ? 16 : 12;
+    var keys = ver === 3 ? KEYS : ver === 2 ? KEYS2 : KEYS1, NK = keys.length;
     var l = {}, s = [], x = [], hl = [];
     for (var k = 0; k < 4; k++) {
       keys.forEach(function (u, i) {
-        if (getBit(b, cOff, k * NK + i)) { (l[k] || (l[k] = {}))[u] = PMAX[u]; }
-        if (getBit(b, xOff, k * NK + i)) x.push(k + ':' + u);
+        if (getBit(b, L.c, k * NK + i)) { (l[k] || (l[k] = {}))[u] = PMAX[u]; }
+        if (getBit(b, L.x, k * NK + i)) x.push(k + ':' + u);
       });
-      if (v2 ? (b[sOff] & (1 << k)) : getBit(b, 3, 24 + k)) s.push(k);
+      if (L.s >= 0 ? (b[L.s] & (1 << k)) : getBit(b, 3, 24 + k)) s.push(k);
     }
-    var hub = b[hOff] | (b[hOff + 1] << 8);
-    HUB_IDS.forEach(function (id, i) { if (hub & (1 << i)) hl.push(id); });
-    var t = (b[tOff] | (b[tOff + 1] << 8) | (b[tOff + 2] << 16)) + T0;
+    var hub = b[L.h] | (b[L.h + 1] << 8) | (ver === 3 ? (b[L.h + 2] << 16) : 0);
+    HUB_IDS.forEach(function (id, i) { if (i < (ver === 3 ? 24 : 16) && (hub & (1 << i))) hl.push(id); });
+    var t = (b[L.t] | (b[L.t + 1] << 8) | (b[L.t + 2] << 16)) + T0;
     return { g: g, n: ['', '', '', ''], m: me <= 3 ? me : -1, l: l, r: r, p: 5, s: s, x: x, h: hl, t: t * 60000, qr: 1 };
   }
   // QR を描く（size：まわりの余白こみの一辺）

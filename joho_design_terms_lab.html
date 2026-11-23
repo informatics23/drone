@@ -1,0 +1,1784 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>情報デザイン用語ラボ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --surface2:#E9EEF5; --ink:#141C2B; --muted:#56637A; --line:#D3DBE7;
+  --blue:#1652E0; --blue-soft:#DCE6FF; --green:#0E8A4B; --green-soft:#D6F2E3;
+  --amber:#B86E00; --amber-soft:#FFEBC7; --red:#C7302F; --red-soft:#FADCDB;
+  --shadow:0 1px 0 rgba(20,28,43,.06),0 10px 26px -14px rgba(20,28,43,.35);
+  --font:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  --display:"Dela Gothic One","Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1420; --surface:#161E2E; --surface2:#1E2940; --ink:#E8EEF9; --muted:#9AA8C0; --line:#2C3A55;
+    --blue:#7AA0FF; --blue-soft:#1D2D5C; --green:#4CD08A; --green-soft:#123A28;
+    --amber:#F0B04A; --amber-soft:#40300F; --red:#FF7A78; --red-soft:#4A1D1D;
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 10px 26px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1420; --surface:#161E2E; --surface2:#1E2940; --ink:#E8EEF9; --muted:#9AA8C0; --line:#2C3A55;
+  --blue:#7AA0FF; --blue-soft:#1D2D5C; --green:#4CD08A; --green-soft:#123A28;
+  --amber:#F0B04A; --amber-soft:#40300F; --red:#FF7A78; --red-soft:#4A1D1D;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 10px 26px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.75;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:1000px;margin-inline:auto}
+h1,h2,h3,h4,p{margin:0}
+h1,h2{font-family:var(--display);font-weight:400;text-wrap:balance;line-height:1.3}
+h3{font-size:1.15rem;font-weight:900;text-wrap:balance}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+b,strong{font-weight:900}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+
+/* hero */
+.hero{padding-block:40px 24px}
+.eyebrow{font-size:.8rem;letter-spacing:.14em;color:var(--blue);font-weight:900}
+.hero h1{font-size:clamp(1.9rem,5.4vw,3.2rem);margin-block:8px 12px}
+.hero .lead{max-width:36em;color:var(--muted)}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:24px}
+.map a{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);transition:transform .15s}
+.map a:hover{transform:translateY(-2px);border-color:var(--blue)}
+.map .k{font-size:.72rem;font-weight:900;letter-spacing:.08em;color:var(--blue)}
+.map .n{font-weight:900}
+.map .q{font-size:.82rem;color:var(--muted);line-height:1.5}
+.map a.cmp .k{color:var(--amber)}
+
+/* sections */
+.sec{padding-block:44px 8px;border-top:2px solid var(--line);margin-top:36px}
+.sec-head{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.tag{align-self:flex-start;font-size:.75rem;font-weight:900;letter-spacing:.1em;padding:2px 10px;border-radius:99px;background:var(--blue-soft);color:var(--blue)}
+.tag.cmp{background:var(--amber-soft);color:var(--amber)}
+.sec-head h2{font-size:clamp(1.5rem,4vw,2.2rem)}
+.sec-head .en{font-size:.85rem;color:var(--muted);letter-spacing:.04em}
+.lead2{max-width:44em;margin-bottom:18px}
+.callout{display:flex;gap:12px;align-items:flex-start;background:var(--blue-soft);border-radius:12px;padding:12px 16px;margin-block:18px;max-width:46em}
+.callout.amber{background:var(--amber-soft)}
+.callout .lb{flex:none;font-weight:900;font-size:.78rem;letter-spacing:.06em;padding:2px 8px;border-radius:6px;background:var(--blue);color:var(--surface);margin-top:3px}
+.callout.amber .lb{background:var(--amber)}
+.toplink{display:inline-block;margin-top:20px;font-size:.85rem}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.demo{background:var(--surface2);border-radius:12px;display:flex;align-items:center;justify-content:center;padding:16px;min-height:220px;overflow:hidden}
+svg{max-width:100%;height:auto}
+.diagram{width:100%;display:block}
+.t-ink{fill:var(--ink)} .t-muted{fill:var(--muted)} .t-blue{fill:var(--blue)}
+.f-surface{fill:var(--surface)} .f-surface2{fill:var(--surface2)} .f-ink{fill:var(--ink)} .f-blue{fill:var(--blue)}
+.s-ink{stroke:var(--ink)} .s-line{stroke:var(--line)} .s-blue{stroke:var(--blue)}
+svg text{font-family:var(--font)}
+
+/* controls */
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;background:var(--surface2);padding:4px;border-radius:12px}
+.seg button{font:inherit;font-weight:700;font-size:.9rem;border:0;background:transparent;color:var(--muted);padding:6px 14px;border-radius:9px;cursor:pointer}
+.seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.btn{font:inherit;font-weight:900;font-size:.92rem;border:0;border-radius:10px;padding:9px 16px;cursor:pointer;background:var(--blue);color:var(--surface)}
+.btn.alt{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:var(--amber);color:var(--surface)}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.kv{display:grid;grid-template-columns:5.5em 1fr;gap:6px 12px;font-size:.92rem}
+.kv dt{font-weight:900;color:var(--muted)} .kv dd{margin:0}
+.big{font-family:var(--display);font-size:1.5rem;line-height:1.3}
+
+/* UI demos */
+.term{background:#0F1724;color:#8CF0B4;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;line-height:1.7;padding:14px 16px;border-radius:10px;width:100%;max-width:300px;min-height:150px}
+.term .dim{color:#7f8db0}
+.cursor-b{display:inline-block;width:.6em;height:1.05em;background:#8CF0B4;vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.gui{width:100%;max-width:300px;background:var(--surface);border-radius:10px;border:1px solid var(--line);overflow:hidden}
+.gui-bar{background:var(--surface2);padding:7px 10px;display:flex;gap:6px}
+.gui-bar i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.gui-body{position:relative;display:flex;gap:10px;padding:16px 14px 42px;height:148px}
+.ic{width:74px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:.72rem;border-radius:8px}
+.ic span{width:34px;height:26px;border-radius:5px;display:block}
+.ic:nth-child(1) span{background:#F2B33D;border-top-left-radius:2px}
+.ic:nth-child(2) span{background:#6E97F5;width:24px;height:30px;border-radius:3px}
+.ic:nth-child(3) span{background:#9AA6BC;width:24px;height:28px;border-radius:2px 2px 6px 6px}
+.ic:nth-child(1){animation:icflash 4s infinite}
+@keyframes icflash{0%,38%{background:transparent}42%,60%{background:var(--blue-soft)}66%,100%{background:transparent}}
+.gcur{position:absolute;left:0;top:0;width:22px;height:22px;animation:curmove 4s infinite ease-in-out;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+@keyframes curmove{0%{transform:translate(200px,110px)}38%,60%{transform:translate(56px,34px)}100%{transform:translate(200px,110px)}}
+.phone{width:130px;height:210px;border:5px solid var(--ink);border-radius:24px;background:var(--surface);position:relative;overflow:hidden}
+.phone .pbtn{position:absolute;left:50%;top:98px;transform:translateX(-50%);background:var(--blue);color:var(--surface);font-weight:900;font-size:.85rem;padding:7px 18px;border-radius:99px}
+.phone .pbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:36px;height:5px;border-radius:9px;background:var(--line)}
+.tap{position:absolute;left:50%;top:112px;width:54px;height:54px;margin:-27px 0 0 -8px;border-radius:50%;background:var(--blue);opacity:.5;animation:tap 1.8s infinite ease-out}
+@keyframes tap{0%{transform:scale(.2);opacity:.75}80%,100%{transform:scale(1.5);opacity:0}}
+.voice{display:flex;flex-direction:column;align-items:center;gap:14px}
+.bars{display:flex;align-items:center;gap:6px;height:64px}
+.bars i{display:block;width:8px;height:100%;border-radius:4px;background:var(--blue);transform:scaleY(.4);animation:bar 1s infinite ease-in-out}
+.bars i:nth-child(2){animation-delay:.12s}.bars i:nth-child(3){animation-delay:.24s}.bars i:nth-child(4){animation-delay:.36s}.bars i:nth-child(5){animation-delay:.48s}.bars i:nth-child(6){animation-delay:.6s}.bars i:nth-child(7){animation-delay:.72s}
+@keyframes bar{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+.bubble{background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:14px;font-weight:700;font-size:.9rem}
+.gest{position:relative;width:250px;height:150px;background:var(--surface);border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.gcard{position:absolute;left:78px;top:34px;width:90px;height:80px;border-radius:10px;background:var(--amber-soft);color:var(--amber);font-weight:900;display:flex;align-items:center;justify-content:center;animation:gcard 3.4s infinite ease-in-out}
+.ghand{position:absolute;left:0;top:64px;width:26px;height:26px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 8px var(--blue-soft);animation:ghand 3.4s infinite ease-in-out}
+@keyframes ghand{0%{transform:translate(30px,0);opacity:0}12%{opacity:1}55%{transform:translate(190px,0);opacity:1}70%,100%{transform:translate(200px,0);opacity:0}}
+@keyframes gcard{0%,15%{transform:translateX(0);opacity:1}55%{transform:translateX(70px);opacity:.15}56%{transform:translateX(-70px);opacity:0}80%,100%{transform:translateX(0);opacity:1}}
+
+/* signifier */
+.door-msg{min-height:3.6em}
+.pulse{transform-origin:center;transform-box:fill-box;animation:pulse 1.6s infinite ease-out}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.qmark{animation:bob 1.6s infinite ease-in-out;transform-box:fill-box}
+.qmark:nth-child(2){animation-delay:.3s}.qmark:nth-child(3){animation-delay:.6s}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.sxgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.sx{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.sx h4{font-size:.95rem;font-weight:900;margin-bottom:10px}
+.sx .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sx .cell{background:var(--surface2);border-radius:10px;padding:10px 8px;min-height:82px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.sx .cap{font-size:.7rem;font-weight:900;letter-spacing:.06em;color:var(--muted)}
+.sx .cap.yes{color:var(--green)}
+.sx-btn{font:inherit;font-weight:900;font-size:.88rem;color:#fff;background:var(--blue);border:0;border-bottom:4px solid rgba(0,0,0,.28);border-radius:8px;padding:6px 18px;cursor:pointer}
+.sx-btn:active{transform:translateY(3px);border-bottom-width:1px}
+.sx-btn[disabled]{background:#9AA5B8;cursor:not-allowed;border-bottom-color:rgba(0,0,0,.15)}
+.sx-link{color:var(--blue);text-decoration:underline;font-weight:700}
+.sx-box{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:4px 10px;font-size:.85rem;width:100%;display:flex;justify-content:space-between}
+.sx-in{font:inherit;font-size:.85rem;width:100%;padding:4px 8px;border:2px solid var(--blue);border-radius:6px;background:var(--surface);color:var(--ink)}
+.sx-row{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;width:100%;font-size:.85rem;display:flex;gap:8px;align-items:center;text-align:left}
+.grip{cursor:grab;color:var(--muted);letter-spacing:-2px;font-weight:900}
+
+/* UD */
+.ud7{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ud7 .u{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.ud7 .u .num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:var(--surface);font-weight:900;display:grid;place-items:center;font-size:.85rem}
+.ud7 .u h4{font-size:.95rem;font-weight:900;line-height:1.4}
+.ud7 .u p{font-size:.82rem;color:var(--muted);line-height:1.6}
+.ud7 .u .eg{font-size:.8rem;color:var(--ink);background:var(--surface2);padding:5px 8px;border-radius:8px;margin-top:auto}
+.ud7 .core{background:var(--blue-soft);border-radius:14px;padding:14px;display:flex;align-items:center;font-weight:900;color:var(--blue);line-height:1.6}
+@media (max-width:900px){.ud7{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.ud7{grid-template-columns:1fr}}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-block:6px}
+.bar span{padding:5px 12px;border-radius:8px;font-size:.85rem;font-weight:700;background:var(--surface2)}
+.bar .fix{background:var(--amber-soft);color:var(--amber)}
+.bar .ud{background:var(--blue-soft);color:var(--blue)}
+.bar .arrow{background:none;padding:0;color:var(--muted)}
+.cv{border-radius:12px;overflow:hidden}
+.cvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.cvbox{background:#FFFFFF;color:#1A1A1A;border-radius:12px;padding:14px;border:1px solid #d5dbe6}
+.cvbox h4{font-size:.85rem;font-weight:900;margin-bottom:8px;color:#444}
+.cvrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #e4e8ef;font-weight:700}
+.cvrow:last-child{border:0}
+.dot{width:22px;height:22px;border-radius:50%;flex:none}
+.d-ok{background:#2E9E4F}.d-late{background:#F28C00}.d-stop{background:#D62F2F}
+.shape{width:22px;height:22px;flex:none;display:grid;place-items:center;font-weight:900;color:#fff;border-radius:50%;font-size:.85rem}
+.shape.tri{border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);width:26px;height:23px;align-items:end;padding-bottom:1px;font-size:.8rem}
+.shape.sq{border-radius:4px}
+.cvrow .st{margin-left:auto;font-size:.82rem;color:#333}
+
+/* journey */
+.jr{width:100%;display:block}
+.jr .note{font-size:12px}
+.result{margin-top:12px;padding:10px 14px;border-radius:10px;font-weight:700;background:var(--surface2)}
+.result.bad{background:var(--red-soft);color:var(--red)}
+.result.mid{background:var(--amber-soft);color:var(--amber)}
+.result.good{background:var(--green-soft);color:var(--green)}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem;min-width:520px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.tbl th{background:var(--surface2);font-weight:900}
+.tblwrap{overflow-x:auto;border-radius:12px}
+.tbl tbody th{white-space:nowrap}
+
+/* fail-safe */
+.fs-card{border-radius:16px;padding:16px;border:2px solid var(--line);background:var(--surface)}
+.fs-card.a{border-color:var(--blue)} .fs-card.b{border-color:var(--amber)}
+.fs-card h3 span{font-size:.8rem;font-weight:700;color:var(--muted);margin-left:6px}
+.msg{min-height:3.4em;margin-top:10px;font-size:.9rem;font-weight:700}
+.msg.ok{color:var(--green)} .msg.ng{color:var(--red)}
+.tri-flow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px}
+.tri-flow .c{border-radius:12px;padding:12px 14px;font-weight:700}
+.tri-flow .c.a{background:var(--blue-soft);color:var(--blue)}
+.tri-flow .c.b{background:var(--amber-soft);color:var(--amber)}
+.tri-flow .mid{font-weight:900;color:var(--muted);text-align:center;font-size:.85rem}
+@media (max-width:640px){.tri-flow{grid-template-columns:1fr}.tri-flow .mid{display:none}}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.qi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.qi p.q{font-weight:700;margin-bottom:8px}
+.qo{display:flex;flex-wrap:wrap;gap:8px}
+.qo button{font:inherit;font-weight:700;font-size:.88rem;border:2px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:9px;padding:5px 14px;cursor:pointer}
+.qo button:hover{border-color:var(--blue)}
+.qo button.right{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+.qo button.wrong{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.qfb{margin-top:8px;font-size:.88rem}
+.score{font-weight:900;margin-top:4px}
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+
+footer{margin-top:56px;padding-top:18px;border-top:2px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* paged layout */
+.page{display:none}
+.page.on{display:block}
+.sec{border-top:0;margin-top:0;padding-block:24px 8px}
+.hero{padding-block:24px 8px}
+.pnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:2px solid var(--line);margin-inline:-16px;padding:8px 16px;display:flex;flex-wrap:wrap;gap:4px 6px;overflow:visible}
+.pnav .brand{flex:none;font-size:.7rem;font-weight:900;line-height:1.3;color:var(--blue);letter-spacing:.06em;padding:2px 10px 2px 0;border-right:2px solid var(--line);margin-right:4px;align-self:center}
+.pnav a{flex:none;text-decoration:none;color:var(--muted);font-weight:900;font-size:.85rem;padding:6px 12px;border-radius:9px;white-space:nowrap}
+.pnav a:hover{color:var(--ink);background:var(--surface2)}
+.pnav a[aria-current="page"]{background:var(--blue);color:var(--surface)}
+.pnav a.cmp[aria-current="page"]{background:var(--amber)}
+
+/* concrete UI scenarios */
+.sc-wrap{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:16px;align-items:start}
+@media (max-width:720px){.sc-wrap{grid-template-columns:1fr}}
+.dev{background:var(--ink);border-radius:18px;padding:10px;width:100%;max-width:320px;margin-inline:auto}
+.dev-h{color:var(--surface);font-size:.72rem;font-weight:900;letter-spacing:.06em;text-align:center;padding:2px 0 8px}
+.dev-s{background:var(--surface);border-radius:10px;min-height:190px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:.88rem;overflow:hidden}
+.dev-s .ttl{font-weight:900}
+.mkbtns{display:flex;gap:6px}
+.mkb{position:relative;padding:8px 10px;border-radius:8px;background:var(--surface2);border:2px solid var(--line);font-weight:900;font-size:.85rem}
+.mkb.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.rip{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:var(--blue);opacity:.5;animation:tap 1.4s infinite ease-out}
+.big2{font-family:var(--display);font-size:1.7rem;line-height:1.2}
+.snd{background:var(--amber-soft);color:var(--amber);border-radius:99px;padding:2px 12px;font-size:.78rem;font-weight:900;animation:pop .5s both}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+.ticket{background:#FFF3B0;color:#3a3200;padding:5px 16px;border-radius:4px;font-weight:900;box-shadow:0 2px 0 rgba(0,0,0,.2);animation:slideout .9s both}
+@keyframes slideout{from{transform:translateY(-26px);opacity:0}to{transform:none;opacity:1}}
+.dots span{display:inline-block;width:8px;height:8px;margin:0 3px;border-radius:50%;background:var(--muted);animation:bob 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.spk{width:96px;height:96px;border-radius:50%;background:var(--surface2);border:4px solid var(--line);display:grid;place-items:center}
+.spk i{display:block;width:16px;height:16px;border-radius:50%;background:var(--line)}
+.spk.on{border-color:var(--blue)} .spk.on i{background:var(--blue);animation:blink 1s steps(2) infinite}
+.spk.talk{border-color:var(--amber);box-shadow:0 0 0 6px var(--amber-soft)} .spk.talk i{background:var(--amber)}
+.vf{width:100%;height:110px;border-radius:8px;background:linear-gradient(#9FD0FF 0 58%,#7BC47F 58%);position:relative;overflow:hidden}
+.vf .sun{position:absolute;left:18px;top:14px;width:22px;height:22px;border-radius:50%;background:#FFD23F}
+.vf .tree{position:absolute;right:26px;bottom:38px;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:44px solid #2E7D4F}
+.vf .flash{position:absolute;inset:0;background:#fff;animation:fl .6s both}
+@keyframes fl{0%{opacity:1}100%{opacity:0}}
+.shut{width:44px;height:44px;border-radius:50%;border:4px solid var(--ink);background:var(--surface);position:relative;flex:none}
+.shut.on{background:var(--blue)}
+.thumb{position:absolute;left:8px;bottom:8px;width:38px;height:28px;border-radius:4px;border:2px solid #fff;background:linear-gradient(#9FD0FF 0 58%,#7BC47F 58%);animation:pop .5s both}
+.stps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.stps li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:2px solid transparent;background:var(--surface2);cursor:pointer;font-size:.9rem}
+.stps li.on{background:var(--surface);border-color:var(--blue);box-shadow:var(--shadow)}
+.kd{flex:none;font-size:.72rem;font-weight:900;padding:2px 8px;border-radius:6px;margin-top:2px;white-space:nowrap}
+.kd.in{background:var(--blue-soft);color:var(--blue)}
+.kd.out{background:var(--amber-soft);color:var(--amber)}
+.kd.pr{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.cap2{font-size:.8rem;font-weight:700;text-align:center;color:var(--muted);max-width:280px;line-height:1.55}
+#uiDemo{flex-direction:column;gap:12px}
+
+/* no stray text cursor / selection on click */
+body{cursor:default;caret-color:transparent;-webkit-tap-highlight-color:transparent}
+.pnav,.seg,.btn,.stps,.dev,.demo,.pn-removed,.qi,.sx,.cvbox,.ud7,.map,.panel svg,button,.nav-dock,.race,.c3,.c4{-webkit-user-select:none;user-select:none}
+button,.seg button,.pnav a,.stps li,.qo button{cursor:pointer}
+.sx-btn[disabled]{cursor:not-allowed}
+.grip{cursor:grab}
+input,textarea{cursor:text;caret-color:auto;-webkit-user-select:text;user-select:text}
+button:focus:not(:focus-visible),li:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}
+.cursor-b{display:none}
+.pnav::-webkit-scrollbar{display:none}.pnav{scrollbar-width:none}
+.tblwrap{scrollbar-width:thin}
+
+/* door pull animation */
+#dLeaf{transform-origin:62px 136px}
+#dHand{display:none}
+#dPullLbl{display:none}
+#doorSvg.pull #dHand{display:block;animation:handIn 4.4s infinite ease-in-out}
+#doorSvg.pull #dPullLbl{display:block;animation:lblIn 4.4s infinite ease-in-out}
+#doorSvg.pull #dLeaf{animation:leafPull 4.4s infinite ease-in-out}
+#doorSvg.pull .pulse{display:none}
+@keyframes handIn{0%{transform:translateX(70px);opacity:0}14%{transform:translateX(0);opacity:1}88%{transform:translateX(0);opacity:1}100%{transform:translateX(70px);opacity:0}}
+@keyframes leafPull{0%,34%{transform:none}58%,76%{transform:scaleX(.72) skewY(-2deg)}94%,100%{transform:none}}
+@keyframes lblIn{0%,36%{opacity:0}48%,80%{opacity:1}92%,100%{opacity:0}}
+
+#dHand2,#dPushLbl{display:none}
+#doorSvg.push #dHand2{display:block;animation:handIn 4.4s infinite ease-in-out}
+#doorSvg.push #dPushLbl{display:block;animation:lblIn 4.4s infinite ease-in-out}
+#doorSvg.push #dLeaf{animation:leafPush 4.4s infinite ease-in-out}
+#doorSvg.push .pulse{display:none}
+@keyframes leafPush{0%,34%{transform:none}58%,76%{transform:scaleX(.72) scaleY(.95) skewY(2.5deg)}94%,100%{transform:none}}
+
+#dAmbLbl{display:none}
+#doorSvg.amb #dAmbLbl{display:block}
+#doorSvg.amb #dHand{display:block;animation:handWig 4.4s infinite ease-in-out}
+#doorSvg.amb #dLeaf{animation:leafWig 4.4s infinite ease-in-out}
+#doorSvg.amb .pulse{display:none}
+#dAmbL{animation:ambL 4.4s infinite}
+#dAmbR{animation:ambR 4.4s infinite}
+@keyframes handWig{0%{transform:translateX(70px);opacity:0}14%{transform:translateX(0);opacity:1}22%{transform:translateX(-10px)}40%{transform:translateX(0)}62%{transform:translateX(10px)}80%{transform:translateX(0);opacity:1}92%,100%{transform:translateX(70px);opacity:0}}
+@keyframes leafWig{0%,14%{transform:none}22%{transform:scaleX(.95) skewY(-2deg)}40%{transform:none}62%{transform:scaleX(.95) skewY(2deg)}80%,100%{transform:none}}
+@keyframes ambL{0%,16%{opacity:0}22%,36%{opacity:1}44%,100%{opacity:0}}
+@keyframes ambR{0%,56%{opacity:0}62%,76%{opacity:1}84%,100%{opacity:0}}
+
+#glSticker,#glOk{display:none}
+#glSvg.gl-yes #glSticker,#glSvg.gl-yes #glOk{display:block}
+#glSvg.gl-no #glBump{display:block}
+#glSvg.gl-yes #glBump{display:none}
+#glSvg.gl-no .man{animation:glBumpWalk 4s infinite ease-in-out}
+#glSvg.gl-yes .man{animation:glStopWalk 4s infinite ease-in-out}
+#glSvg.gl-no #glBump{animation:glBumpTxt 4s infinite}
+#glSvg.gl-yes #glOk{animation:glOkTxt 4s infinite}
+@keyframes glBumpWalk{0%{transform:translateX(0)}45%{transform:translateX(154px)}52%{transform:translateX(138px)}58%{transform:translateX(154px)}66%,88%{transform:translateX(146px)}100%{transform:translateX(0)}}
+@keyframes glStopWalk{0%{transform:translateX(0)}55%,88%{transform:translateX(112px)}100%{transform:translateX(0)}}
+@keyframes glBumpTxt{0%,44%{opacity:0}47%,70%{opacity:1}78%,100%{opacity:0}}
+@keyframes glOkTxt{0%,54%{opacity:0}60%,88%{opacity:1}96%,100%{opacity:0}}
+
+.tri-flow.stack{grid-template-columns:1fr}
+.tri-flow.stack .mid{display:block}
+.grid2.stack1{grid-template-columns:1fr}
+.pnav{align-items:center}
+.pnav a.two{line-height:1.3;text-align:center;padding-block:4px}
+
+/* 3-page groups */
+.steps3{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px}
+.steps3 a{text-decoration:none;font-size:.82rem;font-weight:900;padding:4px 12px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.steps3 a[aria-current="step"]{background:var(--ink);color:var(--surface)}
+.steps3 .ar{color:var(--muted);font-size:.8rem}
+.c3,.c4{display:grid;gap:12px}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:820px){.c4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.c3,.c4{grid-template-columns:1fr}}
+.u3{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.u3 h4{font-size:1rem;font-weight:900}
+.u3 p{font-size:.86rem;color:var(--muted);line-height:1.6;margin:0}
+.u3 .eg{font-size:.82rem;background:var(--surface2);padding:5px 8px;border-radius:8px;margin-top:auto}
+.race{display:flex;flex-direction:column;gap:12px}
+.rrow{display:grid;grid-template-columns:5.5em 1fr 3.4em;gap:10px;align-items:center}
+.rname{font-weight:900;font-size:.9rem;line-height:1.3}
+.rname small{display:block;color:var(--muted);font-size:.75rem}
+.rchips{display:flex;flex-wrap:wrap;gap:5px}
+.rc{font-size:.75rem;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--surface2);color:var(--muted);transition:background .25s,color .25s}
+.rc.on{background:var(--blue);color:#fff}
+.rdone{font-size:.78rem;font-weight:900;color:var(--muted);opacity:.35;text-align:center}
+.rdone.on{color:var(--green);opacity:1}
+@media (max-width:560px){.rrow{grid-template-columns:1fr}}
+.chips2{display:flex;flex-wrap:wrap;gap:8px}
+.chips2 span{background:var(--blue-soft);color:var(--blue);font-weight:900;font-size:.85rem;padding:6px 12px;border-radius:99px}
+.altpic{width:100%;max-width:300px}
+.altpic .vf{height:150px}
+.page{scroll-margin-top:90px}
+.lead2.oneline{max-width:none;white-space:nowrap;font-size:min(1rem,calc((min(100vw,1000px) - 34px)/62))}
+@media (max-width:760px){.lead2.oneline{white-space:normal;font-size:1rem}}
+
+/* page-to-page navigation: a full-width fixed bottom bar (same pattern as iro_lab), not a floating pill */
+body.has-navdock{padding-bottom:96px}
+.nav-dock{display:none;align-items:center;justify-content:space-between;gap:12px;position:fixed;left:0;right:0;bottom:0;max-width:1000px;margin-inline:auto;background:var(--bg);border-top:2px solid var(--line);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));z-index:50}
+.nav-dock.show{display:flex}
+#fixNext,#fixPrev{display:none;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:900;font-size:.88rem;border:0;border-radius:10px;padding:8px 14px;min-width:6.2em;cursor:pointer;background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+#fixNext.show,#fixPrev.show{display:inline-flex}
+#fixNext .ar,#fixPrev .ar{font-size:1rem;line-height:1}
+#fixNext:hover,#fixPrev:hover{border-color:var(--blue);color:var(--blue)}
+.sc-panel{position:relative;padding-bottom:70px}
+.sc-ctrls{position:absolute;left:96px;right:96px;bottom:16px;margin:0!important;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+@media (max-width:600px){.sc-ctrls{position:static;right:auto;justify-content:flex-start;margin-top:12px!important}}
+
+/* compact: fit afford page through POINT on one screen */
+#afford{padding-block:6px 2px}
+#afford .sec-head{margin-bottom:8px}
+#afford .panel{padding:10px}
+#afford .panel p{margin-top:5px!important}
+#afford .tblwrap{margin-top:4px!important}
+#afford .tbl th,#afford .tbl td{padding:3px 8px}
+#afford .grid2{gap:8px;margin-top:6px!important}
+#afford .demo{min-height:0;padding:6px}
+#afford .callout{margin-block:6px!important;padding:6px 14px}
+#afford .kv{margin-top:3px!important}
+#afford h3{margin-bottom:2px!important}
+#afford .small.muted{margin-bottom:6px!important}
+#afford .panel p,#afford .door-msg{line-height:1.5}
+#afford .door-msg{min-height:0}
+
+/* compact: fit accessibility page through POINT on one screen */
+#acc{padding-block:4px 2px}
+#acc .sec-head{margin-bottom:6px}
+#acc .lead2{margin-bottom:6px;line-height:1.45}
+#acc .c4{gap:6px}
+#acc .u3{padding:8px}
+#acc .u3 p{margin:2px 0!important}
+#acc .small.muted{margin-top:4px!important;margin-bottom:0}
+#acc .panel{padding:8px;margin-top:6px!important}
+#acc h3{margin-bottom:2px!important}
+#acc .panel>.small.muted{margin-bottom:4px!important}
+#acc .grid2{gap:6px;margin-top:4px!important}
+#acc .demo{min-height:0;padding:5px}
+#acc .altpic .vf{height:78px}
+#acc .voice{gap:4px}
+#acc .bars{height:32px}
+#acc .voice .msg{line-height:1.45}
+#acc .callout{margin-block:4px!important;padding:5px 14px}
+#afford h2{font-size:1.7rem}
+#afford .sec-head{gap:2px}
+</style>
+
+<!-- color-vision filters (simulation) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="f-p" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.152 1.053 -0.205 0 0  0.115 0.786 0.099 0 0  -0.004 -0.048 1.052 0 0  0 0 0 1 0"/></filter>
+    <filter id="f-d" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0"/></filter>
+  </defs>
+</svg>
+
+<div class="wrap">
+<div class="nav-dock" id="navDock">
+<button id="fixPrev" type="button"><span class="ar">←</span>前へ</button>
+<button id="fixNext" type="button">次へ<span class="ar">→</span></button>
+</div>
+<nav class="pnav" id="pnav" aria-label="ページ切り替え">
+  <a href="#ui">ユーザインターフェース</a><a class="two" href="#afford">アフォーダンス<br>シグニファイア</a><a href="#ud">ユニバーサルデザイン</a><a class="cmp two" href="#usab">ユーザビリティ<br>アクセシビリティ</a><a class="cmp two" href="#fsafe">フェイルセーフ<br>フールプルーフ</a><a href="#summary">まとめ</a><a href="#quiz">確認クイズ</a>
+</nav>
+
+
+<!-- ============ UI ============ -->
+<section class="sec page" id="ui">
+  <div class="sec-head">
+    <h2>ユーザインターフェース</h2>
+    <div class="en">User Interface ／ UI</div>
+  </div>
+  <p class="lead2 oneline"><b>人</b>とコンピュータ(機器)が情報をやりとりする<b>「接点」</b>のこと。人から機器へ伝えるのが<b>入力</b>、機器から人へ伝えるのが<b>出力</b>です。</p>
+  <h3 style="margin:6px 0 4px">まずは身近な例で見てみよう</h3>
+  <p class="small muted" style="margin-bottom:10px">場面を選ぶと、「入力」と「出力」が順番に動きます(自動で進みます)。右の手順をタップすると、その場面へ移動できます。</p>
+  <div class="seg" role="tablist" id="scTabs" aria-label="場面を選ぶ"></div>
+  <div class="panel sc-panel" style="margin-top:12px">
+    <div class="sc-wrap">
+      <div><div class="dev"><div class="dev-h" id="devName"></div><div class="dev-s" id="devScreen" aria-live="polite"></div></div></div>
+      <div>
+        <ol class="stps" id="scSteps"></ol>
+        <dl class="kv" style="margin-top:12px" id="scTools"></dl>
+        <div class="row sc-ctrls"><button class="btn alt" id="scPlay" type="button">一時停止</button><button class="btn alt" id="scNext" type="button">次へ進む</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec page" id="ui2">
+  <div class="sec-head">
+    <h2>ユーザインターフェース</h2>
+    <div class="en">User Interface ／ UI</div>
+  </div>
+  <h3 style="margin:6px 0 10px">図にまとめると</h3>
+  <p class="small muted" style="margin-bottom:10px">どの例にも共通するのは、人と機器のあいだで「入力」と「出力」がくり返されること。この<b>やりとりの窓口(ボタン・画面・マイク・スピーカーなど)</b>がユーザインターフェースです。</p>
+  <div class="panel">
+    <svg class="diagram" viewBox="0 0 720 252" role="img" aria-label="人とコンピュータの間で、入力と出力が行き来する図">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="f-blue"/></marker>
+        <path id="pOut" d="M560 92 C470 34 250 34 160 92"/>
+        <path id="pIn" d="M160 165 C250 225 470 225 560 130"/>
+      </defs>
+      <line x1="360" y1="40" x2="360" y2="212" class="s-line" stroke-width="2" stroke-dasharray="5 6"/>
+      <use href="#pOut" fill="none" class="s-blue" stroke-width="2.5" marker-end="url(#ah)"/>
+      <use href="#pIn" fill="none" class="s-blue" stroke-width="2.5" marker-end="url(#ah)"/>
+      <!-- human -->
+      <circle cx="105" cy="84" r="21" class="f-ink"/>
+      <path d="M62 178 C62 122 148 122 148 178 Z" class="f-ink"/>
+      <text x="105" y="204" text-anchor="middle" font-size="15" font-weight="900" class="t-ink">人</text>
+      <!-- computer -->
+      <rect x="560" y="60" width="126" height="84" rx="9" class="f-ink"/>
+      <rect x="568" y="68" width="110" height="68" rx="4" class="f-surface2"/>
+      <rect x="614" y="144" width="26" height="14" class="f-ink"/>
+      <rect x="592" y="158" width="70" height="8" rx="4" class="f-ink"/>
+      <text x="623" y="204" text-anchor="middle" font-size="15" font-weight="900" class="t-ink">コンピュータ</text>
+      <!-- pill -->
+      <rect x="292" y="112" width="136" height="36" rx="18" class="f-blue"/>
+      <text x="360" y="136" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">接点 = UI</text>
+      <text x="360" y="24" text-anchor="middle" font-size="14" font-weight="700" class="t-ink">出力:画面・音・振動 → 人が見る・聞く</text>
+      <text x="360" y="244" text-anchor="middle" font-size="14" font-weight="700" class="t-ink">入力:キー・マウス・タッチ・声 → 機器へ伝える</text>
+      <g class="f-blue">
+        <circle r="6" class="f-blue"><animateMotion dur="3s" repeatCount="indefinite"><mpath href="#pOut"/></animateMotion></circle>
+        <circle r="6" class="f-blue" opacity="0"><set attributeName="opacity" to="1" begin="1s"/><animateMotion dur="3s" begin="1s" repeatCount="indefinite"><mpath href="#pOut"/></animateMotion></circle>
+        <circle r="6" class="f-blue" opacity="0"><set attributeName="opacity" to="1" begin="2s"/><animateMotion dur="3s" begin="2s" repeatCount="indefinite"><mpath href="#pOut"/></animateMotion></circle>
+        <circle r="6" class="f-blue" opacity="0"><set attributeName="opacity" to="1" begin="0.5s"/><animateMotion dur="3s" begin="0.5s" repeatCount="indefinite"><mpath href="#pIn"/></animateMotion></circle>
+        <circle r="6" class="f-blue" opacity="0"><set attributeName="opacity" to="1" begin="1.5s"/><animateMotion dur="3s" begin="1.5s" repeatCount="indefinite"><mpath href="#pIn"/></animateMotion></circle>
+        <circle r="6" class="f-blue" opacity="0"><set attributeName="opacity" to="1" begin="2.5s"/><animateMotion dur="3s" begin="2.5s" repeatCount="indefinite"><mpath href="#pIn"/></animateMotion></circle>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section class="sec page" id="ui3">
+  <div class="sec-head">
+    <h2>ユーザインターフェース</h2>
+    <div class="en">User Interface ／ UI</div>
+  </div>
+  <h3 style="margin:6px 0 10px">いろいろなユーザインターフェース</h3>
+  <p class="small muted" style="margin-bottom:10px">種類を選ぶと、動く見本と特徴が切り替わります。</p>
+  <div class="seg" role="tablist" id="uiTabs" aria-label="ユーザインターフェースの種類"></div>
+  <div class="panel grid2" style="margin-top:12px" id="uiPanel" role="tabpanel" aria-live="polite">
+    <div class="demo" id="uiDemo"></div>
+    <div id="uiInfo"></div>
+  </div>
+  <div class="callout"><span class="lb">POINT</span><p>UIは「見た目のデザイン」だけではありません。<b>入力の方法</b>と<b>出力の方法</b>をひとまとめにした、人と機器の<b>やりとりの仕組み全体</b>のことです。</p></div>
+</section>
+
+<!-- ============ Signifier ============ -->
+<section class="sec page" id="afford">
+  <div class="sec-head">
+    <h2>アフォーダンス</h2>
+    <div class="en">Affordance ／ モノが人に与える行為の可能性</div>
+  </div>
+  <div class="panel">
+    <p><b>アフォーダンス</b>とは、モノが人に対して<b>「〜できる」という行為の可能性</b>を与えていること。英語の <i>afford</i>(与える・提供する)から作られた言葉で、心理学者のジェームズ・ギブソンが提唱し、のちにドナルド・ノーマンがデザインの分野に広めました。</p>
+    <p style="margin-top:8px">ポイントは、<b>可能性はモノ自体にあるが、人が気づけるとは限らない</b>ということ。気づけない可能性は、使われないか、使い間違えられます。</p>
+    <div class="tblwrap" style="margin-top:12px">
+      <table class="tbl" style="min-width:480px">
+        <thead><tr><th>モノ</th><th>アフォーダンス(できること)</th><th>気づかせる手がかり(=シグニファイア)</th></tr></thead>
+        <tbody>
+          <tr><th>いす</th><td>座れる</td><td>座面の高さ・平らな形</td></tr>
+          <tr><th>取っ手</th><td>つかめる</td><td>手にちょうどよい棒の形</td></tr>
+          <tr><th>ボタン</th><td>押せる</td><td>出っ張り・影・色</td></tr>
+          <tr><th>スマホの画面</th><td>タップできる</td><td>角丸の枠・影・色付きの文字</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:8px">
+    <h3 style="margin-bottom:4px">実験:ガラスの壁の「通れない」に気づける?</h3>
+    <p class="small muted" style="margin-bottom:8px">ガラスの壁には「通れない」という性質(アフォーダンス)がありますが、透明なので気づけません。シールが手がかり(シグニファイア)になります。</p>
+    <div class="seg" id="glSeg" role="group" aria-label="ガラスの手がかり">
+      <button data-g="no" aria-pressed="true">ガラスだけ</button>
+      <button data-g="yes" aria-pressed="false">ガラスにシール</button>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div class="demo">
+        <svg viewBox="0 0 360 200" width="200" role="img" aria-label="ガラスの壁に向かって歩く人のアニメーション" id="glSvg" class="gl-no">
+          <rect x="0" y="0" width="360" height="200" rx="10" class="f-surface2"/>
+          <line x1="0" y1="170" x2="360" y2="170" class="s-ink" stroke-width="3"/>
+          <rect x="210" y="24" width="12" height="146" rx="2" style="fill:var(--blue-soft);stroke:var(--blue)" stroke-width="2" opacity=".85"/>
+          <g id="glSticker"><rect x="203" y="96" width="26" height="16" rx="3" style="fill:var(--amber)"/><text x="216" y="109" text-anchor="middle" font-size="12" font-weight="900" fill="#fff" style="fill:#fff">!</text></g>
+          <g class="man" id="glMan">
+            <circle cx="40" cy="120" r="10" class="f-ink"/>
+            <path d="M26 170 C26 134 54 134 54 170 Z" class="f-ink"/>
+          </g>
+          <text id="glBump" x="150" y="70" text-anchor="middle" font-size="24" font-weight="900" style="fill:var(--red)">ゴンッ!</text>
+          <text id="glOk" x="150" y="70" text-anchor="middle" font-size="18" font-weight="900" style="fill:var(--green)">ガラスがあると気づく</text>
+          <text x="216" y="192" text-anchor="middle" font-size="12" font-weight="700" class="t-muted">ガラスの壁</text>
+        </svg>
+      </div>
+      <div>
+        <p class="door-msg" id="glMsg"></p>
+        <dl class="kv" style="margin-top:12px;grid-template-columns:8.5em 1fr">
+          <dt>アフォーダンス</dt><dd>ガラスは「通れない」(壁である)</dd>
+          <dt>シグニファイア</dt><dd id="glSig"></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="callout"><span class="lb">POINT</span><p>アフォーダンスは<b>モノの側にある可能性</b>です。でも、人がそれに気づけなければ、使われなかったり使い間違えられたりします。その「気づかせる手がかり」が、次のページの<b>シグニファイア</b>です。</p></div>
+</section>
+
+<section class="sec page" id="signifier">
+  <div class="sec-head">
+    <h2>シグニファイア</h2>
+    <div class="en">Signifier ／ 操作のための手がかり</div>
+  </div>
+  <p class="lead2">モノや画面が、<b>「どこを・どう操作すればよいか」を利用者に伝える手がかり</b>(合図・目印)のこと。取っ手の形、ボタンの立体感、矢印、色、文字などがあたります。</p>
+
+  <div class="panel">
+    <h3 style="margin-bottom:4px">実験:この扉、どう開ける?</h3>
+    <p class="small muted" style="margin-bottom:12px">手がかりを切り替えて、どう見えるか比べてみよう。</p>
+    <div class="seg" id="doorSeg" role="group" aria-label="扉の手がかり">
+      <button data-d="none" aria-pressed="true">手がかりなし</button>
+      <button data-d="handle" aria-pressed="false">取っ手</button>
+      <button data-d="plate" aria-pressed="false">平らな板</button>
+      <button data-d="mixed" aria-pressed="false">取っ手+「押」の貼り紙</button>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="demo">
+        <svg viewBox="0 0 300 290" width="270" role="img" aria-label="扉のイラスト" id="doorSvg">
+          <rect x="0" y="0" width="300" height="290" rx="10" class="f-surface2"/>
+          <rect x="62" y="20" width="176" height="232" rx="4" class="f-ink" id="dInside" opacity=".85"/>
+          <g id="dLeaf">
+          <rect x="62" y="20" width="176" height="232" rx="4" class="f-surface s-ink" stroke-width="3"/>
+          <rect x="72" y="32" width="156" height="208" rx="3" fill="none" class="s-line" stroke-width="2"/>
+          <g id="dHandle" hidden>
+            <circle cx="204" cy="135" r="28" fill="none" class="s-blue pulse" stroke-width="3"/>
+            <rect x="200" y="98" width="9" height="74" rx="4.5" class="f-ink"/>
+            <rect x="209" y="104" width="12" height="6" rx="2" class="f-ink"/>
+            <rect x="209" y="160" width="12" height="6" rx="2" class="f-ink"/>
+          </g>
+          <g id="dPlate" hidden>
+            <circle cx="204" cy="135" r="34" fill="none" class="s-blue pulse" stroke-width="3"/>
+            <rect x="186" y="98" width="36" height="74" rx="7" class="f-ink"/>
+          </g>
+          <g id="dPaper" hidden>
+            <rect x="182" y="60" width="44" height="32" rx="2" fill="#FFF8C6" stroke="#B9A83C"/>
+            <text x="204" y="83" text-anchor="middle" font-size="20" font-weight="900" fill="#7a5c00" style="fill:#7a5c00">押</text>
+          </g>
+          <g id="dQ">
+            <text class="qmark t-muted" x="150" y="120" font-size="34" font-weight="900" text-anchor="middle">?</text>
+            <text class="qmark t-muted" x="190" y="150" font-size="28" font-weight="900" text-anchor="middle">?</text>
+            <text class="qmark t-muted" x="115" y="165" font-size="26" font-weight="900" text-anchor="middle">?</text>
+          </g>
+          <g id="dHand">
+            <rect x="228" y="120" width="80" height="26" rx="13" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="212" y="100" width="34" height="66" rx="15" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="188" y="106" width="34" height="12" rx="6" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="188" y="119" width="34" height="12" rx="6" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="188" y="132" width="34" height="12" rx="6" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="188" y="145" width="34" height="12" rx="6" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+          </g>
+          <g id="dHand2">
+            <rect x="232" y="128" width="84" height="28" rx="14" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="186" y="112" width="52" height="56" rx="12" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="188" y="78" width="10" height="44" rx="5" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="200" y="72" width="10" height="50" rx="5" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="212" y="76" width="10" height="46" rx="5" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+            <rect x="224" y="84" width="10" height="38" rx="5" fill="#F2C5A0" stroke="#B98A63" stroke-width="2"/>
+          </g>
+          </g>
+          <g id="dPullLbl"><text x="150" y="278" text-anchor="middle" font-size="19" font-weight="900" style="fill:var(--blue)">握って、手前に引く</text></g>
+          <g id="dAmbLbl"><text x="150" y="278" text-anchor="middle" font-size="19" font-weight="900" style="fill:var(--amber)">どっち…?</text><text id="dAmbL" x="6" y="278" font-size="17" font-weight="900" style="fill:var(--blue)">← 引く?</text><text id="dAmbR" x="294" y="278" text-anchor="end" font-size="17" font-weight="900" style="fill:var(--blue)">押す? →</text></g>
+          <g id="dPushLbl"><text x="150" y="278" text-anchor="middle" font-size="19" font-weight="900" style="fill:var(--blue)">手のひらで、奥へ押す</text></g>
+        </svg>
+      </div>
+      <div>
+        <p class="door-msg" id="doorMsg"></p>
+        <dl class="kv" style="margin-top:12px">
+          <dt>伝わる操作</dt><dd id="doorAct"></dd>
+          <dt>迷いやすさ</dt><dd id="doorLv"></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec page" id="signifier2">
+  <div class="sec-head">
+    <h2>シグニファイア</h2>
+    <div class="en">Signifier ／ 操作のための手がかり</div>
+  </div>
+  <h3 style="margin:6px 0 4px">画面のなかのシグニファイア</h3>
+  <p class="small muted" style="margin-bottom:12px">「手がかりなし」と「手がかりあり」を見比べよう。どちらが操作できそうに見える?</p>
+  <div class="sxgrid">
+    <div class="sx"><h4>ボタンの立体感・色</h4><div class="pair">
+      <div class="cell"><span>送信</span><span class="cap">手がかりなし</span></div>
+      <div class="cell"><button class="sx-btn" type="button">送信</button><span class="cap yes">手がかりあり</span></div></div></div>
+    <div class="sx"><h4>リンクの色と下線</h4><div class="pair">
+      <div class="cell"><span>詳しくはこちら</span><span class="cap">手がかりなし</span></div>
+      <div class="cell"><a class="sx-link" href="#signifier" onclick="return false">詳しくはこちら</a><span class="cap yes">手がかりあり</span></div></div></div>
+    <div class="sx"><h4>灰色=まだ押せない</h4><div class="pair">
+      <div class="cell"><button class="sx-btn" type="button" disabled>送信</button><span class="cap">入力前(無効)</span></div>
+      <div class="cell"><button class="sx-btn" type="button">送信</button><span class="cap yes">入力後(有効)</span></div></div></div>
+    <div class="sx"><h4>▼ で「選べる」と伝える</h4><div class="pair">
+      <div class="cell"><div class="sx-box"><span>東京都</span></div><span class="cap">手がかりなし</span></div>
+      <div class="cell"><div class="sx-box"><span>東京都</span><span>▼</span></div><span class="cap yes">手がかりあり</span></div></div></div>
+    <div class="sx"><h4>⋮⋮ で「動かせる」と伝える</h4><div class="pair">
+      <div class="cell"><div class="sx-row">国語</div><span class="cap">手がかりなし</span></div>
+      <div class="cell"><div class="sx-row"><span class="grip">⋮⋮</span>国語</div><span class="cap yes">手がかりあり</span></div></div></div>
+    <div class="sx"><h4>枠と薄い文字で「入力できる」</h4><div class="pair">
+      <div class="cell"><span>お名前</span><span class="cap">手がかりなし</span></div>
+      <div class="cell"><input class="sx-in" id="sxName" type="text" placeholder="例)山田 太郎" aria-label="お名前"><span class="cap yes">手がかりあり</span></div></div></div>
+  </div>
+  <div class="callout"><span class="lb">POINT</span><p>良いシグニファイアは、説明書を読まなくても「見ただけで」操作がわかります。<b>形・色・位置・文字</b>が同じことを伝えているかも大切です。</p></div>
+</section>
+
+<section class="sec page" id="sigcmp">
+  <div class="sec-head">
+    <h2>アフォーダンス と シグニファイア</h2>
+    <div class="en">Affordance ／ Signifier</div>
+  </div>
+  <div class="tri-flow" style="grid-template-columns:1fr auto 1fr">
+    <div class="c a"><b>アフォーダンス</b><br><span class="small">モノが持つ「〜できる」という行為の可能性<br>例:扉は「開けられる」</span></div>
+    <div class="mid">→ 気づかせる</div>
+    <div class="c b"><b>シグニファイア</b><br><span class="small">その可能性を人に知らせる目印<br>例:取っ手の形、「押」の文字</span></div>
+  </div>
+
+  <div class="tblwrap" style="margin-top:8px">
+    <table class="tbl">
+      <thead><tr><th></th><th>アフォーダンス</th><th>シグニファイア</th></tr></thead>
+      <tbody>
+        <tr><th>ひとことで</th><td>モノが持つ「〜できる」という可能性</td><td>その可能性を人に知らせる手がかり</td></tr>
+        <tr><th>どこにある?</th><td>モノそのものの性質</td><td>見た目・形・文字・音など、人が感じ取れる合図</td></tr>
+        <tr><th>ガラスの壁</th><td>通り抜けられない</td><td>衝突防止のシール</td></tr>
+        <tr><th>扉</th><td>開けられる</td><td>取っ手の形、「押」の文字</td></tr>
+        <tr><th>スマホの画面</th><td>タップできる</td><td>ボタンの枠・影・色</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout amber"><span class="lb">POINT</span><p>「<b>できること</b>そのもの」ならアフォーダンス、「<b>できることに気づかせる目印</b>」ならシグニファイア。使い方がわかりにくいときは、アフォーダンスがなくなったのではなく、<b>シグニファイアが足りない</b>ことが多いのです。</p></div>
+
+</section>
+
+<!-- ============ UD ============ -->
+<section class="sec page" id="ud">
+  <div class="sec-head">
+    <h2>ユニバーサルデザイン</h2>
+    <div class="en">Universal Design ／ UD</div>
+  </div>
+  <p class="lead2">年齢・性別・国籍・障害の有無などに関係なく、<b>できるだけ多くの人が使えるように、最初から設計する</b>という考え方。アメリカの建築家ロナルド・メイス(1985年)が提唱しました。</p>
+  <div class="panel">
+    <h3 style="margin-bottom:8px">バリアフリーとの違いは「いつ」考えるか</h3>
+    <div class="bar"><span>バリアフリー</span><span class="arrow">▶</span><span>設計</span><span class="arrow">▶</span><span>完成・利用開始</span><span class="arrow">▶</span><span class="fix">障壁に気づく</span><span class="arrow">▶</span><span class="fix">あとから取り除く(例:段差にスロープ)</span></div>
+    <div class="bar"><span>ユニバーサルデザイン</span><span class="arrow">▶</span><span class="ud">最初から「みんな」を想定して設計(例:段差のない入口)</span><span class="arrow">▶</span><span>完成・利用開始</span></div>
+  </div>
+</section>
+
+<section class="sec page" id="ud2">
+  <div class="sec-head">
+    <h2>ユニバーサルデザイン</h2>
+    <div class="en">Universal Design ／ UD</div>
+  </div>
+  <h3 style="margin:6px 0 10px">ユニバーサルデザインの7原則</h3>
+  <div class="ud7">
+    <div class="u"><span class="num">1</span><h4>公平な利用</h4><p>誰でも同じように使え、使いにくい人をつくらない。</p><div class="eg">例:自動ドア</div></div>
+    <div class="u"><span class="num">2</span><h4>利用における柔軟性</h4><p>使う人の好みや能力に合わせて使い方を選べる。</p><div class="eg">例:右利きにも左利きにも使えるはさみ</div></div>
+    <div class="u"><span class="num">3</span><h4>単純で直感的な利用</h4><p>経験や知識がなくても、使い方がすぐわかる。</p><div class="eg">例:ピクトグラム(絵記号)</div></div>
+    <div class="u"><span class="num">4</span><h4>認知しやすい情報</h4><p>必要な情報が、見えにくい・聞こえにくい人にも伝わる。</p><div class="eg">例:音・光・文字で知らせる駅の案内</div></div>
+    <div class="u"><span class="num">5</span><h4>間違いに対する寛大さ</h4><p>うっかりミスが、危険や大きな失敗につながらない。</p><div class="eg">例:「元に戻す」機能</div></div>
+    <div class="u"><span class="num">6</span><h4>身体的な負担が少ない</h4><p>無理な姿勢や強い力がなくても、楽に使える。</p><div class="eg">例:レバー式のドアハンドル</div></div>
+    <div class="u"><span class="num">7</span><h4>接近して使える寸法と空間</h4><p>体格や姿勢、移動手段に関わらず、近づいて使える。</p><div class="eg">例:幅の広い改札</div></div>
+    <div class="core">共通する考え方: 「みんな」の中の一人ひとりの違いを、最初から想定する。</div>
+  </div>
+</section>
+
+<section class="sec page" id="ud3">
+  <div class="sec-head">
+    <h2>ユニバーサルデザイン</h2>
+    <div class="en">Universal Design ／ UD</div>
+  </div>
+  <div class="panel">
+    <h3 style="margin-bottom:4px">実験:色の見え方が違う人には、どう見える?</h3>
+    <p class="small muted" style="margin-bottom:12px">色の見え方には個人差があります(日本人男性の約20人に1人、女性の約500人に1人)。簡易シミュレーションで、2つの運行情報を見比べよう。</p>
+    <div class="seg" id="cvSeg" role="group" aria-label="見え方の切り替え">
+      <button data-f="none" aria-pressed="true">ふつうの見え方</button>
+      <button data-f="url(#f-p)" aria-pressed="false">赤が見えにくい(P型)</button>
+      <button data-f="url(#f-d)" aria-pressed="false">緑が見えにくい(D型)</button>
+      <button data-f="grayscale(1)" aria-pressed="false">白黒(強い日差し・印刷)</button>
+    </div>
+    <div class="cv" id="cvBox" style="margin-top:14px">
+      <div class="cvgrid">
+        <div class="cvbox"><h4>△ 色だけで区別している</h4>
+          <div class="cvrow"><span class="dot d-ok"></span>A線</div>
+          <div class="cvrow"><span class="dot d-late"></span>B線</div>
+          <div class="cvrow"><span class="dot d-stop"></span>C線</div>
+          <p style="font-size:.78rem;color:#555;margin-top:6px">緑=平常 / 橙=遅れ / 赤=運休</p></div>
+        <div class="cvbox"><h4>○ 色 + 形 + 文字で区別している</h4>
+          <div class="cvrow"><span class="shape d-ok">○</span>A線<span class="st">平常運転</span></div>
+          <div class="cvrow"><span class="shape tri d-late">!</span>B線<span class="st">遅れあり</span></div>
+          <div class="cvrow"><span class="shape sq d-stop">×</span>C線<span class="st">運休</span></div>
+          <p style="font-size:.78rem;color:#555;margin-top:6px">色が違って見えても、形と文字で伝わる</p></div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:10px">※ 見え方の個人差は大きく、これは目安となる簡易シミュレーションです。</p>
+  </div>
+  <div class="callout"><span class="lb">POINT</span><p>「色だけ」に頼らず、<b>形・文字・音・位置</b>も使って伝える(原則4)。これは、色の見え方が違う人だけでなく、<b>明るい屋外や白黒印刷</b>など、すべての人の助けになります。</p></div>
+</section>
+
+<!-- ============ Usability vs Accessibility ============ -->
+<section class="sec page" id="usab">
+  <div class="sec-head">
+    <h2>ユーザビリティ</h2>
+    <div class="en">Usability ／ 使いやすさ</div>
+  </div>
+  <p class="lead2">特定の利用者が、特定の場面で、目的を<b>効果的に・効率よく・満足して</b>達成できる度合い(使いやすさ)。国際規格(ISO 9241-11)では、次の3つの視点で考えます。</p>
+  <div class="c3">
+    <div class="u3"><h4>効果</h4><p>目的を最後まで達成できたか。</p><div class="eg">例:注文を完了できる</div></div>
+    <div class="u3"><h4>効率</h4><p>かかった手間や時間はどれくらいか。</p><div class="eg">例:少ない手順で購入できる</div></div>
+    <div class="u3"><h4>満足度</h4><p>使っていて快適か、不快でないか。</p><div class="eg">例:迷わず気持ちよく使えた</div></div>
+  </div>
+  <div class="panel" style="margin-top:16px">
+    <h3 style="margin-bottom:4px">実験:同じ商品を買うのに、何手かかる?</h3>
+    <p class="small muted" style="margin-bottom:12px">2つの通販サイトで、同じ商品を購入するまでの手順を見てみよう(自動で進みます)。</p>
+    <div class="race" id="race"></div>
+    <p class="msg" id="raceMsg" style="margin-top:10px"></p>
+  </div>
+  <h3 style="margin:24px 0 8px">ユーザビリティを高める工夫</h3>
+  <div class="chips2"><span>手順を減らす</span><span>入力例を見せる</span><span>間違いを元に戻せる</span><span>ボタンの形や位置をそろえる</span><span>用語をやさしくする</span></div>
+  <div class="callout"><span class="lb">POINT</span><p>ユーザビリティは<b>「その人が、その場面で、使いやすいか」</b>を問います。使えるけれど不便、迷う、疲れる、といった問題は、ユーザビリティの問題です。</p></div>
+</section>
+
+<section class="sec page" id="acc">
+  <div class="sec-head">
+    <h2>アクセシビリティ</h2>
+    <div class="en">Accessibility ／ 利用しやすさ・近づきやすさ</div>
+  </div>
+  <p class="lead2">年齢や障害の有無、使う機器や環境に関わらず、<b>情報やサービスを利用できる</b>度合い。「そもそも使えるか」を問います。</p>
+  <div class="c4">
+    <div class="u3"><h4>見る</h4><p>見えにくい・見えない人にも。</p><div class="eg">画像に代替テキスト／十分な色の差</div></div>
+    <div class="u3"><h4>聞く</h4><p>聞こえにくい人にも。</p><div class="eg">動画に字幕／音声に文字起こし</div></div>
+    <div class="u3"><h4>操作する</h4><p>マウスが使えない人にも。</p><div class="eg">キーボードだけで操作できる</div></div>
+    <div class="u3"><h4>理解する</h4><p>だれにでも伝わるように。</p><div class="eg">やさしい言葉／ふりがな／図</div></div>
+  </div>
+  <p class="small muted" style="margin-top:8px">「使う機器(スマホ・古いパソコン)」や「環境(電波が弱い、屋外の明るい場所)」でも使えるかどうかも、アクセシビリティです。</p>
+  <div class="panel" style="margin-top:16px">
+    <h3 style="margin-bottom:4px">実験:画像の代替テキストがあると?</h3>
+    <p class="small muted" style="margin-bottom:12px">目が見えない人は、読み上げソフト(スクリーンリーダー)で画面の内容を音声で聞きます。</p>
+    <div class="seg" id="altSeg" role="group" aria-label="代替テキスト">
+      <button data-a="no" aria-pressed="true">代替テキストなし</button>
+      <button data-a="yes" aria-pressed="false">代替テキストあり</button>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="demo"><div class="altpic"><div class="vf"><span class="sun"></span><span class="tree"></span></div></div></div>
+      <div class="voice" style="align-items:flex-start;justify-content:center">
+        <div class="small muted">読み上げソフトの声</div>
+        <div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="bubble" id="altSay" style="font-size:1rem"></div>
+        <p class="msg" id="altMsg"></p>
+      </div>
+    </div>
+  </div>
+  <div class="callout amber"><span class="lb">POINT</span><p>アクセシビリティは<b>「使える人・場面の幅」</b>を問います。ひとつでも「使えない人」がいると、アクセシビリティが低い状態です。</p></div>
+</section>
+
+<section class="sec page" id="usacmp">
+  <div class="sec-head">
+    <h2>ユーザビリティ と アクセシビリティ</h2>
+    <div class="en">Usability ／ Accessibility</div>
+  </div>
+  <div class="grid2" style="margin-bottom:18px">
+    <div class="panel" style="border-color:var(--blue)">
+      <h3>ユーザビリティ <span class="small muted">使いやすさ</span></h3>
+      <p style="margin-top:6px">特定の利用者が、特定の場面で、目的を<b>効果的に・効率よく・満足して</b>達成できる度合い。</p>
+      <p class="big" style="color:var(--blue);margin-top:10px">「使いやすい?」</p>
+    </div>
+    <div class="panel" style="border-color:var(--amber)">
+      <h3>アクセシビリティ <span class="small muted">利用しやすさ・近づきやすさ</span></h3>
+      <p style="margin-top:6px">年齢や障害の有無、使う機器や環境に関わらず、<b>情報やサービスを利用できる</b>度合い。</p>
+      <p class="big" style="color:var(--amber);margin-top:10px">「そもそも使える?」</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-bottom:4px">実験:建物に入って、目的の部屋へ行く</h3>
+    <p class="small muted" style="margin-bottom:12px">2つの条件を切り替えて、利用者の動きを見てみよう。</p>
+    <div class="row" style="gap:18px">
+      <div><div class="small" style="font-weight:900;margin-bottom:4px;color:var(--amber)">アクセシビリティ</div>
+        <div class="seg" id="accSeg" role="group" aria-label="アクセシビリティ"><button data-v="0" aria-pressed="false">低い</button><button data-v="1" aria-pressed="true">高い</button></div></div>
+      <div><div class="small" style="font-weight:900;margin-bottom:4px;color:var(--blue)">ユーザビリティ</div>
+        <div class="seg" id="useSeg" role="group" aria-label="ユーザビリティ"><button data-v="0" aria-pressed="false">低い</button><button data-v="1" aria-pressed="true">高い</button></div></div>
+    </div>
+    <div class="demo" style="margin-top:14px;padding:10px">
+      <svg class="jr" viewBox="0 0 860 260" role="img" aria-label="利用者が入口と案内板を通って目的地に向かうアニメーション">
+        <line x1="0" y1="200" x2="860" y2="200" class="s-ink" stroke-width="3"/>
+        <!-- start -->
+        <line x1="34" y1="150" x2="34" y2="200" class="s-ink" stroke-width="3"/>
+        <polygon points="34,150 64,160 34,170" class="f-blue"/>
+        <text x="34" y="228" font-size="14" font-weight="900" text-anchor="middle" class="t-ink">スタート</text>
+        <!-- gate 1 building -->
+        <rect x="250" y="84" width="120" height="116" class="f-surface s-ink" stroke-width="3"/>
+        <rect x="292" y="128" width="40" height="72" class="f-ink"/>
+        <text x="310" y="74" font-size="14" font-weight="900" text-anchor="middle" style="fill:var(--amber)">入口</text>
+        <g id="gStep">
+          <polygon points="232,200 232,178 252,178 252,156 272,156 272,134 292,134 292,200" style="fill:var(--red-soft);stroke:var(--red)" stroke-width="3"/>
+          <text x="310" y="228" font-size="12" font-weight="900" text-anchor="middle" style="fill:var(--red)">高い段差・字幕なし・読み上げ非対応…</text>
+        </g>
+        <g id="gFlat">
+          <rect x="228" y="192" width="104" height="8" rx="3" style="fill:var(--green-soft);stroke:var(--green)" stroke-width="2"/>
+          <text x="310" y="228" font-size="12" font-weight="900" text-anchor="middle" style="fill:var(--green)">段差なし・字幕あり・読み上げ対応</text>
+        </g>
+        <!-- gate 2 sign -->
+        <line x1="580" y1="120" x2="580" y2="200" class="s-ink" stroke-width="4"/>
+        <rect x="524" y="80" width="112" height="44" rx="6" class="f-surface s-ink" stroke-width="3"/>
+        <text x="580" y="70" font-size="14" font-weight="900" text-anchor="middle" style="fill:var(--blue)">案内板</text>
+        <g id="gSignBad">
+          <text x="546" y="112" font-size="26" font-weight="900" text-anchor="middle" style="fill:var(--red)">↖</text>
+          <text x="580" y="112" font-size="26" font-weight="900" text-anchor="middle" style="fill:var(--red)">?</text>
+          <text x="614" y="112" font-size="26" font-weight="900" text-anchor="middle" style="fill:var(--red)">↙</text>
+          <text x="580" y="228" font-size="12" font-weight="900" text-anchor="middle" style="fill:var(--red)">分かりにくい表示・階層が深い</text>
+        </g>
+        <g id="gSignGood">
+          <text x="580" y="114" font-size="20" font-weight="900" text-anchor="middle" style="fill:var(--green)">受付 →</text>
+          <text x="580" y="228" font-size="12" font-weight="900" text-anchor="middle" style="fill:var(--green)">一目でわかる表示・少ない手順</text>
+        </g>
+        <!-- goal -->
+        <line x1="812" y1="140" x2="812" y2="200" class="s-ink" stroke-width="3"/>
+        <polygon points="812,140 842,150 812,160" style="fill:var(--green)"/>
+        <text x="812" y="228" font-size="14" font-weight="900" text-anchor="middle" class="t-ink">目的達成</text>
+        <!-- mover -->
+        <g id="mover" style="transform:translate(0,0)">
+          <circle cx="34" cy="176" r="8" class="f-blue"/>
+          <path d="M22 200 C22 184 46 184 46 200 Z" class="f-blue"/>
+        </g>
+      </svg>
+    </div>
+    <div class="result" id="jrResult"></div>
+  </div>
+
+  <div class="tblwrap" style="margin-top:20px">
+    <table class="tbl">
+      <thead><tr><th></th><th>ユーザビリティ</th><th>アクセシビリティ</th></tr></thead>
+      <tbody>
+        <tr><th>ひとことで</th><td>使いやすいか</td><td>使えるか(使える人・場面の幅が広いか)</td></tr>
+        <tr><th>評価の視点</th><td>効果・効率・満足度</td><td>障害・年齢・機器・環境を問わず利用できるか</td></tr>
+        <tr><th>Webの例</th><td>目的のページに少ないクリックで着ける</td><td>画像に代替テキストがある、キーボードだけで操作できる</td></tr>
+        <tr><th>身近な例</th><td>入ってから目的の部屋まで迷わない案内</td><td>階段だけでなく、スロープやエレベーターがある入口</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout amber"><span class="lb">POINT</span><p>両者は無関係ではなく、<b>アクセシビリティが「入口」、ユーザビリティが「入ってから」</b>と考えるとつかみやすいです。どちらの問題か迷う例もあるので、「そもそも使えない?」→アクセシビリティ、「使えるけど不便?」→ユーザビリティ、と考えてみよう。</p></div>
+
+</section>
+
+<!-- ============ Fail-safe / Fool-proof ============ -->
+<section class="sec page" id="fsafe">
+  <div class="sec-head">
+    <h2>フェイルセーフ</h2>
+    <div class="en">Fail-safe ／ 故障しても安全に</div>
+  </div>
+  <p class="lead2">機械やシステムに<b>故障・異常</b>が起きても、<b>安全な側</b>に働くようにする設計。「壊れること」を前提に、被害を小さくします。</p>
+  <div class="grid2">
+    <div class="fs-card a">
+      <h3>フェイルセーフ<span>故障しても安全に</span></h3>
+      <p class="small muted" style="margin:4px 0 10px">例:踏切の遮断機。電力が切れたら、どうなる?</p>
+      <div class="demo" style="min-height:230px">
+        <svg viewBox="0 0 340 220" width="320" role="img" aria-label="踏切の遮断機のイラスト">
+          <rect x="0" y="0" width="340" height="220" rx="10" class="f-surface2"/>
+          <rect x="0" y="172" width="340" height="48" style="fill:var(--line)"/>
+          <line x1="0" y1="196" x2="340" y2="196" stroke="#fff" stroke-width="3" stroke-dasharray="14 12" style="stroke:var(--surface)"/>
+          <!-- post -->
+          <rect x="246" y="78" width="14" height="94" class="f-ink"/>
+          <rect x="234" y="70" width="38" height="20" rx="4" class="f-ink"/>
+          <circle id="lampL" cx="246" cy="80" r="5" style="fill:#7a2a2a"/>
+          <circle id="lampR" cx="262" cy="80" r="5" style="fill:#7a2a2a"/>
+          <!-- arm -->
+          <g id="arm" style="transform-origin:253px 152px;transform:rotate(68deg);transition:transform 1.4s cubic-bezier(.5,0,.9,.6)">
+            <rect x="93" y="146" width="164" height="12" rx="3" fill="#fff" style="fill:var(--surface)" stroke-width="2" class="s-ink"/>
+            <rect x="120" y="146" width="22" height="12" fill="#D62F2F"/>
+            <rect x="164" y="146" width="22" height="12" fill="#D62F2F"/>
+            <rect x="208" y="146" width="22" height="12" fill="#D62F2F"/>
+            <rect x="253" y="142" width="24" height="20" rx="3" class="f-ink"/>
+          </g>
+          <!-- car -->
+          <g id="carG" style="transition:transform 1s">
+            <rect x="24" y="160" width="46" height="18" rx="5" class="f-blue"/>
+            <rect x="34" y="150" width="26" height="14" rx="4" class="f-blue"/>
+            <circle cx="36" cy="180" r="5" class="f-ink"/><circle cx="60" cy="180" r="5" class="f-ink"/>
+          </g>
+          <text x="170" y="212" text-anchor="middle" font-size="13" font-weight="900" class="t-ink" id="fsState">通電中:電力で遮断かんを持ち上げている</text>
+        </svg>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="fsBtn" type="button">⚡ 停電を起こす</button>
+        <button class="btn alt" id="fsReset" type="button">復旧する</button>
+      </div>
+      <p class="msg" id="fsMsg">ボタンを押して、電力が切れた瞬間を見てみよう。</p>
+      <p class="small muted">故障が起きると「遮断かんが下りる(=危険な踏切に入れない)」ほうへ倒れる設計。もし上がったまま止まる設計なら、故障が事故につながります。</p>
+    </div>
+    <div class="panel">
+      <h3 style="margin-bottom:8px">身近なフェイルセーフ</h3>
+      <dl class="kv" style="grid-template-columns:9em 1fr">
+        <dt>踏切の遮断機</dt><dd>停電すると、遮断かんが自分の重みで下りる</dd>
+        <dt>エレベーター</dt><dd>ワイヤーが切れても、非常止め装置でカゴが落ちない</dd>
+        <dt>ブレーカー</dt><dd>電流が大きすぎると、自動で電気を止める</dd>
+      </dl>
+      <p class="small muted" style="margin-top:12px">どれも「壊れた・異常が起きた」ときに、危険が広がらない方向へ働きます。</p>
+    </div>
+  </div>
+  <div class="callout"><span class="lb">POINT</span><p>フェイルセーフは<b>機械やシステムの故障</b>への備えです。「故障はいつか起きる」と考えて、そのときの状態が安全になるように設計します。</p></div>
+</section>
+
+<section class="sec page" id="fproof">
+  <div class="sec-head">
+    <h2>フールプルーフ</h2>
+    <div class="en">Fool-proof ／ 間違えても安全に</div>
+  </div>
+  <p class="lead2">人が<b>操作を間違えて</b>も、危険が起きない・<b>間違えられない</b>ようにする設計。うっかりや思い込み(ヒューマンエラー)への備えです。</p>
+  <div class="grid2">
+    <div class="fs-card b">
+      <h3>フールプルーフ<span>間違えても安全に</span></h3>
+      <p class="small muted" style="margin:4px 0 10px">例:カードの切り欠き。逆向きに挿すと、どうなる?</p>
+      <div class="demo" style="min-height:230px">
+        <svg viewBox="0 0 340 220" width="320" role="img" aria-label="切り欠きのあるカードとスロットのイラスト">
+          <rect x="0" y="0" width="340" height="220" rx="10" class="f-surface2"/>
+          <!-- slot -->
+          <polygon points="196,50 276,50 300,74 300,170 196,170" class="f-ink"/>
+          <polygon points="200,56 274,56 294,76 294,164 200,164" style="fill:var(--surface);opacity:.12"/>
+          <text x="248" y="196" text-anchor="middle" font-size="13" font-weight="900" class="t-muted">スロット(切り欠き付き)</text>
+          <g id="cardG" style="transform:translate(0,0)">
+            <g id="cardShape" style="transform-origin:80px 110px">
+              <polygon points="40,66 104,66 128,90 128,154 40,154" style="fill:var(--amber-soft);stroke:var(--amber)" stroke-width="3"/>
+            </g>
+            <text x="80" y="118" text-anchor="middle" font-size="16" font-weight="900" style="fill:var(--amber)">CARD</text>
+            <text id="cardHint" x="80" y="140" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--amber)"></text>
+          </g>
+          <g id="boom" hidden>
+            <text x="230" y="120" text-anchor="middle" font-size="46" font-weight="900" style="fill:var(--red)">×</text>
+          </g>
+          <text x="20" y="34" font-size="15" font-weight="900" class="t-ink" id="fpState">カードを向きを選んで挿してみよう</text>
+        </svg>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="fpOk" type="button">正しい向きで挿す</button>
+        <button class="btn warn" id="fpNg" type="button">逆向きで挿す</button>
+      </div>
+      <p class="msg" id="fpMsg">切り欠きが合わないと、そもそも最後まで入りません。</p>
+      <p class="small muted">「間違えたら壊れる・危ない」のではなく、間違いそのものが起きにくい/起こせない形にする設計。ほかにも、給油ノズルの口径違い、削除前の確認画面などがあります。</p>
+    </div>
+    <div class="panel">
+      <h3 style="margin-bottom:8px">身近なフールプルーフ</h3>
+      <dl class="kv" style="grid-template-columns:9em 1fr">
+        <dt>電子レンジ</dt><dd>扉が開いていると、加熱が始まらない</dd>
+        <dt>給油ノズル</dt><dd>軽油用とガソリン用で太さが違い、入れ間違えられない</dd>
+        <dt>確認ダイアログ</dt><dd>削除の前に「本当に削除しますか?」と確認する</dd>
+        <dt>カード・端子</dt><dd>切り欠きがあり、逆向きに挿せない</dd>
+      </dl>
+      <p class="small muted" style="margin-top:12px">どれも、間違いを「起こしにくく」「起こせなく」しています。</p>
+    </div>
+  </div>
+  <div class="callout amber"><span class="lb">POINT</span><p>フールプルーフは<b>人の操作ミス</b>への備えです。「人は間違える」と考えて、間違えても大丈夫な(間違えられない)形にします。</p></div>
+</section>
+
+<section class="sec page" id="fscmp">
+  <div class="sec-head">
+    <h2>フェイルセーフ と フールプルーフ</h2>
+    <div class="en">Fail-safe ／ Fool-proof</div>
+  </div>
+  <div class="tri-flow">
+    <div class="c a"><b>フェイルセーフ</b><br><span class="small">機械やシステムに<b>故障・異常</b>が起きても、<b>安全な側</b>に働くようにする設計</span></div>
+    <div class="mid">原因が<br>ちがう</div>
+    <div class="c b"><b>フールプルーフ</b><br><span class="small">人が<b>操作を間違えて</b>も、危険が起きない・<b>間違えられない</b>ようにする設計</span></div>
+  </div>
+
+  <div class="tblwrap" style="margin-top:20px">
+    <table class="tbl">
+      <thead><tr><th></th><th>フェイルセーフ</th><th>フールプルーフ</th></tr></thead>
+      <tbody>
+        <tr><th>想定する原因</th><td>機械・部品・システムの故障、異常、停電</td><td>人の誤操作・うっかり(ヒューマンエラー)</td></tr>
+        <tr><th>考え方</th><td>壊れても、安全な側へ動く</td><td>間違えても危険にならない/間違えられない</td></tr>
+        <tr><th>例</th><td>停電で遮断機が下りる、エレベーターの非常止め装置</td><td>扉が開いていると動かない電子レンジ、切り欠きのある端子、確認ダイアログ</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout amber"><span class="lb">POINT</span><p>迷ったら <b>「何が起きたときの備え?」</b> と考えよう。<b>機械が壊れたとき</b>ならフェイルセーフ、<b>人が間違えたとき</b>ならフールプルーフ。安全な製品は、両方を組み合わせています。</p></div>
+
+</section>
+
+<!-- ============ Summary ============ -->
+<section class="sec page" id="summary">
+  <div class="sec-head">
+    <h2>キーワード早見表</h2>
+  </div>
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>用語</th><th>ひとことで</th><th>キーワード・例</th></tr></thead>
+      <tbody>
+        <tr><th>ユーザインターフェース</th><td>人と機器の「接点」</td><td>入力と出力／CUI・GUI・タッチ・音声・ジェスチャ</td></tr>
+        <tr><th>アフォーダンス</th><td>モノが持つ「〜できる」という可能性</td><td>いすは座れる、ガラスは通れない</td></tr>
+        <tr><th>シグニファイア</th><td>操作のしかたを伝える手がかり</td><td>取っ手の形、ボタンの立体感、矢印、▼、灰色の無効ボタン</td></tr>
+        <tr><th>ユニバーサルデザイン</th><td>最初から「みんな」が使えるように設計</td><td>7原則／バリアフリー(あとから取り除く)との違い</td></tr>
+        <tr><th>ユーザビリティ</th><td>使いやすさ</td><td>効果・効率・満足度</td></tr>
+        <tr><th>アクセシビリティ</th><td>そもそも使えるか</td><td>年齢・障害・機器・環境を問わず利用できる</td></tr>
+        <tr><th>フェイルセーフ</th><td>壊れても安全な側へ</td><td>停電で下りる遮断機</td></tr>
+        <tr><th>フールプルーフ</th><td>間違えても・間違えられても安全</td><td>切り欠き、開扉中は動かない電子レンジ</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec page" id="quiz">
+  <div class="sec-head">
+    <h2>確認クイズ</h2>
+    <div class="en">アフォーダンス と シグニファイア</div>
+  </div>
+  <h3 style="margin:6px 0 4px">アフォーダンス と シグニファイア</h3>
+  <div class="qhead"><p class="small muted">どちらの言葉?</p><span class="score" id="score-a"></span></div>
+  <div class="quiz" id="quiz-a"></div>
+</section>
+
+<section class="sec page" id="quiz2">
+  <div class="sec-head">
+    <h2>確認クイズ</h2>
+    <div class="en">ユーザビリティ と アクセシビリティ</div>
+  </div>
+  <h3 style="margin:6px 0 4px">ユーザビリティ と アクセシビリティ</h3>
+  <div class="qhead"><p class="small muted">どちらの問題?</p><span class="score" id="score-u"></span></div>
+  <div class="quiz" id="quiz-u"></div>
+</section>
+
+<section class="sec page" id="quiz3">
+  <div class="sec-head">
+    <h2>確認クイズ</h2>
+    <div class="en">フェイルセーフ と フールプルーフ</div>
+  </div>
+  <h3 style="margin:6px 0 4px">フェイルセーフ と フールプルーフ</h3>
+  <div class="qhead"><p class="small muted">どちらの設計?</p><span class="score" id="score-f"></span></div>
+  <div class="quiz" id="quiz-f"></div>
+</section>
+
+<footer>高等学校 情報Ⅰ「情報デザイン」学習用教材。色覚シミュレーションは簡易的な目安です。</footer>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ document.querySelectorAll('svg').forEach(function(s){ try{ s.pauseAnimations && s.pauseAnimations(); }catch(e){} }); }
+
+  /* ---------- UI tabs ---------- */
+  var UI = [
+    {id:'cui', name:'CUI', full:'Character User Interface', tip:'文字で命令する',
+     demo:'<div class="term"><div>$ ls</div><div class="dim">photo.png  report.txt</div><div>$ cp report.txt backup/</div><div>$ <span class="cursor-b"></span></div></div>',
+     inp:'キーボードで命令(コマンド)を文字入力', out:'文字で結果を表示', good:'慣れると速く、作業の自動化もしやすい', bad:'命令を覚える必要があり、初心者には難しい', ex:'コマンドプロンプト、ターミナル', cap:'例:パソコンで「ls」と打つと、フォルダの中のファイル名が文字で表示される'},
+    {id:'gui', name:'GUI', full:'Graphical User Interface', tip:'絵で操作する',
+     demo:'<div class="gui"><div class="gui-bar"><i></i><i></i><i></i></div><div class="gui-body"><div class="ic"><span></span>写真</div><div class="ic"><span></span>レポート</div><div class="ic"><span></span>ごみ箱</div><svg class="gcur" viewBox="0 0 22 22"><path d="M3 2 L3 17 L7 13 L10 20 L13 19 L10 12 L16 12 Z" fill="#fff" stroke="#111" stroke-width="1.5" stroke-linejoin="round"/></svg></div></div>',
+     inp:'マウスなどでアイコンやボタンを選ぶ', out:'画像・アイコン・ウィンドウで表示', good:'直感的で、初心者でも始めやすい', bad:'処理が増えると、表示に多くの資源が必要', ex:'パソコンのデスクトップ、スマホのアプリ', cap:'例:「写真」フォルダのアイコンをクリックすると、中身が開く'},
+    {id:'touch', name:'タッチ', full:'Touch User Interface', tip:'指で直接さわる',
+     demo:'<div class="phone"><div class="pbar"></div><div class="pbtn">いいね</div><span class="tap"></span></div>',
+     inp:'指で画面をタップ・スワイプ', out:'画面の表示や振動で反応', good:'画面を直接さわるので、感覚的に使える', bad:'小さなボタンは押し間違えやすい。手袋や濡れた手は苦手', ex:'スマートフォン、券売機、タブレット', cap:'例:スマホの「いいね」ボタンを指でタップすると、反応が返ってくる'},
+    {id:'voice', name:'音声', full:'Voice User Interface', tip:'声で伝える',
+     demo:'<div class="voice"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="bubble">「明日の天気は?」</div></div>',
+     inp:'声で命令する', out:'音声や画面で答える', good:'手がふさがっていても使える(ハンズフリー)', bad:'騒がしい場所や、静かにすべき場所では使いにくい', ex:'スマートスピーカー、カーナビ', cap:'例:「明日の天気は?」と話しかけると、声で答えてくれる'},
+    {id:'gest', name:'ジェスチャ', full:'Gesture User Interface', tip:'体の動きで伝える',
+     demo:'<div class="gest"><div class="gcard">写真</div><div class="ghand"></div></div>',
+     inp:'手や体の動きをカメラやセンサーで読み取る', out:'画面の変化や音などで反応', good:'触れずに操作できて、衛生的', bad:'動きを覚える必要があり、誤認識も起こる', ex:'体感ゲーム機、手をかざすと水が出る水栓', cap:'例:手を横に動かすと、写真が次のものに切り替わる'}
+  ];
+  var tabs = document.getElementById('uiTabs'), demo = document.getElementById('uiDemo'), info = document.getElementById('uiInfo');
+  function showUI(i){
+    var t = UI[i];
+    Array.prototype.forEach.call(tabs.children, function(b,j){ b.setAttribute('aria-selected', j===i ? 'true':'false'); b.tabIndex = j===i?0:-1; });
+    demo.innerHTML = t.demo + '<p class="cap2">'+t.cap+'</p>';
+    info.innerHTML = '<h3>'+t.name+' <span class="small muted">'+t.full+'</span></h3><p style="font-weight:700;margin:2px 0 10px">'+t.tip+'</p>'+
+      '<dl class="kv"><dt>入力</dt><dd>'+t.inp+'</dd><dt>出力</dt><dd>'+t.out+'</dd><dt>良い点</dt><dd>'+t.good+'</dd><dt>難しい点</dt><dd>'+t.bad+'</dd><dt>身近な例</dt><dd>'+t.ex+'</dd></dl>';
+  }
+  UI.forEach(function(t,i){
+    var b = document.createElement('button'); b.type='button'; b.setAttribute('role','tab'); b.textContent = t.name;
+    b.addEventListener('click', function(){ showUI(i); });
+    b.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ var n=(i+(e.key==='ArrowRight'?1:-1)+UI.length)%UI.length; showUI(n); tabs.children[n].focus(); }
+    });
+    tabs.appendChild(b);
+  });
+  showUI(1);
+
+  /* ---------- Door ---------- */
+  var DOOR = {
+    none:{h:[],q:true,msg:'取っ手も押し板もない、平らな扉。押す? 引く? スライド? …どう操作すればよいか、見ただけではわかりません。',act:'伝わらない',lv:'とても迷う'},
+    handle:{h:['dHandle'],q:true,msg:'取っ手は「つかめる」ことは伝えますが、押すのか引くのかまでは伝えません。見ただけでは「押す? 引く?」と迷います。',act:'押す? 引く? (わからない)',lv:'迷う'},
+    plate:{h:['dPlate'],q:false,msg:'つかむところのない平らな板は「手のひらで押す」ことを伝えています。自然に手のひらで板を押し、扉が奥へ開きます(アニメーション)。',act:'押す',lv:'ほとんど迷わない'},
+    mixed:{h:['dHandle','dPaper'],q:false,msg:'形は「引く」、貼り紙は「押す」。形と文字が矛盾していると、人はつい形につられて引いてしまいます。手がかりは同じことを伝えるように設計しよう。',act:'矛盾している(引く? 押す?)',lv:'迷う・間違える'}
+  };
+  var doorSeg = document.getElementById('doorSeg');
+  function setDoor(k){
+    var d = DOOR[k];
+    ['dHandle','dPlate','dPaper'].forEach(function(id){ document.getElementById(id).toggleAttribute('hidden', d.h.indexOf(id)<0); });
+    document.getElementById('dQ').style.display = d.q ? '' : 'none';
+    
+    document.getElementById('doorSvg').classList.toggle('push', k==='plate');
+    document.getElementById('doorMsg').textContent = d.msg;
+    document.getElementById('doorAct').textContent = d.act;
+    document.getElementById('doorLv').textContent = d.lv;
+    Array.prototype.forEach.call(doorSeg.children, function(b){ b.setAttribute('aria-pressed', b.dataset.d===k?'true':'false'); });
+  }
+  doorSeg.addEventListener('click', function(e){ var b=e.target.closest('button'); if(b) setDoor(b.dataset.d); });
+  setDoor('none');
+
+  /* ---------- Color vision ---------- */
+  var cvSeg = document.getElementById('cvSeg'), cvBox = document.getElementById('cvBox');
+  cvSeg.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    Array.prototype.forEach.call(cvSeg.children, function(x){ x.setAttribute('aria-pressed', x===b?'true':'false'); });
+    cvBox.style.filter = b.dataset.f;
+  });
+
+  /* ---------- Journey ---------- */
+  var acc = 1, use = 1, anim = null, mover = document.getElementById('mover');
+  function frames(){
+    if(!acc) return {d:3600, k:[{t:0,x:0,y:0},{t:.55,x:190,y:0},{t:.62,x:176,y:0},{t:.7,x:190,y:0},{t:.78,x:176,y:0},{t:.86,x:190,y:0},{t:1,x:190,y:0}]};
+    if(use) return {d:4200, k:[{t:0,x:0,y:0},{t:.85,x:770,y:0},{t:1,x:770,y:0}]};
+    return {d:8200, k:[{t:0,x:0,y:0},{t:.16,x:230,y:0},{t:.28,x:330,y:-34},{t:.4,x:250,y:-6},{t:.52,x:380,y:-34},{t:.62,x:290,y:0},{t:.74,x:470,y:-22},{t:.84,x:530,y:0},{t:.94,x:770,y:0},{t:1,x:770,y:0}]};
+  }
+  function runJourney(){
+    var f = frames();
+    var kf = f.k.map(function(p){ return {offset:p.t, transform:'translate('+p.x+'px,'+p.y+'px)'}; });
+    if(anim) anim.cancel();
+    if(reduce){ var last=f.k[f.k.length-1]; mover.style.transform='translate('+last.x+'px,'+last.y+'px)'; }
+    else { anim = mover.animate(kf, {duration:f.d, iterations:Infinity, easing:'ease-in-out'}); }
+    document.getElementById('gStep').style.display = acc?'none':'';
+    document.getElementById('gFlat').style.display = acc?'':'none';
+    document.getElementById('gSignBad').style.display = use?'none':'';
+    document.getElementById('gSignGood').style.display = use?'':'none';
+    var r = document.getElementById('jrResult');
+    if(!acc){ r.className='result bad'; r.textContent='入口で入れずに断念 → そもそも使えない。これは「アクセシビリティ」の問題です(ユーザビリティを考える以前の段階)。'; }
+    else if(!use){ r.className='result mid'; r.textContent='入れるけれど、迷って時間がかかる → 使いにくい。これは「ユーザビリティ」の問題です。'; }
+    else { r.className='result good'; r.textContent='誰でも入れて、迷わず目的を達成できる → アクセシビリティもユーザビリティも高い状態です。'; }
+  }
+  function bindSeg(id, set){
+    var s = document.getElementById(id);
+    s.addEventListener('click', function(e){
+      var b = e.target.closest('button'); if(!b) return;
+      Array.prototype.forEach.call(s.children, function(x){ x.setAttribute('aria-pressed', x===b?'true':'false'); });
+      set(+b.dataset.v); runJourney();
+    });
+  }
+  bindSeg('accSeg', function(v){acc=v;}); bindSeg('useSeg', function(v){use=v;});
+  runJourney();
+
+  /* ---------- Fail-safe crossing ---------- */
+  var arm = document.getElementById('arm'), lampL = document.getElementById('lampL'), lampR = document.getElementById('lampR');
+  var fsState = document.getElementById('fsState'), fsMsg = document.getElementById('fsMsg'), lampT=null;
+  function fsReset(){
+    clearInterval(lampT); lampL.style.fill='#7a2a2a'; lampR.style.fill='#7a2a2a';
+    arm.style.transition='transform .8s ease'; arm.style.transform='rotate(68deg)';
+    fsState.textContent='通電中:電力で遮断かんを持ち上げている';
+    fsMsg.className='msg'; fsMsg.textContent='ボタンを押して、電力が切れた瞬間を見てみよう。';
+  }
+  document.getElementById('fsBtn').addEventListener('click', function(){
+    clearInterval(lampT); lampL.style.fill='#7a2a2a'; lampR.style.fill='#7a2a2a';
+    arm.style.transition='transform 1.4s cubic-bezier(.5,0,.9,.6)'; arm.style.transform='rotate(0deg)';
+    fsState.textContent='停電!電力が切れた';
+    fsMsg.className='msg ok'; fsMsg.textContent='遮断かんが自分の重みで下りて、踏切に入れなくなった。故障しても「安全な側」に倒れます。→ フェイルセーフ';
+  });
+  document.getElementById('fsReset').addEventListener('click', fsReset);
+
+  /* ---------- Fool-proof card ---------- */
+  var cardG = document.getElementById('cardG'), cardShape = document.getElementById('cardShape'), boom = document.getElementById('boom');
+  var fpMsg = document.getElementById('fpMsg'), fpState = document.getElementById('fpState'), fpA = null, cardHint = document.getElementById('cardHint');
+  function fpRun(ok){
+    if(fpA) fpA.cancel(); boom.setAttribute('hidden','');
+    cardShape.style.transform = ok ? 'scaleY(1)' : 'scaleY(-1)';
+    cardHint.textContent = ok ? '切り欠き:上' : '切り欠き:下';
+    var to = ok ? 172 : 152;
+    fpState.textContent = ok ? '正しい向きで挿している…' : '逆向きで挿している…';
+    fpMsg.className='msg'; fpMsg.textContent='';
+    var done = function(){
+      if(ok){ fpMsg.className='msg ok'; fpMsg.textContent='切り欠きが合って、奥までぴったり入った。'; fpState.textContent='挿入できた'; }
+      else { boom.removeAttribute('hidden'); fpMsg.className='msg ng'; fpMsg.textContent='切り欠きが合わず、途中で止まって入らない。間違った挿し方が「できない」ようになっています。→ フールプルーフ'; fpState.textContent='逆向きでは入らない'; }
+    };
+    var kf = ok ? [{transform:'translate(0,0)'},{transform:'translate('+to+'px,0)'}]
+                : [{transform:'translate(0,0)',offset:0},{transform:'translate('+to+'px,0)',offset:.6},{transform:'translate('+(to-6)+'px,0)',offset:.68},{transform:'translate('+to+'px,0)',offset:.75},{transform:'translate('+(to-30)+'px,0)',offset:1}];
+    if(reduce){ cardG.style.transform = 'translate('+(ok?to:to-30)+'px,0)'; done(); return; }
+    fpA = cardG.animate(kf,{duration: ok?1200:1600, easing:'ease-in-out', fill:'forwards'});
+    fpA.onfinish = done;
+  }
+  document.getElementById('fpOk').addEventListener('click', function(){ fpRun(true); });
+  document.getElementById('fpNg').addEventListener('click', function(){ fpRun(false); });
+  cardHint.textContent='切り欠き:上';
+
+  /* ---------- Quiz ---------- */
+  function makeQuiz(id, scoreId, opts, items){
+    var root = document.getElementById(id), sc = document.getElementById(scoreId), n=0, ok=0;
+    function upd(){ sc.textContent = '正解 '+ok+' / '+items.length; }
+    items.forEach(function(it,qi){
+      var d = document.createElement('div'); d.className='qi';
+      d.innerHTML = '<p class="q">問'+(qi+1)+'. '+it.q+'</p><div class="qo"></div><p class="qfb" hidden></p>';
+      var o = d.querySelector('.qo'), fb = d.querySelector('.qfb'), done=false;
+      opts.forEach(function(label,oi){
+        var b = document.createElement('button'); b.type='button'; b.textContent=label;
+        b.addEventListener('click', function(){
+          if(done) return; done=true;
+          var right = oi===it.a;
+          if(right) ok++;
+          b.className = right?'right':'wrong';
+          if(!right) o.children[it.a].className='right';
+          fb.hidden=false; fb.textContent=(right?'正解! ':'おしい! ')+it.why;
+          upd();
+        });
+        o.appendChild(b);
+      });
+      root.appendChild(d);
+    });
+    upd();
+  }
+  makeQuiz('quiz-a','score-a',['アフォーダンス','シグニファイア'],[
+    {q:'ガラスの壁は、通り抜けることができない。', a:0, why:'モノそのものが持つ「できる/できない」の性質 → アフォーダンス。'},
+    {q:'ガラスの壁に貼られた、ぶつからないための目印のシール。', a:1, why:'性質に気づかせる目印 → シグニファイア。'},
+    {q:'ボタンの出っ張りや影が、「押せそう」と感じさせる。', a:1, why:'押せることを知らせる見た目の手がかり → シグニファイア。'},
+    {q:'いすには、座るという行為ができる。', a:0, why:'モノが持つ行為の可能性 → アフォーダンス。'},
+    {q:'操作できないボタンが、灰色になっている。', a:1, why:'「今は押せない」ことを見た目で知らせている → シグニファイア。'}
+  ]);
+  makeQuiz('quiz-u','score-u',['ユーザビリティ','アクセシビリティ'],[
+    {q:'目的の商品にたどり着くまでのクリック数が多く、時間がかかるショッピングサイト。', a:0, why:'使えるけれど効率が悪い → 使いやすさ(効率)の問題です。'},
+    {q:'画像に代替テキストがなく、スクリーンリーダー(読み上げソフト)を使う人は内容がわからない。', a:1, why:'そもそも情報を利用できない → アクセシビリティの問題です。'},
+    {q:'動画に字幕がなく、耳が聞こえにくい人は内容がわからない。', a:1, why:'情報にアクセスできない → アクセシビリティの問題です。'},
+    {q:'申込みフォームの入力欄の順番がわかりにくく、入力ミスをして何度もやり直してしまう。', a:0, why:'使えるけれど不便で、満足度も下がる → ユーザビリティの問題です。'},
+    {q:'マウスが使えない人のために、キーボードだけでもすべての操作ができるようにした。', a:1, why:'多様な人・環境でも使えるようにする工夫 → アクセシビリティを高める工夫です。'}
+  ]);
+  makeQuiz('quiz-f','score-f',['フェイルセーフ','フールプルーフ'],[
+    {q:'停電すると、踏切の遮断かんが自然に下りる。', a:0, why:'原因は「停電(故障)」。安全な側に倒れる → フェイルセーフ。'},
+    {q:'電子レンジは、扉が開いていると加熱が始まらない。', a:1, why:'扉を開けたままスタートしてしまう「人の誤操作」を防ぐ → フールプルーフ。'},
+    {q:'ガソリンスタンドで、軽油用のノズルはガソリン車の給油口に入らない太さになっている。', a:1, why:'入れ間違い(人のミス)を、形で起こせなくしている → フールプルーフ。'},
+    {q:'エレベーターのワイヤーが切れても、非常止め装置が働いてカゴが落下しない。', a:0, why:'原因は「部品の故障」。故障しても安全に止まる → フェイルセーフ。'},
+    {q:'ファイルを削除する前に「本当に削除しますか?」と確認画面が出る。', a:1, why:'うっかり操作(人のミス)を防ぐ → フールプルーフ。'}
+  ]);
+})();
+</script>
+
+<script>
+(function(){
+  var ids=['ui','ui2','ui3','afford','signifier','signifier2','sigcmp','ud','ud2','ud3','usab','acc','usacmp','fsafe','fproof','fscmp','summary','quiz','quiz2','quiz3'];
+  var names={ui:'ユーザインターフェース',ui2:'図にまとめると',ui3:'いろいろなユーザインターフェース',afford:'アフォーダンス',signifier:'シグニファイア',signifier2:'画面のなかのシグニファイア',sigcmp:'アフォーダンスとシグニファイアの違い',ud:'ユニバーサルデザイン',ud2:'ユニバーサルデザインの7原則',ud3:'色の見え方の実験',usab:'ユーザビリティ',acc:'アクセシビリティ',usacmp:'ユーザビリティとアクセシビリティの違い',fsafe:'フェイルセーフ',fproof:'フールプルーフ',fscmp:'フェイルセーフとフールプルーフの違い',summary:'まとめ',quiz:'確認クイズ:アフォーダンス/シグニファイア',quiz2:'確認クイズ:ユーザビリティ/アクセシビリティ',quiz3:'確認クイズ:フェイルセーフ/フールプルーフ'};
+  var groups=[['ui','ui2','ui3'],['afford','signifier','signifier2','sigcmp'],['ud','ud2','ud3'],['usab','acc','usacmp'],['fsafe','fproof','fscmp'],['quiz','quiz2','quiz3']];
+  var stepLabels=[['身近な例','図にまとめると','いろいろな種類'],['アフォーダンス','シグニファイア','画面の例','違い'],['UDとは','7原則','色の実験'],['ユーザビリティ','アクセシビリティ','違い'],['フェイルセーフ','フールプルーフ','違い'],['アフォーダンス/シグニファイア','ユーザビリティ/アクセシビリティ','フェイルセーフ/フールプルーフ']];
+  var alias={signifier0:'afford',usability:'usab',failsafe:'fsafe'};
+  var links=document.querySelectorAll('#pnav a');
+  function groupStart(id){ for(var g=0;g<groups.length;g++){ if(groups[g].indexOf(id)>=0) return groups[g][0]; } return id; }
+  function sameGroup(a,b){
+    for(var g=0;g<groups.length;g++){ if(groups[g].indexOf(a)>=0 && groups[g].indexOf(b)>=0) return true; }
+    return false;
+  }
+  function isGroupLast(id_){
+    for(var g=0;g<groups.length;g++){ if(groups[g].length>1 && groups[g][groups[g].length-1]===id_) return true; }
+    return false;
+  }
+  function show(id){
+    if(alias[id]) id=alias[id];
+    if(ids.indexOf(id)<0) id=ids[0];
+    var i=ids.indexOf(id);
+    var fn=document.getElementById('fixNext'), fp=document.getElementById('fixPrev'), dock=document.getElementById('navDock');
+    if(i>0 && sameGroup(id,ids[i-1])){ fp.onclick=function(){ show(ids[i-1]); }; fp.classList.add('show'); }
+    else { fp.classList.remove('show'); }
+    if(i<ids.length-1 && sameGroup(id,ids[i+1])){ fn.onclick=function(){ show(ids[i+1]); }; fn.classList.add('show'); }
+    else { fn.classList.remove('show'); }
+    var anyNav = fp.classList.contains('show') || fn.classList.contains('show');
+    dock.classList.toggle('show', anyNav);
+    document.body.classList.toggle('has-navdock', anyNav);
+
+    ids.forEach(function(k){ document.getElementById(k).classList.toggle('on',k===id); });
+    var gs=groupStart(id);
+    Array.prototype.forEach.call(links,function(a){ if(a.getAttribute('href')==='#'+gs) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+    try{ history.replaceState(null,'','#'+id); }catch(e){}
+    window.scrollTo(0,0); setTimeout(function(){ window.scrollTo(0,0); },0); setTimeout(function(){ window.scrollTo(0,0); },150);
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href^="#"]'); if(!a) return;
+    var id=a.getAttribute('href').slice(1); if(alias[id]) id=alias[id];
+    if(ids.indexOf(id)>=0){ e.preventDefault(); show(id); }
+  });
+  window.addEventListener('hashchange',function(){ show((location.hash||'').slice(1)); });
+  show((location.hash||'').slice(1));
+})();
+</script>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var B=function(t,on){return '<span class="mkb'+(on?' on':'')+'">'+t+(on?'<span class="rip"></span>':'')+'</span>';};
+  var SC=[
+   {name:'駅の券売機で切符を買う', dev:'券売機', in:'タッチパネル(運賃ボタン)', out:'画面・スピーカー・切符の出口',
+    steps:[
+     {k:'out',t:'画面が「運賃を選んでください」と表示する',h:'機器 → 人'},
+     {k:'in',t:'人が「150円」のボタンをタッチする',h:'人 → 機器'},
+     {k:'pr',t:'機器が運賃を確認する',h:'機器の中'},
+     {k:'out',t:'画面に「150円 お金を入れてください」と表示し、「ピッ」と音が鳴る',h:'機器 → 人'},
+     {k:'out',t:'お金を入れると、切符が出口から出てくる',h:'機器 → 人'}],
+    scr:[
+     function(){return '<div class="ttl">運賃を選んでください</div><div class="mkbtns">'+B('150円')+B('210円')+B('260円')+'</div>';},
+     function(){return '<div class="ttl">運賃を選んでください</div><div class="mkbtns">'+B('150円',1)+B('210円')+B('260円')+'</div>';},
+     function(){return '<div class="ttl">確認しています</div><div class="dots"><span></span><span></span><span></span></div>';},
+     function(){return '<div class="big2">150円</div><div class="ttl">お金を入れてください</div><span class="snd">ピッ♪</span>';},
+     function(){return '<div class="ttl">ありがとうございました</div><div class="ticket">乗車券 150円</div>';}]},
+   {name:'スマートスピーカーに天気を聞く', dev:'スマートスピーカー', in:'マイク(声)', out:'スピーカー(声)・ランプ',
+    steps:[
+     {k:'out',t:'ランプが青く光り、話しかけを待っている',h:'機器 → 人'},
+     {k:'in',t:'人が「明日の天気は?」と話しかける',h:'人 → 機器'},
+     {k:'pr',t:'機器が声を文字に直して、天気を調べる',h:'機器の中'},
+     {k:'out',t:'スピーカーから「明日は晴れです」と声で答える',h:'機器 → 人'}],
+    scr:[
+     function(){return '<div class="spk on"><i></i></div><div class="ttl">待機中</div>';},
+     function(){return '<div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="bubble">「明日の天気は?」</div>';},
+     function(){return '<div class="spk on"><i></i></div><div class="dots"><span></span><span></span><span></span></div>';},
+     function(){return '<div class="spk talk"><i></i></div><div class="bubble">「明日は晴れです」</div>';}]},
+   {name:'スマホで写真を撮る', dev:'スマートフォン', in:'タッチパネル(シャッターボタン)', out:'画面・スピーカー',
+    steps:[
+     {k:'out',t:'画面(ファインダー)に、カメラが捉えた景色が映っている',h:'機器 → 人'},
+     {k:'in',t:'人が画面のシャッターボタンをタップする',h:'人 → 機器'},
+     {k:'pr',t:'カメラが画像を保存する',h:'機器の中'},
+     {k:'out',t:'画面が一瞬光り、「カシャ」と音が鳴り、撮った写真が左下に表示される',h:'機器 → 人'}],
+    scr:[
+     function(){return '<div class="vf"><span class="sun"></span><span class="tree"></span></div><div class="shut"></div>';},
+     function(){return '<div class="vf"><span class="sun"></span><span class="tree"></span></div><div class="shut on"><span class="rip"></span></div>';},
+     function(){return '<div class="vf"><span class="sun"></span><span class="tree"></span></div><div class="dots"><span></span><span></span><span></span></div>';},
+     function(){return '<div class="vf"><span class="sun"></span><span class="tree"></span><span class="flash"></span><span class="thumb"></span></div><span class="snd">カシャ♪</span>';}]}
+  ];
+  var tabs=document.getElementById('scTabs'), scr=document.getElementById('devScreen'), list=document.getElementById('scSteps');
+  var cur=0, step=0, timer=null, playing=!reduce;
+  var KL={in:'入力',out:'出力',pr:'処理'};
+  function render(){
+    var sc=SC[cur];
+    Array.prototype.forEach.call(tabs.children,function(b,j){ b.setAttribute('aria-selected',j===cur?'true':'false'); });
+    document.getElementById('devName').textContent=sc.dev;
+    scr.innerHTML=sc.scr[step]();
+    list.innerHTML='';
+    sc.steps.forEach(function(st,i){
+      var li=document.createElement('li'); if(i===step) li.className='on'; li.tabIndex=0;
+      li.innerHTML='<span class="kd '+st.k+'">'+KL[st.k]+'</span><span>'+st.t+'<br><span class="small muted">'+st.h+'</span></span>';
+      li.onclick=function(){ step=i; render(); restart(); };
+      li.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); li.click(); } };
+      list.appendChild(li);
+    });
+    document.getElementById('scTools').innerHTML='<dt>入力の道具</dt><dd>'+sc.in+'</dd><dt>出力の道具</dt><dd>'+sc.out+'</dd>';
+  }
+  function next(){ step=(step+1)%SC[cur].steps.length; render(); }
+  function restart(){ clearInterval(timer); if(playing) timer=setInterval(next,2600); document.getElementById('scPlay').textContent=playing?'一時停止':'自動で進める'; }
+  SC.forEach(function(sc,i){
+    var b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab'); b.textContent=sc.name;
+    b.onclick=function(){ cur=i; step=0; render(); restart(); };
+    tabs.appendChild(b);
+  });
+  document.getElementById('scPlay').onclick=function(){ playing=!playing; restart(); };
+  document.getElementById('scNext').onclick=function(){ next(); restart(); };
+  render(); restart();
+})();
+</script>
+
+<script>
+(function(){
+  var seg=document.getElementById('glSeg'), svg=document.getElementById('glSvg');
+  var D={no:{m:'ガラスは向こうが見えるので、通れそうに見えます。「通れない壁」だと気づく手がかりがなく、ぶつかってしまいます。',s:'なし(気づけない)'},
+         yes:{m:'ガラスに貼られたシールが「ここに壁がある」ことを知らせます。壁の性質は同じでも、手がかりがあれば気づけます。',s:'シール(目に見える印)'}};
+  function set(k){
+    svg.setAttribute('class','gl-'+k);
+    document.getElementById('glMsg').textContent=D[k].m;
+    document.getElementById('glSig').textContent=D[k].s;
+    Array.prototype.forEach.call(seg.children,function(b){ b.setAttribute('aria-pressed', b.dataset.g===k?'true':'false'); });
+  }
+  seg.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) set(b.dataset.g); });
+  set('no');
+})();
+</script>
+
+<script>
+(function(){
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* race */
+  var A=['商品一覧','商品ページ','購入'], B=['トップ','メニュー','カテゴリ','サブカテゴリ','一覧','絞り込み','商品ページ','購入'];
+  var el=document.getElementById('race'), msg=document.getElementById('raceMsg'), t=reduce?B.length+1:0, max=B.length+2;
+  function row(name,steps){
+    return '<div class="rrow"><div class="rname">'+name+'<small>'+steps.length+'手</small></div><div class="rchips">'+
+      steps.map(function(x,i){return '<span class="rc'+(i<t?' on':'')+'">'+x+'</span>';}).join('')+'</div><div class="rdone'+(t>=steps.length?' on':'')+'">完了</div></div>';
+  }
+  function draw(){
+    el.innerHTML=row('サイトA',A)+row('サイトB',B);
+    msg.textContent = t>=B.length ? 'どちらも購入できます(効果は同じ)。でも、手数(効率)と気持ち(満足度)が違います。' : (t>=A.length ? 'サイトAはもう購入できました。サイトBはまだ途中…' : '');
+  }
+  draw();
+  if(!reduce) setInterval(function(){ t=(t+1)%(max+1); draw(); },800);
+  /* alt text */
+  var seg=document.getElementById('altSeg');
+  var D={no:{say:'「画像」',msg:'代替テキストがないと、読み上げソフトは「画像」としか言えず、何が写っているか分かりません。'},
+         yes:{say:'「晴れた空の下に、大きな木が立っている風景の写真」',msg:'代替テキストがあると、目で見えなくても、写真の内容が伝わります。'}};
+  function set(k){
+    document.getElementById('altSay').textContent=D[k].say;
+    document.getElementById('altMsg').textContent=D[k].msg;
+    Array.prototype.forEach.call(seg.children,function(b){ b.setAttribute('aria-pressed', b.dataset.a===k?'true':'false'); });
+  }
+  seg.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) set(b.dataset.a); });
+  set('no');
+})();
+</script>
+
+</html>
+<script>
+/* 確認クイズの結果を、Tの端末に知らせる（ぜんぶ答えたら #score に「〇 / 〇 問正解。」） */
+(function () {
+  var spans = [].slice.call(document.querySelectorAll('span.score[id^="score-"]'));
+  if (!spans.length || document.getElementById('score')) return;
+  var last = spans[spans.length - 1], host = last.closest ? last.closest('.qhead') : null, anchor = host ? (host.nextElementSibling || host) : last;
+  anchor.insertAdjacentHTML('afterend', '<div class="qhead" style="display:none"><span id="score"></span></div>');
+  var out = document.getElementById('score');
+  function upd() {
+    var ok = 0, n = 0;
+    spans.forEach(function (s) { var m = (s.textContent || '').match(/(\d+)\s*\/\s*(\d+)/); if (m) { ok += +m[1]; n += +m[2]; } });
+    var answered = [].slice.call(document.querySelectorAll('.qfb')).filter(function (p) { return !p.hidden; }).length;
+    var t = !n || answered < n ? '' : ok + ' / ' + n + ' 問正解。' + (ok === n ? '全問正解です！' : '');
+    if (out.textContent !== t) out.textContent = t;
+  }
+  spans.forEach(function (s) { new MutationObserver(upd).observe(s, { childList: true, characterData: true, subtree: true }); });
+  upd();
+})();
+</script>
+<script>/* ==== HUB BEGIN（記録のしくみ。項目の一覧とクラスごとの表示は hub_config.js で決める） ==== */
+/* =====================================================================
+   Tの端末（ハブ）― 記録のしくみ（全ページ共通。ふだんは直さなくてよい）
+   ・項目の一覧と、クラスごとの表示は hub_config.js に書く（そちらを直す）
+   ・hub_config.js が読めないとき（zip を展開せずに開いたなど）は、下の DEF_ITEMS を使う
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  var DEF_ITEMS = [
+    // ---- Tのえほん（確認クイズで全問正解 → gives のぶひん） ----
+    { id: 'tech08', kind: 'note', title: '情報社会を支える技術', file: 'joho_tech08_lab.html', gives: 'os' },
+    { id: 'tech09', kind: 'note', title: '情報社会の課題と未来', file: 'joho_tech09_lab.html', gives: 'os' },
+    { id: 'com10', kind: 'note', title: 'コミュニケーションとメディア', file: 'joho_com10_lab.html', gives: 'os' },
+    { id: 'cmp17', kind: 'note', title: 'データ圧縮と動画', file: 'joho_cmp17_lab.html', gives: 'os' },
+    { id: 'dsn18', kind: 'note', title: '情報デザインの手法', file: 'joho_dsn18_lab.html', gives: 'os' },
+    { id: 'dsnTerms', kind: 'note', title: '情報デザイン用語', file: 'joho_design_terms_lab.html', gives: 'os' },
+    { id: 'iro', kind: 'note', title: '図と色のデザイン', file: 'iro_lab.html', gives: 'os' },
+    { id: 'hw',     kind: 'note', title: 'ハードウェアとソフトウェア', file: 'hardware-software.html', gives: 'os' },
+    { id: 'prog',   kind: 'note', title: 'プログラムが動くしくみ',     file: 'program-basic.html',     gives: 'cpu' },
+    { id: 'net',    kind: 'note', title: 'インターネットのしくみ',     file: 'network-internet.html',  gives: 'router' },
+    { id: 'pkt',    kind: 'note', title: 'パケットとプロトコル',       file: 'packet-protocol.html',   gives: 'tcpip' },
+    { id: 'protocolEhon', kind: 'note', title: 'プロトコルのえほん', sub: 'よみもの', file: 'protocol-ehon.html', gives: 'tcpip' },
+    { id: 'cs',     kind: 'note', title: 'クライアントとサーバ',       file: '', gives: 'mail' },      // file が '' のあいだは「準備中」
+    { id: 'www',    kind: 'note', title: 'WWW',                        file: 'www-webapp.html', gives: 'browser' },
+    { id: 'crypto', kind: 'note', title: '暗号',                       file: 'crypto.html', gives: 'sec' },
+    { id: 'cryptoEhon', kind: 'note', title: '暗号のえほん', sub: 'よみもの', file: 'angou-ehon.html', gives: 'sec' },
+    { id: 'progEhon1', kind: 'note', title: 'プログラムのえほん1', sub: 'よみもの', file: 'programming-ehon-1.html', gives: 'cpu' },
+    { id: 'progEhon2', kind: 'note', title: 'プログラムのえほん2', sub: 'よみもの', file: 'programming-ehon-2.html', gives: 'cpu' },
+    // ---- Tのスキル（脱出ゲーム。部屋2までクリア → gives のケーブル。needs をクリアすると開く） ----
+    { id: 'var',  kind: 'escape', title: '変数ステージ', sub: 'ドローン基地からの脱出', rooms: '倉庫 → 管制室',         file: 'drone_variable.html', ledger: 'var2',   gives: 'pwr' },
+    { id: 'arr',  kind: 'escape', title: '配列ステージ', sub: '格納庫からの脱出',       rooms: '格納庫 → 発進ゲート',   file: 'drone_array.html',    ledger: 'array2', gives: 'hdmi', needs: ['var'] },
+    { id: 'func', kind: 'escape', title: '関数ステージ', sub: 'サーバールームの謎',     rooms: '整備室 → サーバールーム', file: 'drone_function.html', ledger: 'fn2', gives: 'usb', needs: ['arr'] },
+    { id: 'lin',  kind: 'escape', title: '応用ステージ（線形探索）', sub: '倉庫の謎',         rooms: '資料室 → 倉庫',         file: 'drone_search.html', ledger: 'ls2', gives: 'lan', needs: ['func'] },
+    { id: 'bin',  kind: 'escape', title: '応用ステージ（二分探索）', sub: '地下倉庫の謎',     rooms: '記録室 → 地下倉庫',     file: 'drone_binary.html', ledger: 'bs2', gives: 'mem', needs: ['lin'] },
+    { id: 'bub', kind: 'escape', title: '応用ステージ（バブルソート）', sub: '仕分け室の謎', rooms: '仕分け室 → 管制室', file: 'drone_bubble.html', ledger: 'bb2', gives: 'ssd', needs: ['bin'] },
+    { id: 'sel', kind: 'escape', title: '応用ステージ（選択ソート）', sub: '選別室の謎', rooms: '選別室 → 発令所', file: 'drone_select.html', ledger: 'sl2', gives: 'kbd', needs: ['bub'] }
+  ];
+  var CFG = window.HUB_CONFIG || {};
+  var ITEMS = Array.isArray(CFG.items) && CFG.items.length ? CFG.items : DEF_ITEMS;
+  var SHOW = CFG.show || {};
+
+  // 班PCにつくもの。type：hard（ハード）・soft（ソフト）・cable（ケーブル）。can：できるようになること
+  var GEAR = {
+    board:   { type: 'hard',  name: 'マザーボード', can: 'ぶひんをつなぐ土台ができた' },
+    cpu:     { type: 'hard',  name: 'CPU',         can: 'プログラムの命令を実行できるようになった' },
+    mem:     { type: 'hard',  name: 'メモリ',       can: '作業中のデータを、一時的におぼえておけるようになった' },
+    psu:     { type: 'hard',  name: '電源ユニット', can: 'コンセントの電気を、班PCで使える電気に変えられるようになった' },
+    hdd:     { type: 'hard',  name: 'HDD',         can: 'データを保存できるようになった（でも読み書きは少しおそい）' },
+    ssd:     { type: 'hard',  name: 'SSD',         can: 'データを保存できるようになった（HDDより速く読み書きできる）' },
+    disp:    { type: 'hard',  name: 'ディスプレイ', can: '結果を画面に映せるようになった' },
+    kbd:     { type: 'hard',  name: 'キーボード',   can: '文字を入力できるようになった' },
+    mouse:   { type: 'hard',  name: 'マウス',       can: '画面の中を指して、操作できるようになった' },
+    router:  { type: 'hard',  name: 'ルータ',       can: '班PCのネットワークと、インターネットを中継できるようになった' },
+    spk:     { type: 'hard',  name: 'スピーカー',   can: '音を出せるようになった' },
+    cam:     { type: 'hard',  name: 'Webカメラ',    can: '映像を取りこめるようになった' },
+    os:      { type: 'soft',  name: 'OS',          can: 'ハードウェアとアプリの仲立ちをする、基本のソフトが入った' },
+    browser: { type: 'soft',  name: 'Webブラウザ', can: 'Webページを見られるようになった（HTTPで通信）' },
+    doc:     { type: 'soft',  name: '文書アプリ',   can: '文章を書いて、保存できるようになった' },
+    sheet:   { type: 'soft',  name: '表計算アプリ', can: '表やグラフを作れるようになった' },
+    tcpip:   { type: 'soft',  name: 'TCP/IP',      can: 'インターネットの通信のきまり（プロトコル）で、データをやりとりできるようになった' },
+    mail:    { type: 'soft',  name: 'メールアプリ', can: 'メールサーバとやりとりして、メールを送ったり受け取ったりできるようになった' },
+    sec:     { type: 'soft',  name: '暗号化（HTTPS）', can: '通信を暗号にして、安全にやりとりできるようになった' },
+    pwr:     { type: 'cable', name: '電源コード',   can: 'コンセントから、班PCに電気が来るようになった' },
+    hdmi:    { type: 'cable', name: 'HDMIケーブル', can: '本体とディスプレイがつながった' },
+    usb:     { type: 'cable', name: 'USBケーブル',  can: 'キーボードとマウスが本体につながった' },
+    lan:     { type: 'cable', name: 'LANケーブル',  can: '班PCとルータがつながった' }
+  };
+  // ぶひんが手に入る順：どの項目をクリアしても、クリアした数の順に、この順で1つずつ手に入る
+  //   ハードウェア → ケーブル → プロトコル → ソフトウェア（hub_config.js の partOrder で変えられる）
+  var DEF_ORDER = ['psu', 'board', 'cpu', 'mem', 'ssd', 'disp', 'kbd', 'mouse', 'router',   // ハードウェア
+    'pwr', 'hdmi', 'usb', 'lan',                                                             // ケーブル
+    'tcpip',                                                                                  // プロトコル
+    'os', 'browser', 'sec', 'mail', 'doc', 'sheet',                                           // ソフトウェア
+    'spk', 'cam', 'hdd'];                                                                     // 項目が増えたとき用
+  var ORDER = (Array.isArray(CFG.partOrder) && CFG.partOrder.length ? CFG.partOrder : DEF_ORDER).filter(function (k, i, a) { return GEAR[k] && a.indexOf(k) === i; });
+  // つぎに手に入るぶひん（もう全部手に入れていたら null）
+  function nextPart() { var k = ORDER[parts().length]; return k ? { id: k, name: GEAR[k].name, can: GEAR[k].can, type: GEAR[k].type } : null; }
+  var TYPE_ICON = { hard: '🔧', soft: '💿', cable: '🔌' };
+
+  // 絵（viewBox 0 0 360 250）
+  var PART_SVG = {
+    disp:  '<rect x="16" y="18" width="178" height="118" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="3"/><rect class="pcScreen" x="26" y="28" width="158" height="96" rx="3" fill="#0ea5e9"/><rect x="92" y="136" width="26" height="16" fill="#334155"/><rect x="70" y="150" width="70" height="8" rx="3" fill="#475569"/>',
+    cam:   '<rect x="95" y="8" width="20" height="10" rx="4" fill="#334155"/><circle cx="105" cy="13" r="3" fill="#38bdf8"/>',
+    spk:   '<rect x="200" y="96" width="22" height="58" rx="5" fill="#475569"/><circle cx="211" cy="112" r="6" fill="#1e293b"/><circle cx="211" cy="137" r="8" fill="#1e293b"/>',
+    router:'<rect x="198" y="44" width="34" height="16" rx="3" fill="#334155"/><g fill="#4ade80"><circle cx="205" cy="52" r="1.6"/><circle cx="211" cy="52" r="1.6"/><circle cx="217" cy="52" r="1.6"/></g><line x1="204" y1="44" x2="201" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/><line x1="226" y1="44" x2="229" y2="32" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>',
+    kbd:   '<rect x="22" y="172" width="160" height="30" rx="5" fill="#cbd5e1"/><g fill="#94a3b8"><rect x="30" y="178" width="144" height="5" rx="1"/><rect x="30" y="186" width="144" height="5" rx="1"/><rect x="60" y="194" width="84" height="4" rx="1"/></g>',
+    mouse: '<ellipse cx="204" cy="188" rx="10" ry="15" fill="#cbd5e1"/><line x1="204" y1="174" x2="204" y2="184" stroke="#94a3b8" stroke-width="2"/>',
+    board: '<rect x="244" y="34" width="90" height="120" rx="3" fill="#15803d"/><g stroke="#4ade80" stroke-width="1.2" opacity=".7"><path d="M250 44 h30 v20 M326 44 v40 h-20 M252 140 h40 v-12 M320 146 h-16"/></g>',
+    cpu:   '<rect x="266" y="54" width="30" height="30" rx="3" fill="#94a3b8" stroke="#475569" stroke-width="2"/><rect x="273" y="61" width="16" height="16" rx="2" fill="#334155"/>',
+    mem:   '<rect x="306" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><rect x="317" y="46" width="7" height="58" rx="1.5" fill="#1d4ed8"/><g fill="#facc15"><rect x="307" y="96" width="5" height="6"/><rect x="318" y="96" width="5" height="6"/></g>',
+    ssd:   '<rect x="248" y="162" width="34" height="14" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/><rect x="253" y="166" width="14" height="6" fill="#38bdf8"/>',
+    hdd:   '<rect x="290" y="158" width="40" height="22" rx="2" fill="#64748b"/><circle cx="304" cy="169" r="7" fill="#cbd5e1"/><circle cx="304" cy="169" r="2" fill="#475569"/><line x1="314" y1="163" x2="324" y2="175" stroke="#334155" stroke-width="2"/>',
+    psu:   '<rect x="244" y="186" width="90" height="32" rx="3" fill="#475569"/><circle cx="314" cy="202" r="11" fill="#1e293b"/><path d="M314 192 v20 M304 202 h20 M307 195 l14 14 M321 195 l-14 14" stroke="#64748b" stroke-width="1.5"/><path d="M252 196 l8 -6 l-3 6 l8 0 l-8 8 l3 -6 z" fill="#facc15"/>',
+    // ソフト（左下の棚。ディスクの形）
+    os:      '<circle cx="12" cy="232" r="9" fill="#e2e8f0"/><circle cx="12" cy="232" r="2.5" fill="#94a3b8"/><text x="24" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">OS</text>',
+    browser: '<circle cx="48" cy="232" r="9" fill="#38bdf8"/><circle cx="48" cy="232" r="2.5" fill="#0369a1"/><text x="60" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">Web</text>',
+    doc:     '<circle cx="90" cy="232" r="9" fill="#60a5fa"/><circle cx="90" cy="232" r="2.5" fill="#1d4ed8"/><text x="102" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">文書</text>',
+    sheet:   '<circle cx="132" cy="232" r="9" fill="#4ade80"/><circle cx="132" cy="232" r="2.5" fill="#15803d"/><text x="144" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">表計算</text>',
+    tcpip:   '<circle cx="183" cy="232" r="9" fill="#a78bfa"/><circle cx="183" cy="232" r="2.5" fill="#6d28d9"/><text x="195" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">TCP/IP</text>',
+    mail:    '<circle cx="237" cy="232" r="9" fill="#fbbf24"/><circle cx="237" cy="232" r="2.5" fill="#b45309"/><text x="249" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">メール</text>',
+    sec:     '<circle cx="288" cy="232" r="9" fill="#f472b6"/><circle cx="288" cy="232" r="2.5" fill="#be185d"/><text x="300" y="235.5" font-size="9" font-weight="800" fill="#e2e8f0" font-family="system-ui,sans-serif">暗号化</text>',
+    // ケーブル
+    pwr:   '<path d="M334 208 C 350 208, 344 226, 352 228" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/><rect x="348" y="220" width="10" height="14" rx="2" fill="#e2e8f0"/>',
+    hdmi:  '<path d="M238 70 C 218 70, 226 112, 194 112" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>',
+    usb:   '<path d="M182 186 C 214 204, 222 176, 238 172 M204 173 C 212 160, 226 164, 238 164" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>',
+    lan:   '<path d="M238 96 C 222 96, 226 70, 216 60" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>'
+  };
+  var DRAW_ORDER = ['disp', 'cam', 'spk', 'router', 'kbd', 'mouse', 'board', 'cpu', 'mem', 'ssd', 'hdd', 'psu', 'os', 'browser', 'doc', 'sheet', 'tcpip', 'mail', 'sec', 'pwr', 'hdmi', 'usb', 'lan'];
+  var CASE_SVG = '<rect x="236" y="22" width="106" height="202" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="3"/>';
+  var OUTLETS = '<g opacity=".6"><rect x="347" y="218" width="12" height="18" rx="2" fill="#334155"/></g><line x1="14" y1="216" x2="240" y2="216" stroke="#1e293b" stroke-width="1"/>';
+
+  var KEY = 'droneHub_v1';
+  var TEAM_KEY = 'droneLessonTeam_set5';   // 脱出ゲームの記録（班・名前・ポイント）
+
+  function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+  function rec() { var r = read(KEY); if (!r || typeof r !== 'object') r = {}; if (!r.cleared) r.cleared = {}; if (!Array.isArray(r.order)) r.order = []; return r; }
+  function save(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) { /* 保存できない環境 */ } }
+  function item(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
+
+  // 脱出ゲームの「自分」の記録（部屋2のクリア）
+  function ledgerCleared(key) {
+    var t = read(TEAM_KEY);
+    if (!t || t.me === null || t.me === undefined || !t.ledger) return false;
+    var l = t.ledger[t.me] || {};
+    return !!l[key];
+  }
+  function rawCleared(r, it) { return !!(r.cleared[it.id] || (it.ledger && ledgerCleared(it.ledger))); }
+  // クリアした順（ぶひんの順）を記録にそろえる
+  function sync() {
+    var r = rec(), changed = false;
+    ITEMS.forEach(function (it) { if (rawCleared(r, it) && r.order.indexOf(it.id) < 0) { r.order.push(it.id); changed = true; } });
+    if (changed) save(r);
+    return r;
+  }
+  function isCleared(id) { var it = item(id); return !!it && rawCleared(rec(), it); }
+  function clear(id) {
+    var r = rec();
+    if (!r.cleared[id]) r.cleared[id] = Date.now();
+    if (r.order.indexOf(id) < 0) r.order.push(id);
+    save(r);
+  }
+  function isOpen(id) {
+    var it = item(id); if (!it || !it.file) return false;
+    return (it.needs || []).every(isCleared);
+  }
+  function kindOf(id) { var p = part(id); return p && p.type === 'cable' ? 'cable' : 'part'; }
+  // 手に入ったもの（手に入れた順）
+  function parts() {
+    // クリアした順に、ORDER の順でぶひんが1つずつ手に入る（どの項目をクリアしたかは関係ない）
+    return sync().order.map(item).filter(Boolean).map(function (it, i) {
+      var k = ORDER[i], g = GEAR[k]; if (!g) return null;
+      return { item: it.id, kind: g.type === 'cable' ? 'cable' : 'part', id: k, part: { id: k, name: g.name, can: g.can, type: g.type } };
+    }).filter(Boolean);
+  }
+  // その項目で手に入ったもの（まだなら null）
+  function part(id) {
+    var ps = parts(), x = ps.filter(function (p) { return p.item === id; })[0], it = item(id);
+    return x ? x.part : null;
+  }
+  // クラス・班（一度決めたら変えられない。先生のリセットで外れる）
+  var LOCK = 'droneGroupLock';
+  function lockedGroup() { try { return localStorage.getItem(LOCK) || ''; } catch (e) { return ''; } }
+  function setGroup(g) { try { if (/^\d組\d班$/.test(g) && !lockedGroup()) localStorage.setItem(LOCK, g); } catch (e) { /* なし */ } return lockedGroup(); }
+  function team() {
+    var t = read(TEAM_KEY) || {};
+    var from = ''; try { from = localStorage.getItem('droneRegroupFrom') || ''; } catch (e) { /* なし */ }
+    var g = lockedGroup() || (t.group && t.group !== from ? t.group : '');   // 班を入力し直したあとは、古い班の記録を使わない
+    return { group: g, cls: (String(g).match(/^(\d)組/) || [])[1] || '', me: (t.group === g && t.names && t.me !== null && t.me !== undefined) ? (String(t.names[t.me] || '').trim() || (t.me + 1) + '号機') : '' };
+  }
+  // クラスごとの表示（hub_config.js の show）。書いていないクラスは default、それもなければ全部
+  function visible(id) {
+    var c = team().cls, list = (c && SHOW[c]) || SHOW['default'];
+    if (!list || list === 'all') return true;
+    return list.indexOf(id) >= 0;
+  }
+
+  // 班PCの絵：手に入れたものは色つき、まだのものは点線。hi のものは光らせる
+  // 実際のパソコンと同じように、そろったもので動き方が決まる
+  //   電源（電源ユニット＋電源コード）→ マザーボード・CPU・メモリ で動き出す → SSD（OS）で起動
+  //   → ディスプレイ＋HDMIケーブル で画面に映る → キーボード・マウス＋USBケーブル で操作できる
+  function owned() { var own = {}; parts().forEach(function (p) { own[p.id] = 1; }); return own; }
+  function pcState(own) {
+    own = own || owned();
+    var store = own.ssd || own.hdd;
+    var power = own.psu && own.pwr, post = power && own.board && own.cpu && own.mem, boot = post && store && own.os;
+    var screen = post && own.disp && own.hdmi, shown = boot && screen, input = own.kbd && own.mouse && own.usb, usable = shown && input;
+    var net = usable && own.lan && own.router && own.tcpip;
+    var st = { power: power, post: post, boot: boot, shown: shown, usable: usable, net: net, web: net && own.browser, fast: !!own.ssd };
+    var m = function (lv, msg) { st.lv = lv; st.msg = msg; return st; };
+    var n = Object.keys(own).length;
+    if (!n) return m(0, 'まだ ぶひん がない');
+    // ① ハードウェアを集めているあいだ（まだ電気が来ていない）
+    if (!own.psu) return m(1, 'ぶひんはあるが、電源が入らない（電源ユニットがない）');
+    if (!own.pwr) {
+      var hard = ['board', 'cpu', 'mem', 'ssd', 'hdd', 'disp', 'kbd', 'mouse', 'router'].filter(function (k) { return own[k]; }).map(function (k) { return GEAR[k].name; });
+      return m(1, '組み立て中：ハードウェアが ' + (hard.length + 1) + ' こ そろった。でも、コンセントにつながっていないので、まだ電気が来ない（電源コードがない）');
+    }
+    if (!own.board) return m(1, '電気は来たが、ぶひんをつなぐ土台がないので動かない（マザーボードがない）');
+    if (!own.cpu) return m(1, '電源は入るが、命令を実行する部品がないので動かない（CPUがない）');
+    if (!own.mem) return m(1, '電源は入るが、作業する場所がないので動き出せない（メモリがない）');
+    // ② 電源が入った：ケーブルがつながるたびに、できることが増える
+    if (!own.disp) return m(2, '電源が入って動き出した！ でも、画面がないので何も見えない（ディスプレイがない）');
+    if (!own.hdmi) return m(2, '電源が入って動き出した！ でも、ディスプレイにつながっていないので何も映らない（HDMIケーブルがない）');
+    if (!boot) {
+      var why = !store ? 'データをしまう場所がない（SSD か HDD がない）' : 'OS が入っていないので、「起動できるものがありません」と出るだけ（OS がない）';
+      var more = (input ? ' キーボードとマウスは、本体につながった。' : (own.kbd || own.mouse) && !own.usb ? ' キーボードとマウスは、まだ本体につながっていない（USBケーブルがない）。' : '') +
+        (own.router && own.lan ? ' ルータとも、LANケーブルでつながった。' : '') + (own.tcpip ? ' 通信のきまり（TCP/IP）も用意できた。' : '');
+      return m(3, '画面に文字が映った！ でも、' + why + '。' + more);
+    }
+    // ③ OS が入った：班PCとして使える
+    var slow = own.ssd ? '' : '（HDDなので、起動に時間がかかる）';
+    if (!own.kbd || !own.mouse) return m(4, '起動して画面に映った！ でも、' + (!own.kbd && !own.mouse ? 'キーボードとマウス' : !own.kbd ? 'キーボード' : 'マウス') + 'がないので操作できない' + slow);
+    if (!own.usb) return m(4, '起動して画面に映った！ でも、キーボードとマウスが本体につながっていない（USBケーブルがない）');
+    if (!net) return m(5, '🎉 班PCが使えるようになった！ ' + (!own.router ? '（インターネットには、ルータがないのでつながらない）' : !own.lan ? '（インターネットには、LANケーブルがないのでつながらない）' : '（インターネットには、通信のきまり TCP/IP がないのでつながらない）') + slow);
+    if (!own.browser) return m(6, '🎉 班PCが使えるようになった！ インターネットにもつながった（Webブラウザがあれば、Webページが見られる）' + slow);
+    return m(7, '🎉 班PCが使えるようになった！ インターネットにつながって、Webページも見られる' + (own.sec ? '（暗号化で安全に）' : '') + slow);
+  }
+  function pcSvg(hi, cls) {
+    var own = owned(), st = pcState(own);
+    var order = DRAW_ORDER;
+    var g = order.map(function (k) {
+      var has = !!own[k];
+      return '<g class="' + (has ? 'pcHas' : 'pcGhost') + (k === hi ? ' pcHi' : '') + '">' + PART_SVG[k] + '</g>';
+    }).join('');
+    return '<svg class="' + (cls || 'pcSvg') + '" viewBox="0 0 360 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="班PCの完成状況">' +
+      '<style>.pcGhost *{fill:none!important;stroke:#64748b!important;stroke-width:1.3!important;stroke-dasharray:4 3}.pcGhost{opacity:.55}.pcGhost text{fill:#64748b!important;stroke:none!important}' +
+      '.pcHi{animation:pcHi 1.2s ease-in-out infinite}.pcHi path{stroke-width:5!important}@keyframes pcHi{0%,100%{filter:drop-shadow(0 0 0 #facc15)}50%{filter:drop-shadow(0 0 6px #facc15)}}' +
+      (st.shown ? '' : '.pcHas .pcScreen{fill:#020617!important}') + '@media (prefers-reduced-motion:reduce){.pcHi{animation:none;filter:drop-shadow(0 0 4px #facc15)}}</style>' +
+      OUTLETS + CASE_SVG + g +
+      (own.disp && own.hdmi && st.post && !st.boot ? '<text x="34" y="46" font-size="9" font-weight="700" fill="#e2e8f0" font-family="ui-monospace,Consolas,monospace">No bootable device.</text><text x="34" y="60" font-size="9" fill="#94a3b8" font-family="ui-monospace,Consolas,monospace">Insert boot disk_</text>' : '') +
+      (st.shown ? '<g font-family="system-ui,sans-serif"><text x="105" y="80" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">' + (st.usable ? '班PC Ready!' : 'Hello!') + '</text><g fill="#e0f2fe" opacity=".85"><rect x="34" y="34" width="14" height="12" rx="2"/><rect x="34" y="52" width="14" height="12" rx="2"/><rect x="34" y="70" width="14" height="12" rx="2"/></g><rect x="26" y="114" width="158" height="10" fill="#0369a1"/></g>' : '') +
+      (st.power && own.board ? '<circle cx="330" cy="30" r="3" fill="' + (st.post ? '#4ade80' : '#f59e0b') + '"/>' : '') + (st.shown && st.web ? '<text x="180" y="121" text-anchor="end" font-size="9" fill="#fff" font-family="system-ui,sans-serif">🌐</text>' : '') + (st.shown ? '<text x="30" y="121" font-size="7" fill="#e0f2fe" font-family="system-ui,sans-serif">' + (st.fast ? 'SSD' : 'HDD') + '</text>' : '') +
+      '</svg>';
+  }
+
+  // ぶひんのカード（どのページのデザインにも合うよう、スタイルは中に書く）
+  function partCard(id, opt) {
+    var p = part(id); if (!p) return '';
+    opt = opt || {};
+    var cab = p.type === 'cable', col = cab ? '#f87171' : '#facc15';
+    return '<div style="margin:14px auto;max-width:560px;background:#020617;border:' + (cab ? 3 : 2) + 'px solid ' + col + ';border-radius:14px;padding:14px 18px;color:#e2e8f0;font:700 15px/1.7 system-ui,-apple-system,\'Hiragino Sans\',sans-serif;text-align:center' + (cab ? ';box-shadow:0 0 18px rgba(248,113,113,.45)' : '') + '">' +
+      '<div style="color:' + (cab ? '#fecaca' : '#fde68a') + ';font-size:17px;font-weight:900">' + (cab ? '🔌 班PCの ケーブル を手に入れた！' : TYPE_ICON[p.type] + ' 班PCの ぶひん（' + (p.type === 'soft' ? 'ソフトウェア' : 'ハードウェア') + '）を手に入れた！') + '</div>' +
+      '<div style="max-width:300px;margin:6px auto">' + pcSvg(p.id, 'pcSvgCard').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ') + '</div>' +
+      '<div style="font-size:20px;font-weight:900;color:#fef3c7">' + p.name + '</div>' +
+      '<div style="font-size:14px;color:#cbd5e1">' + p.can + '</div>' +
+      '<div style="margin-top:6px;font-size:13px;color:#94a3b8">いまの班PC：' + pcState().msg + '</div>' +
+      (opt.link === false ? '' : '<a href="index.html" style="display:inline-block;margin-top:8px;background:#0ea5e9;color:#fff;border-radius:10px;padding:6px 16px;text-decoration:none">📱 Tの端末にもどる</a>') +
+      '</div>';
+  }
+
+  // えほん：確認クイズを見張って、全問正解ならぶひんを出す。まちがいがあれば「もう一度」
+  function autoQuiz(id) {
+    function setup() {
+      var score = document.getElementById('score');
+      if (!score) return;
+      var box = document.createElement('div');
+      box.id = 'hubBox';
+      var host = score.closest ? score.closest('.qhead') : null;
+      (host && host.parentNode ? host.parentNode : score.parentNode).insertBefore(box, host ? host.nextSibling : score.nextSibling);
+      var page = score.parentNode && score.parentNode.closest ? score.parentNode.closest('[id]') : null;
+      function retry() {
+        location.hash = page ? page.id : '';
+        location.reload();
+      }
+      var note = function (t) { return '<div style="margin:10px auto;max-width:560px;text-align:center;font:700 14px/1.6 system-ui,sans-serif;color:#64748b">' + t + '</div>'; };
+      function update() {
+        var t = score.textContent || '';
+        if (t.indexOf('全問正解') >= 0) { clear(id); box.innerHTML = partCard(id); return; }
+        if (/問正解。/.test(t)) {
+          box.innerHTML = '<div style="margin:12px auto;max-width:560px;text-align:center;font:700 15px/1.7 system-ui,sans-serif;color:#475569">全問正解で、班PCの ぶひん が手に入る。' +
+            '<br><button type="button" id="hubRetryBtn" style="margin-top:6px;font:inherit;background:#0ea5e9;color:#fff;border:0;border-radius:10px;padding:6px 18px;cursor:pointer">🔁 もう一度ちょうせんする</button></div>';
+          var b = document.getElementById('hubRetryBtn'); if (b) b.onclick = retry;
+          return;
+        }
+        var p = part(id);
+        box.innerHTML = p ? note('✓ クリアずみ（ぶひん：' + p.name + '）') : note('🔧 全問正解すると、班PCの ぶひん が手に入る');
+      }
+      new MutationObserver(update).observe(score, { childList: true, characterData: true, subtree: true });
+      update();
+      // Tの端末へもどるボタン（右下）
+      var a = document.createElement('a');
+      a.href = 'index.html'; a.textContent = '📱 Tの端末';
+      a.setAttribute('style', 'position:fixed;right:12px;bottom:12px;z-index:9999;background:#0f172a;color:#fde68a;border:2px solid #facc15;border-radius:999px;padding:6px 14px;font:800 14px system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.35)');
+      document.body.appendChild(a);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  }
+
+  window.DroneHub = {
+    ITEMS: ITEMS, GEAR: GEAR, TYPE_ICON: TYPE_ICON, kindOf: kindOf, item: item, isCleared: isCleared, clear: clear, isOpen: isOpen,
+    part: part, parts: parts, nextPart: nextPart, ORDER: ORDER, pcSvg: pcSvg, pcState: pcState, partCard: partCard, pieceCard: partCard,
+    autoQuiz: autoQuiz, team: team, visible: visible, lockedGroup: lockedGroup, setGroup: setGroup,
+    reset: function () { try { localStorage.removeItem(KEY); } catch (e) { /* なし */ } }
+  };
+})();
+
+/* ==== HUB END ==== */</script>
+<script>window.DroneHub && DroneHub.autoQuiz('dsnTerms');</script>
